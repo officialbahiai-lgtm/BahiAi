@@ -602,6 +602,7 @@
   <button class="navbtn" data-tab="acct"><span class="ic">🧾</span>Sale/Purchase</button>
   <button class="navbtn" data-tab="activity"><span class="ic">📋</span>Activity</button>
   <button class="navbtn" data-tab="approvals" id="approvalsNavBtn" style="display:none;"><span class="ic">✅</span>Approvals</button>
+  <button class="navbtn" data-tab="admin" id="adminNavBtn" style="display:none;"><span class="ic">🛡️</span>Admin</button>
   <button class="navbtn" data-tab="custCatalog" style="display:none;"><span class="ic">🖼️</span>Catalog</button>
   <button class="navbtn" data-tab="custOrders" style="display:none;"><span class="ic">📄</span>Saved Orders</button>
   <button class="navbtn" id="backupNavBtn" onclick="openBackup()" style="display:none;"><span class="ic">💾</span>Backup</button>
@@ -707,7 +708,7 @@ const googleReady = !!(GOOGLE_CLIENT_ID && !GOOGLE_CLIENT_ID.includes('YOUR_GOOG
    PLATFORM SETTINGS  — only the app's creator changes these
    ===================================================================== */
 const OWNER_EMAIL = 'sandeep9131yadav@gmail.com';                       // owner of this app
-const PLATFORM_ADMINS = ['sandeep9131yadav@gmail.com', 'sandeep.svy3@gmail.com'];   // the ONLY accounts with full control
+const PLATFORM_ADMINS = ['sandeep9131yadav@gmail.com', 'sandeep.svy3@gmail.com', 'officialbahiai@gmail.com'];   // the ONLY accounts with full control
 const SUPPORT_PHONE = '919131335455';        // number for "Call to subscribe" ONLY (country code + number, digits only)
 const HELP_WHATSAPP = '918269191350';        // Help: WhatsApp message only
 const HELP_EMAIL = 'officialbahiai@gmail.com';  // Help: e-mail
@@ -769,6 +770,7 @@ const RESTRICTABLE_TABS = [
   { key:'deletedOrders',    label:'Deleted' },
   { key:'acct',             label:'Sale/Purchase' },
   { key:'activity',         label:'Activity' }
+  , { key:'approvals', label:'Approvals' }
 ];
 
 function isOwnerUser_(){ return !!(currentStaff && ((currentStaff.mobile && isOwnerEmail_(currentStaff.mobile)) || currentStaff.role === 'owner')); }
@@ -784,9 +786,10 @@ function canAccessTab(tabKey){
   if(!currentStaff) return false;
   if(isCustomerUser_()) return tabKey === 'custCatalog' || tabKey === 'custOrders';
   if(tabKey === 'custCatalog' || tabKey === 'custOrders') return false;
+  if(tabKey === 'admin') return !!(currentStaff && isOwnerEmail_(currentStaff.mobile));
   if(!currentStaff.mobile) return true; // legacy name-only login predates this system
   if(isOwnerUser_()) return true;
-  if(tabKey === 'approvals') return false; // owner-only, handled separately
+  if(tabKey === 'admin') return false;
   const entry = approvalEntry_();
   return !!(entry && entry.status === 'approved' && Array.isArray(entry.allowedTabs) && entry.allowedTabs.includes(tabKey));
 }
@@ -839,7 +842,7 @@ const I18N = {
   en: {
     app_title:'BahiAi',
     nav_order:'TakeOrder', nav_article:'Article', nav_dispatched:'Dispatched', nav_pending:'Pending',
-    nav_customers:'Customers', nav_deleted:'Deleted', nav_activity:'Activity', nav_approvals:'Approvals', nav_dashboard:'Dashboard', nav_catalog:'Catalog', nav_catpend:'Cat. Pending', nav_catdisp:'Cat. Dispatched', nav_custorders:'Saved Orders',
+    nav_customers:'Customers', nav_deleted:'Deleted', nav_activity:'Activity', nav_approvals:'Approvals', nav_admin:'Admin', nav_dashboard:'Dashboard', nav_catalog:'Catalog', nav_catpend:'Cat. Pending', nav_catdisp:'Cat. Dispatched', nav_custorders:'Saved Orders',
     pending_sets:'Pending', sets:'Sets', set:'Set', pcs:'Pcs', box:'Box', switch_btn:'Switch',
 
     login_title:'Staff Login',
@@ -939,7 +942,7 @@ const I18N = {
   hi: {
     app_title:'BahiAi',
     nav_order:'ऑर्डर', nav_article:'आर्टिकल', nav_dispatched:'डिस्पैच', nav_pending:'पेंडिंग',
-    nav_customers:'ग्राहक', nav_deleted:'डिलीटेड', nav_activity:'एक्टिविटी', nav_approvals:'अप्रूवल्स', nav_dashboard:'डैशबोर्ड', nav_catalog:'कैटलॉग', nav_catpend:'कैट. पेंडिंग', nav_catdisp:'कैट. डिस्पैच', nav_custorders:'सेव ऑर्डर',
+    nav_customers:'ग्राहक', nav_deleted:'डिलीटेड', nav_activity:'एक्टिविटी', nav_approvals:'अप्रूवल्स', nav_admin:'एडमिन', nav_dashboard:'डैशबोर्ड', nav_catalog:'कैटलॉग', nav_catpend:'कैट. पेंडिंग', nav_catdisp:'कैट. डिस्पैच', nav_custorders:'सेव ऑर्डर',
     pending_sets:'पेंडिंग', sets:'सेट', set:'सेट', pcs:'पीस', box:'बॉक्स', switch_btn:'स्विच',
 
     login_title:'स्टाफ लॉगिन',
@@ -1060,7 +1063,7 @@ function applyStaticLanguage(){
   if(langBtn) langBtn.textContent = t('lang_toggle');
   const navMap = { book:'nav_order', dispatch:'nav_article', dispatchedOrders:'nav_dispatched',
     pendingOrders:'nav_pending', customers:'nav_customers', deletedOrders:'nav_deleted',
-    activity:'nav_activity', approvals:'nav_approvals', dashboard:'nav_dashboard', catalog:'nav_catalog', catPending:'nav_catpend', catDispatched:'nav_catdisp', custCatalog:'nav_catalog', custOrders:'nav_custorders' };
+    activity:'nav_activity', approvals:'nav_approvals', admin:'nav_admin', dashboard:'nav_dashboard', catalog:'nav_catalog', catPending:'nav_catpend', catDispatched:'nav_catdisp', custCatalog:'nav_catalog', custOrders:'nav_custorders' };
   document.querySelectorAll('.navbtn').forEach(btn=>{
     const key = navMap[btn.dataset.tab];
     if(!key) return;
@@ -1518,7 +1521,9 @@ async function sbApi_(o){
     const a = o && o.action;
     if(a === 'logout'){ await sb.auth.signOut(); return { ok:true }; }
     const fid = sbFirmId_();
-    if(!fid) return { ok:false, code:'auth' };
+    if(!fid) return { ok:false, code:'nofirm' };
+    if(a === 'get' && o.key === 'staffApprovals') return await sbGetApprovals_(fid);
+    if(!a && o.key === 'staffApprovals') return await sbSetApprovals_(fid, o.value);
     if(a === 'get'){
       const { data, error } = await sb.from('app_store').select('value').eq('firm_id', fid).eq('key', o.key).maybeSingle();
       if(error) return { ok:false, code: (error.status === 401 || /JWT/i.test(error.message || '')) ? 'auth' : 'error', error:error.message };
@@ -1544,18 +1549,150 @@ async function sbResolve_(typedName){
   const msg = document.getElementById('loginMsg');
   if(error){ if(msg) msg.innerHTML = `<div class="msg err">${escapeHtml(error.message)}</div>`; return; }
   const rows = data || [];
-  const ok = rows.find(r=>r.status === 'approved' && r.firm_status === 'active');
+  const today_ = todayStr_();
+  const ok = rows.find(r=>r.status === 'approved' && r.firm_status === 'active' && (!r.valid_until || r.valid_until >= today_));
   if(ok){
     bizSetLicense_(ok.license_id);
-    finishLogin_({ token:session.access_token, email, name, firmId:ok.firm_id, role:ok.role });
+    finishLogin_({ token:session.access_token, email, name, firmId:ok.firm_id, role:ok.role, plan:ok.plan, staffLimit:ok.staff_limit, validUntil:ok.valid_until });
+    if(ok.role === 'owner' && ok.plan === 'trial') setTimeout(()=>showPlansPopup_(ok.valid_until, ok.staff_limit), 800);
     return;
   }
+  if(!rows.length && isOwnerEmail_(email)){ currentTab = 'admin'; finishLogin_({ token:session.access_token, email, name, firmId:'', role:'admin' }); return; }
   if(!rows.length){ firmSetup_ = { email, name }; loginWaitingEmail = null; render(); return; }
   const r0 = rows[0];
   bizSetLicense_(r0.license_id);
   waitingSession_ = { token:session.access_token, email, name, status: r0.status === 'rejected' ? 'rejected' : 'pending', firmStatus:r0.firm_status, licenseId:r0.license_id };
   loginWaitingEmail = email;
   render();
+}
+
+/* ---- Staff approvals live in the `members` table; the app still sees the same list as before ---- */
+let sbKnown_ = new Set();
+async function sbGetApprovals_(fid){
+  const { data, error } = await sb.from('members').select('email,name,role,status,perms,created_at').eq('firm_id', fid);
+  if(error) return { ok:false, code:'error', error:error.message };
+  const rows = (data || []).filter(r=>r.role !== 'owner');
+  sbKnown_ = new Set(rows.map(r=>r.email));
+  const list = rows.map(r=>Object.assign({}, r.perms || {}, { name: r.name || (r.perms && r.perms.name) || r.email, email:r.email, status:r.status, role:r.role, requestedAt:(r.perms && r.perms.requestedAt) || r.created_at }));
+  let extra = [];
+  try{ const ex = await sb.from('app_store').select('value').eq('firm_id', fid).eq('key', 'staffApprovalsExtra').maybeSingle(); extra = ex.data && ex.data.value ? JSON.parse(ex.data.value) : []; }catch(e){}
+  const have = new Set(list.map(x=>x.email));
+  extra.forEach(x=>{ if(x && !have.has(x.email)) list.push(x); });
+  return { ok:true, value: JSON.stringify(list) };
+}
+async function sbSetApprovals_(fid, str){
+  let arr = []; try{ arr = JSON.parse(str) || []; }catch(e){ return { ok:false, error:'bad data' }; }
+  const { data:rows, error } = await sb.from('members').select('email,role').eq('firm_id', fid);
+  if(error) return { ok:false, code:'error', error:error.message };
+  const byEmail = {}; (rows || []).forEach(r=>{ byEmail[r.email] = r; });
+  const extra = [], inArr = new Set();
+  for(const e of arr){
+    const em = String(e.email || '').toLowerCase(); inArr.add(em);
+    const r = byEmail[em];
+    if(r && r.role !== 'owner'){
+      const perms = Object.assign({}, e); perms.approvals = Array.isArray(e.allowedTabs) && e.allowedTabs.includes('approvals');
+      const u = await sb.from('members').update({ status:e.status, role: e.role === 'customer' ? 'customer' : 'staff', name:e.name || '', perms }).eq('firm_id', fid).eq('email', em);
+      if(u.error){ if(/limit/i.test(u.error.message || '')) alert(u.error.message); return { ok:false, code: u.error.code === '42501' ? 'forbidden' : 'error', error:u.error.message }; }
+    } else if(!r){ extra.push(e); }
+  }
+  for(const em of sbKnown_){ if(!inArr.has(em) && byEmail[em] && byEmail[em].role !== 'owner') await sb.from('members').delete().eq('firm_id', fid).eq('email', em); }
+  await sb.from('app_store').upsert({ firm_id:fid, key:'staffApprovalsExtra', value:JSON.stringify(extra) });
+  return { ok:true };
+}
+
+/* ---- Admin screen (only for PLATFORM_ADMINS) ---- */
+
+/* ---- Plans popup (shown to owners during the free trial) ---- */
+const PLANS_ = [
+  { price:199,  staff:'Up to 5 staff' },
+  { price:499,  staff:'6 to 15 staff' },
+  { price:1099, staff:'16 to 30 staff' },
+  { price:2199, staff:'31 to 50 staff' }
+];
+function showPlansPopup_(validUntil, limit){
+  try{
+    const day = todayStr_();
+    if(localStorage.getItem('ssa_plans_seen') === day) return;
+    localStorage.setItem('ssa_plans_seen', day);
+  }catch(e){}
+  const left = validUntil ? Math.max(0, Math.ceil((new Date(validUntil) - new Date(todayStr_())) / 86400000)) : 0;
+  const rows = PLANS_.map(p=>`<div style="display:flex;justify-content:space-between;padding:10px 12px;border:1px solid #d7e3ee;border-radius:10px;margin-top:8px;"><b>₹${p.price} / month</b><span>${p.staff}</span></div>`).join('');
+  const ov = document.createElement('div');
+  ov.id = 'plansOverlay';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+  ov.innerHTML = `<div style="background:#fff;border-radius:16px;max-width:420px;width:100%;padding:20px;max-height:90vh;overflow:auto;">
+    <h3 style="margin:0 0 6px;color:#0288D1;">Your free trial</h3>
+    <p style="margin:0 0 10px;">${left} day${left === 1 ? '' : 's'} left. During the trial you can add up to ${limit || 5} staff. After the trial, choose a plan:</p>
+    ${rows}
+    <p style="font-size:13px;color:#5b6472;margin:12px 0;">To start a plan, message us on WhatsApp or email. Please do not call.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <a href="https://wa.me/918269191350" target="_blank" rel="noopener" style="flex:1;text-align:center;padding:10px;border-radius:10px;background:#25D366;color:#fff;font-weight:600;text-decoration:none;">WhatsApp</a>
+      <a href="mailto:${HELP_EMAIL}" style="flex:1;text-align:center;padding:10px;border-radius:10px;background:#0288D1;color:#fff;font-weight:600;text-decoration:none;">Email</a>
+    </div>
+    <button onclick="document.getElementById('plansOverlay').remove()" style="width:100%;margin-top:10px;padding:10px;border-radius:10px;border:1px solid #d7e3ee;background:#f4f8fb;font-weight:600;">Close</button>
+  </div>`;
+  document.body.appendChild(ov);
+}
+let adminFirms_ = [], adminWatchOn_ = false, adminSeen_ = -1;
+function todayStr_(){ return new Date().toISOString().slice(0,10); }
+function renderAdmin(main){
+  main.innerHTML = '<div style="padding:20px;">Loading…</div>';
+  sb.from('firms').select('id,license_id,name,status,valid_until,created_at,plan,staff_limit,members(email,name,role,status)').order('created_at', { ascending:false }).then(({ data, error })=>{
+    if(currentTab !== 'admin') return;
+    if(error){ main.innerHTML = `<div class="msg err">${escapeHtml(error.message)}</div>`; return; }
+    adminFirms_ = data || [];
+    const today = todayStr_(), pend = adminFirms_.filter(f=>f.status === 'pending').length;
+    const cards = adminFirms_.map(f=>{
+      const o = (f.members || []).find(m=>m.role === 'owner') || {};
+      const exp = f.valid_until && f.valid_until < today;
+      const pill = f.status === 'active' && !exp ? 'approved' : (f.status === 'pending' ? 'pending' : 'rejected');
+      const nStaff = (f.members || []).filter(m=>m.role === 'staff' && m.status === 'approved').length;
+      const planSel = `<select id="plan_${f.id}" style="padding:8px;border-radius:8px;border:1px solid #d7e3ee;margin-right:6px;">` +
+        [['trial:5','Trial (5 staff)'],['199:5','₹199 · 5 staff'],['499:15','₹499 · 6-15 staff'],['1099:30','₹1099 · 16-30 staff'],['2199:50','₹2199 · 31-50 staff']]
+          .map(o=>`<option value="${o[0]}"${(f.plan || 'trial') + ':' + (f.staff_limit || 5) === o[0] ? ' selected' : ''}>${o[1]}</option>`).join('') + '</select>';
+      return `<div class="cust-card">
+        <div class="cust-head"><span class="name">${escapeHtml(f.name)}</span><span class="set-pill ${pill}">${f.status}${exp ? ' · expired' : ''}</span></div>
+        <div style="font-size:13px;color:#5b6472;">${escapeHtml(f.license_id)} · ${escapeHtml(o.email || '')}<br>Created ${escapeHtml(String(f.created_at).slice(0,10))} · Valid until ${escapeHtml(f.valid_until || '—')}<br>Plan: ${escapeHtml(f.plan || 'trial')} · Staff ${nStaff}/${f.staff_limit || 5}</div>
+        <div class="action-row">
+          ${planSel}<button class="action-btn" onclick="adminSet_('${f.id}','active',30)">${f.status === 'pending' ? 'Activate 30 days' : '+30 days'}</button>
+          <button class="action-btn" onclick="adminSet_('${f.id}','active',365)">+1 year</button>
+          <button class="action-btn del" onclick="adminSet_('${f.id}','suspended',0)">Suspend</button>
+        </div></div>`;
+    }).join('');
+    main.innerHTML = `<div style="padding:12px;max-width:760px;margin:0 auto;"><h2>Admin</h2><p>${adminFirms_.length} businesses · ${pend} waiting for activation</p><div class="cust-card"><div class="cust-head"><span class="name">Allow a staff Google account to become an owner</span></div><div class="action-row"><input id="allowOwnerEmail" placeholder="email@gmail.com" style="flex:1;padding:9px;border:1px solid #d7e3ee;border-radius:8px;"><button class="action-btn" onclick="adminAllowOwner_()">Allow</button></div></div>${cards || '<p>No businesses yet.</p>'}</div>`;
+  });
+}
+async function adminSet_(id, status, days){
+  const f = adminFirms_.find(x=>x.id === id); if(!f) return;
+  let valid = null;
+  if(days){ const base = (f.valid_until && f.valid_until > todayStr_()) ? new Date(f.valid_until) : new Date(); base.setDate(base.getDate() + days); valid = base.toISOString().slice(0,10); }
+  const sel = document.getElementById('plan_' + id);
+  const pv = sel ? sel.value.split(':') : null;
+  const { error } = await sb.rpc('admin_set_firm', { p_id:id, p_status:status, p_valid:valid, p_plan: pv ? pv[0] : null, p_limit: pv ? parseInt(pv[1], 10) : null });
+  if(error){ alert(error.message); return; }
+  renderAdmin(document.getElementById('main'));
+}
+async function adminAllowOwner_(){
+  const el = document.getElementById('allowOwnerEmail'); const em = el ? el.value.trim() : '';
+  if(!em) return;
+  const { error } = await sb.rpc('admin_allow_owner', { p_email:em });
+  alert(error ? error.message : em + ' can now create their own business.');
+  if(!error) el.value = '';
+}
+function adminWatch_(){
+  if(adminWatchOn_ || !sb || !currentStaff || !isOwnerEmail_(currentStaff.mobile)) return;
+  adminWatchOn_ = true;
+  try{ if('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); }catch(e){}
+  const tick = async ()=>{
+    try{
+      const { count } = await sb.from('firms').select('id', { count:'exact', head:true }).eq('status', 'pending');
+      if(count == null) return;
+      document.title = (count ? '(' + count + ') ' : '') + 'BahiAi';
+      if(adminSeen_ >= 0 && count > adminSeen_){ try{ new Notification('BahiAi', { body:'A new business signed up and is waiting for activation', icon:'icon-192.png' }); }catch(e){} }
+      adminSeen_ = count;
+    }catch(e){}
+  };
+  tick(); setInterval(tick, 60000);
 }
 let firmSetup_ = null;
 function renderFirmSetup(main){
@@ -2337,7 +2474,8 @@ function render(){
 
   const isOwner = !!(currentStaff.mobile && isOwnerEmail_(currentStaff.mobile));
   const approvalsBtn = document.getElementById('approvalsNavBtn');
-  if(approvalsBtn) approvalsBtn.style.display = isOwner ? 'flex' : 'none';
+  if(approvalsBtn) approvalsBtn.style.display = canAccessTab('approvals') ? 'flex' : 'none';
+  adminWatch_();
 
   // Restrict tabs per-staff: owner sees everything; a staff member only
   // sees Order + Article by default, plus whatever tabs the owner has
@@ -2376,6 +2514,7 @@ function render(){
   else if(currentTab==='deletedOrders') renderDeletedOrders(main);
   else if(currentTab==='activity') renderActivity(main);
   else if(currentTab==='approvals') renderApprovals(main);
+  else if(currentTab==='admin') renderAdmin(main);
   else if(currentTab==='acct') renderAcct(main);
   else renderCustomers(main);
   try{ planBannerPaint_(main); }catch(e){}
@@ -2436,7 +2575,7 @@ function clearLocalData_(){
 function finishLogin_(sess){
   let prev = ''; try{ prev = localStorage.getItem('ssa_last_email') || ''; }catch(e){}
   if(prev && prev.toLowerCase() !== String(sess.email).toLowerCase()) clearLocalData_();
-  currentStaff = { name: sess.name, mobile: sess.email, token: sess.token, firmId: sess.firmId || '', role: sess.role || '' };
+  currentStaff = { name: sess.name, mobile: sess.email, token: sess.token, firmId: sess.firmId || '', role: sess.role || '', plan: sess.plan || '', staffLimit: sess.staffLimit || 0, validUntil: sess.validUntil || '' };
   try{ localStorage.setItem('ssa_currentStaff', JSON.stringify(currentStaff)); localStorage.setItem('ssa_last_email', sess.email); }catch(e){}
   loginWaitingEmail = null; waitingSession_ = null;
   currentTab = ''; loaded = false;
