@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="format-detection" content="telephone=no">
-<title>Allinone Bahi — Order & Dispatch</title>
+<title>BahiAi — Order & Dispatch</title>
 
 <!-- Makes this installable as a real app icon on phone/PC, not just a browser tab -->
 <link rel="manifest" href="manifest.json">
@@ -13,7 +13,7 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="SSA Orders">
+<meta name="apple-mobile-web-app-title" content="BahiAi">
 <meta name="mobile-web-app-capable" content="yes">
 
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
@@ -575,7 +575,7 @@
 <body>
 
 <div class="topbar">
-  <h1>Allinone Bahi</h1>
+  <h1>BahiAi</h1>
   <span id="pageTitle" class="page-title"></span>
   <div class="topbar-right">
     <button class="lang-toggle" id="shareAppBtn" onclick="openShareApp()" title="Share App">📲</button>
@@ -588,7 +588,7 @@
 <main id="main"></main>
 
 <div class="bottom-nav" id="bottomNav">
-  <div class="side-brand"><img id="sideLogo" alt=""><div><b id="sideBrandName">Allinone Bahi</b><span>Order &amp; Dispatch</span></div></div>
+  <div class="side-brand"><img id="sideLogo" alt=""><div><b id="sideBrandName">BahiAi</b><span>Order &amp; Dispatch</span></div></div>
   <button class="navbtn" data-tab="dashboard"><span class="ic">📊</span>Dashboard</button>
   <button class="navbtn" data-tab="book"><span class="ic">📝</span>TakeOrder</button>
   <button class="navbtn" data-tab="dispatch"><span class="ic">🔎</span>Article</button>
@@ -837,7 +837,7 @@ try{ currentLang = localStorage.getItem('ssa_lang') || 'en'; }catch(e){}
 
 const I18N = {
   en: {
-    app_title:'Allinone Bahi',
+    app_title:'BahiAi',
     nav_order:'TakeOrder', nav_article:'Article', nav_dispatched:'Dispatched', nav_pending:'Pending',
     nav_customers:'Customers', nav_deleted:'Deleted', nav_activity:'Activity', nav_approvals:'Approvals', nav_dashboard:'Dashboard', nav_catalog:'Catalog', nav_catpend:'Cat. Pending', nav_catdisp:'Cat. Dispatched', nav_custorders:'Saved Orders',
     pending_sets:'Pending', sets:'Sets', set:'Set', pcs:'Pcs', box:'Box', switch_btn:'Switch',
@@ -937,7 +937,7 @@ const I18N = {
     lang_toggle:'हिं',
   },
   hi: {
-    app_title:'Allinone Bahi',
+    app_title:'BahiAi',
     nav_order:'ऑर्डर', nav_article:'आर्टिकल', nav_dispatched:'डिस्पैच', nav_pending:'पेंडिंग',
     nav_customers:'ग्राहक', nav_deleted:'डिलीटेड', nav_activity:'एक्टिविटी', nav_approvals:'अप्रूवल्स', nav_dashboard:'डैशबोर्ड', nav_catalog:'कैटलॉग', nav_catpend:'कैट. पेंडिंग', nav_catdisp:'कैट. डिस्पैच', nav_custorders:'सेव ऑर्डर',
     pending_sets:'पेंडिंग', sets:'सेट', set:'सेट', pcs:'पीस', box:'बॉक्स', switch_btn:'स्विच',
@@ -1086,7 +1086,7 @@ function applyStaticLanguage(){
    Until the owner sets them, the neutral defaults below are shown. */
 const DEFAULT_LOGO_B64 = 'data:image/png;base64,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';
 let COMPANY_LOGO_B64 = DEFAULT_LOGO_B64;
-let COMPANY_NAME = 'Allinone Bahi';
+let COMPANY_NAME = 'BahiAi';
 let COMPANY_ADDRESS = '';
 let COMPANY_CONTACT = '';
 let bizProfile = {};
@@ -7125,7 +7125,7 @@ function bizApply_(p){
   bizProfile = (p && typeof p === 'object') ? p : {};
   delete bizProfile.plan; if(keepPlan) bizProfile.plan = keepPlan;
   delete bizProfile.licenseId; if(keepLic) bizProfile.licenseId = keepLic;
-  COMPANY_NAME = String(bizProfile.name || '').trim() || 'Allinone Bahi';
+  COMPANY_NAME = String(bizProfile.name || '').trim() || 'BahiAi';
   COMPANY_ADDRESS = String(bizProfile.address || '').trim();
   COMPANY_CONTACT = String(bizProfile.contact || '').trim();
   COMPANY_LOGO_B64 = (typeof bizProfile.logo === 'string' && /^data:image\//.test(bizProfile.logo)) ? bizProfile.logo : DEFAULT_LOGO_B64;
