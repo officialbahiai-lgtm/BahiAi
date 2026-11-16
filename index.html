@@ -5926,6 +5926,41 @@ async function catUploadImg_(id, dataUrl){
   }catch(e){ throw new Error('SHEET_SAVE_FAILED'); }
   return n;
 }
+
+/* ---------- Catalog photos always go to the BUSINESS OWNER's Google Drive (folder "BahiAi Catalog") ----------
+   The owner connects their Drive once; any staff upload is sent through a secure server function (Supabase Edge Function "drive"). */
+let driveOk_ = null;
+async function driveStatus_(){
+  try{ const { data } = await sb.rpc('drive_connected', { p_firm: sbFirmId_() }); driveOk_ = !!data; }catch(e){ driveOk_ = false; }
+  return driveOk_;
+}
+function driveConnect_(){
+  return new Promise((res, rej)=>{
+    if(!isOwnerUser_()) return rej(new Error('owner only'));
+    if(!(window.google && google.accounts && google.accounts.oauth2)) return rej(new Error('Google not loaded'));
+    google.accounts.oauth2.initCodeClient({
+      client_id: GOOGLE_CLIENT_ID, scope: 'https://www.googleapis.com/auth/drive.file', ux_mode: 'popup',
+      login_hint: (currentStaff && currentStaff.mobile) || '',
+      callback: async r=>{
+        if(!r || !r.code) return rej(new Error('denied'));
+        const { data, error } = await sb.functions.invoke('drive', { body:{ action:'connect', firmId:sbFirmId_(), code:r.code } });
+        if(error || !data || !data.ok) return rej(new Error((data && data.error) || (error && error.message) || 'connect failed'));
+        driveOk_ = true; res(true); render();
+      },
+      error_callback: e=>rej(new Error((e && e.type) || 'popup'))
+    }).requestCode();
+  });
+}
+function driveConnectBtn_(){ driveConnect_().then(()=>alert('Google Drive connected. Catalog photos will now be saved in your Drive folder "BahiAi Catalog".')).catch(e=>alert('Could not connect Google Drive: ' + e.message)); }
+async function driveToken_(){                       // called before saving photos: makes sure the owner's Drive is connected
+  if(driveOk_ !== true && !(await driveStatus_())) await driveConnect_();
+  return true;
+}
+async function catDriveUpload_(id, dataUrl){
+  const { data, error } = await sb.functions.invoke('drive', { body:{ action:'upload', firmId:sbFirmId_(), name:'design-' + id + '.jpg', image:(dataUrl.split(',')[1] || '') } });
+  if(error || !data || !data.fileId) throw new Error((data && data.error) || 'DRIVE_UPLOAD_FAILED');
+  return data.fileId;
+}
 function catTitle_(c){ return c.name + (c.sizes ? ' ' + c.sizes : ''); }
 function catRate_(c){ const r = Number(c.rate) || 0; return r ? r : 0; }
 
@@ -5944,6 +5979,7 @@ function catDateTxt_(iso){
 let catSearch = '', catSel = new Set(), catEditId = null, catFile = null, catShow = 150;
 
 function catGridHtml_(){
+  if(driveOk_ === null && sb && sbFirmId_()){ driveOk_ = false; driveStatus_().then(()=>{ if(driveOk_) render(); }); }
   const q = catSearch.trim().toLowerCase();
   const list = catalog.filter(c=>!q || (c.name + ' ' + (c.sizes||'') + ' ' + (c.brand||'')).toLowerCase().includes(q));
   const total = list.length; list.splice(catShow);
@@ -5961,6 +5997,7 @@ function renderCatalog(main){
       <input id="catSearchInp" class="filter-input" placeholder="Search design / size / brand" value="${escapeHtml(catSearch)}" oninput="catShow=150;onCatSearch(this.value)">
       <button class="btn-pill" onclick="openCatShare(false)">🔗 Share Catalog Link</button>
       <button class="btn-pill alt" onclick="catPickMany()">🗂️ Add Many Photos</button>
+      ${isOwnerUser_() ? `<button class="btn-pill ghost" onclick="driveConnectBtn_()">${driveOk_ ? '✅ Drive connected' : '🔗 Connect Google Drive'}</button>` : ''}
       ${canCatFreeze_() ? `<button class="btn-pill ghost" onclick="openCatFreeze()">👥 Customer Photos</button>` : ''}
       ${catDateBtn_()}
       ${catSel.size ? `<button class="btn-pill" style="background:#25D366;color:#063" onclick="catSendPhotos()">📷 Send ${catSel.size} photo${catSel.size > 1 ? 's' : ''} on WhatsApp</button><button class="btn-pill alt" onclick="openCatShare(true)">Share ${catSel.size} selected link</button>${canCurrentUserDelete() ? `<button class="btn-pill" style="background:#c0392b;color:#fff" onclick="deleteSelectedCatDesigns()">🗑️ Delete ${catSel.size}</button>` : ''}<button class="btn-pill ghost" onclick="catSel.clear();render()">Clear</button>` : ''}
@@ -6298,6 +6335,7 @@ async function catBulkSave(){
   todo.forEach(x=>{ const r = gid_('cbRow_' + x.id), ok = gid_('cbN_' + x.id).value.trim(); if(r) r.classList.toggle('bad', !ok); if(!ok) missing++; });
   if(missing) return err(`Please enter the design number for ${missing} photo${missing > 1 ? 's' : ''}`);
   if(!navigator.onLine) return err('Internet is needed to upload photos');
+  try{ await driveToken_(); }catch(e){ return err('Google Drive is not connected. The business owner must tap “Connect Google Drive” in the Catalog tab first.'); }
   msg.innerHTML = '';
   const btn = gid_('catBulkSaveBtn'); btn.disabled = true;
   const brand = gid_('catBulkBrand').value.trim();
@@ -6308,8 +6346,8 @@ async function catBulkSave(){
     if(T) T.textContent = '⏳ Uploading…';
     try{
       const id = 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
-      const parts = await catUploadImg_(id, await catEncode_(x.file));
-      added.push({ id, createdAt:new Date().toISOString(), parts, imgV:Date.now(),
+      const fileId = await catDriveUpload_(id, await catEncode_(x.file));
+      added.push({ id, createdAt:new Date().toISOString(), fileId, parts:0, imgV:Date.now(),
         name:gid_('cbN_' + x.id).value.trim(), sizes:gid_('cbS_' + x.id).value.trim(), rate:gid_('cbR_' + x.id).value.trim(),
         brand, hideFor:catBulkHideFor.slice() });
       x.saved = true;
@@ -6339,6 +6377,7 @@ async function saveCatForm(next){
   if(!name) return err('Please enter the design name / number');
   if(!catEditId && !catFile) return err('Please choose a photo');
   if(catFile && !navigator.onLine) return err('Internet is needed to upload a photo');
+  if(catFile){ try{ await driveToken_(); }catch(e){ return err('Google Drive is not connected. The business owner must tap “Connect Google Drive” in the Catalog tab first.'); } }
   const btn = gid_('catSaveBtn'); btn.disabled = true; btn.textContent = 'Saving…';
   const it = catEditId ? catalog.find(x=>x.id === catEditId)
     : { id:'d' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), createdAt:new Date().toISOString(), parts:0 };
@@ -6346,10 +6385,9 @@ async function saveCatForm(next){
     if(catFile){
       const du = await catEncode_(catFile);
       const oldFile = it.fileId, oldParts = it.parts || 0;
-      const n = await catUploadImg_(it.id, du);
-      it.parts = n; it.imgV = Date.now(); delete it.fileId;
-      if(oldFile){ postToSheet_({ action:'deleteCatalogImage', fileId:oldFile }).catch(()=>{}); }   // clean up an old Drive copy, if there was one
-      for(let i = n; i < oldParts; i++){ postToSheet_({ key:'catimg_' + it.id + '_' + i, value:'' }).catch(()=>{}); }
+      it.fileId = await catDriveUpload_(it.id, du);
+      it.parts = 0; it.imgV = Date.now();
+      for(let i = 0; i < oldParts; i++){ postToSheet_({ key:'catimg_' + it.id + '_' + i, value:'' }).catch(()=>{}); }
     }
   }catch(e){ btn.disabled = false; btn.textContent = 'Save'; return err('Photo upload failed — please check internet and try again'); }
 
@@ -7376,7 +7414,7 @@ async function bkRestoreFile(file){
         k++; bkMsg_(`<div class="msg">${BT_('Restoring designs','डिज़ाइन रिस्टोर हो रहे हैं')} ${k}/${nc.length}…</div>`);
         const it = Object.assign({}, c);
         if(photos[c.id]){
-          try{ const n = await catUploadImg_(it.id, photos[c.id]); it.parts = n; it.imgV = Date.now(); delete it.fileId; }
+          try{ it.fileId = await catDriveUpload_(it.id, photos[c.id]); it.parts = 0; it.imgV = Date.now(); }
           catch(e){ photoFail++; it.parts = 0; delete it.fileId; }
         }else if(it.parts || it.fileId){ it.parts = 0; delete it.fileId; }
         catalog.push(it);
