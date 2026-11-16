@@ -50,7 +50,7 @@ try {
   console.error('Push setup skipped in service worker', e);
 }
 
-const CACHE_NAME = 'ssa-app-v41';
+const CACHE_NAME = 'ssa-app-v42';
 const APP_SHELL = [
   './',
   './index.html',
@@ -80,6 +80,8 @@ self.addEventListener('fetch', (event) => {
 
   // Never touch the Google Sheets backend — always live network, never cached.
   if (req.url.indexOf('script.google.com') !== -1) return;
+  // Supabase (login + data) is always live from the network, never cached.
+  if (req.url.indexOf('supabase.co') !== -1) return;
 
   // Only handle simple page/asset loads.
   if (req.method !== 'GET') return;

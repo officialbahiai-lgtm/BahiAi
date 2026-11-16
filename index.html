@@ -8,7 +8,7 @@
 
 <!-- Makes this installable as a real app icon on phone/PC, not just a browser tab -->
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0288D1">
+<meta name="theme-color" content="#0B1F4D">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -17,6 +17,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
@@ -689,12 +690,15 @@ function inPdRange_(orderedAt){
 let activityDateFilter = ''; // yyyy-mm-dd
 let activitySelected = new Set(); // ids of checked activity log entries, for bulk delete
 
-const SHEET_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwR28myzk020v3-yd25OrjHCKb4ujzoxXyURe7GAcrt5cpSUZ7-_BAQ39t_NiZcJMc3yw/exec';
-const cloudAvailable = !!(SHEET_SCRIPT_URL && SHEET_SCRIPT_URL.startsWith('http'));
+const SHEET_SCRIPT_URL = '';   // old Google Apps Script backend - no longer used
+const SUPABASE_URL = 'https://udpoyljcuobddjepwbjt.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_-e3LbsA41aWpf2YXtG3Uww_tvPVRbxZ';   // public key; safe in the app
+const sb = (window.supabase && window.supabase.createClient) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth:{ persistSession:true, autoRefreshToken:true } }) : null;
+const cloudAvailable = !!sb;
 
 // Replace this with your own Google OAuth Client ID (see setup notes sent in chat).
 // Until you do, the login screen falls back to a simple name-only entry.
-const GOOGLE_CLIENT_ID = '436781702541-vojpb19fnlts7m96tirjj028b9gm2brd.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID = '342031651737-31rl7bt8oaaqf24la9on1s1di696og7r.apps.googleusercontent.com';
 const googleReady = !!(GOOGLE_CLIENT_ID && !GOOGLE_CLIENT_ID.includes('YOUR_GOOGLE_CLIENT_ID'));
 
 // Only this Google account gets automatic access + the Approvals tab. Everyone
@@ -767,7 +771,7 @@ const RESTRICTABLE_TABS = [
   { key:'activity',         label:'Activity' }
 ];
 
-function isOwnerUser_(){ return !!(currentStaff && currentStaff.mobile && isOwnerEmail_(currentStaff.mobile)); }
+function isOwnerUser_(){ return !!(currentStaff && ((currentStaff.mobile && isOwnerEmail_(currentStaff.mobile)) || currentStaff.role === 'owner')); }
 function approvalEntry_(){ return (currentStaff && currentStaff.mobile) ? (staffApprovals.find(s=>s.email === currentStaff.mobile) || null) : null; }
 // true when the owner approved this Google account as a CUSTOMER (sees only Catalog + Saved Orders)
 function isCustomerUser_(){
@@ -1505,6 +1509,86 @@ function showShareAgainPrompt_(file, blob, filename, shareTitle, shareText){
 let waitingSession_ = null;   // {token,email,name,status} while a new sign-in waits for the owner's approval
 let loginNotice_ = '';
 let authFailing_ = false;
+
+/* ===================== SUPABASE BACKEND (replaces Google Apps Script) ===================== */
+function sbFirmId_(){ return currentStaff && currentStaff.firmId ? currentStaff.firmId : ''; }
+async function sbApi_(o){
+  try{
+    if(!sb) return { ok:false, error:'offline' };
+    const a = o && o.action;
+    if(a === 'logout'){ await sb.auth.signOut(); return { ok:true }; }
+    const fid = sbFirmId_();
+    if(!fid) return { ok:false, code:'auth' };
+    if(a === 'get'){
+      const { data, error } = await sb.from('app_store').select('value').eq('firm_id', fid).eq('key', o.key).maybeSingle();
+      if(error) return { ok:false, code: (error.status === 401 || /JWT/i.test(error.message || '')) ? 'auth' : 'error', error:error.message };
+      return { ok:true, value: data ? data.value : null };
+    }
+    if(!a && o.key !== undefined){
+      const { error } = await sb.from('app_store').upsert({ firm_id:fid, key:o.key, value:o.value, updated_at:new Date().toISOString() });
+      if(error) return { ok:false, code: (error.status === 401 || /JWT/i.test(error.message || '')) ? 'auth' : (error.code === '42501' ? 'forbidden' : 'error'), error:error.message };
+      return { ok:true };
+    }
+    return { ok:false, code:'unsupported', error:'Not available yet' };
+  }catch(e){ return { ok:false, error:String(e && e.message || e) }; }
+}
+function postToSheet_(obj){ return sbApi_(obj).then(j=>({ ok:true, json: async()=>j })); }
+
+// After Google sign-in: find the person's business and status
+async function sbResolve_(typedName){
+  const { data:{ session } } = await sb.auth.getSession();
+  if(!session) return;
+  const u = session.user, email = (u.email || '').toLowerCase();
+  const name = typedName || (u.user_metadata && u.user_metadata.full_name) || email;
+  const { data, error } = await sb.rpc('my_memberships');
+  const msg = document.getElementById('loginMsg');
+  if(error){ if(msg) msg.innerHTML = `<div class="msg err">${escapeHtml(error.message)}</div>`; return; }
+  const rows = data || [];
+  const ok = rows.find(r=>r.status === 'approved' && r.firm_status === 'active');
+  if(ok){
+    bizSetLicense_(ok.license_id);
+    finishLogin_({ token:session.access_token, email, name, firmId:ok.firm_id, role:ok.role });
+    return;
+  }
+  if(!rows.length){ firmSetup_ = { email, name }; loginWaitingEmail = null; render(); return; }
+  const r0 = rows[0];
+  bizSetLicense_(r0.license_id);
+  waitingSession_ = { token:session.access_token, email, name, status: r0.status === 'rejected' ? 'rejected' : 'pending', firmStatus:r0.firm_status, licenseId:r0.license_id };
+  loginWaitingEmail = email;
+  render();
+}
+let firmSetup_ = null;
+function renderFirmSetup(main){
+  main.innerHTML = `<div class="login-wrap"><div class="login-card">
+    <h2>${BT_('Welcome','स्वागत है')}</h2>
+    <p>${BT_('Set up your business, or join a business you were invited to.','अपना बिज़नेस बनाएं, या जिस बिज़नेस में आपको बुलाया गया है उसमें जुड़ें।')}</p>
+    <div id="loginMsg"></div>
+    <label>${BT_('Business name','बिज़नेस का नाम')}</label><input id="fsName" placeholder="${BT_('e.g. Subhash Sales Agencies','जैसे Subhash Sales Agencies')}">
+    <button class="primary" style="margin-top:8px;" onclick="fsCreate_()">${BT_('Create my business','मेरा बिज़नेस बनाएं')}</button>
+    <div class="login-divider">${BT_('or','या')}</div>
+    <label>${BT_('Invite code or License ID','इनवाइट कोड या लाइसेंस आईडी')}</label><input id="fsCode" placeholder="ABCD1234 / BAHI-XXXXXXXX" style="text-transform:uppercase">
+    <button class="secondary" style="margin-top:8px;" onclick="fsJoin_()">${BT_('Join','जुड़ें')}</button>
+    <button class="secondary" style="margin-top:8px;" onclick="logoutStaff().then(()=>{firmSetup_=null;render();})">${BT_('Use a different account','दूसरे अकाउंट से लॉगिन')}</button>
+  </div><div style="text-align:center;margin-top:14px;"><a href="#" onclick="openHelp();return false;" style="font-weight:600;">🆘 ${BT_('Help','मदद')}</a></div></div>`;
+}
+async function fsCreate_(){
+  const n = (document.getElementById('fsName').value || '').trim();
+  const msg = document.getElementById('loginMsg');
+  if(!n){ msg.innerHTML = '<div class="msg err">Please enter the business name.</div>'; return; }
+  const { error } = await sb.rpc('create_firm', { p_name:n });
+  if(error){ msg.innerHTML = `<div class="msg err">${escapeHtml(error.message)}</div>`; return; }
+  firmSetup_ = null; await sbResolve_(n ? '' : '');
+}
+async function fsJoin_(){
+  const c = (document.getElementById('fsCode').value || '').trim().toUpperCase();
+  const msg = document.getElementById('loginMsg');
+  if(!c){ msg.innerHTML = '<div class="msg err">Please enter the code.</div>'; return; }
+  let { error } = await sb.rpc('join_with_invite', { p_code:c });
+  if(error && /BAHI-/.test(c)) ({ error } = await sb.rpc('request_join', { p_license:c }));
+  if(error){ msg.innerHTML = `<div class="msg err">${escapeHtml(error.message)}</div>`; return; }
+  firmSetup_ = null; await sbResolve_('');
+}
+
 function authToken_(){
   try{
     if(currentStaff && currentStaff.token) return currentStaff.token;
@@ -1939,6 +2023,7 @@ async function saveApprovals(){
   catch(e){ console.error('approvals save failed', e); }
 }
 async function notifyOwnerOfRequest(name, email){
+  return;   // moved to Supabase (alerts come in the next step)
   if(!cloudAvailable) return;
   try{
     await fetch(SHEET_SCRIPT_URL, {
@@ -2105,9 +2190,6 @@ function loadFirebaseSdk_(){
       .catch(e=>{ fbSdkPromise_ = null; throw e; });
   }
   return fbSdkPromise_;
-}
-function postToSheet_(obj){
-  return fetch(SHEET_SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(Object.assign({ token: authToken_() }, obj)) });
 }
 
 async function registerPush_(){
@@ -2302,6 +2384,7 @@ function render(){
 /* ---------------- LOGIN ---------------- */
 
 function renderLogin(main){
+  if(firmSetup_){ renderFirmSetup(main); return; }
   if(loginWaitingEmail){ renderLoginWaiting(main); return; }
 
   main.innerHTML = `
@@ -2353,7 +2436,7 @@ function clearLocalData_(){
 function finishLogin_(sess){
   let prev = ''; try{ prev = localStorage.getItem('ssa_last_email') || ''; }catch(e){}
   if(prev && prev.toLowerCase() !== String(sess.email).toLowerCase()) clearLocalData_();
-  currentStaff = { name: sess.name, mobile: sess.email, token: sess.token };
+  currentStaff = { name: sess.name, mobile: sess.email, token: sess.token, firmId: sess.firmId || '', role: sess.role || '' };
   try{ localStorage.setItem('ssa_currentStaff', JSON.stringify(currentStaff)); localStorage.setItem('ssa_last_email', sess.email); }catch(e){}
   loginWaitingEmail = null; waitingSession_ = null;
   currentTab = ''; loaded = false;
@@ -2364,6 +2447,7 @@ function finishLogin_(sess){
 
 async function recheckApprovalStatus(){
   if(!waitingSession_){ cancelLoginWait(); return; }
+  if(sb){ await sbResolve_(waitingSession_.name); return; }
   const w = waitingSession_;
   const r = await apiJson_({ action:'whoami', token:w.token });
   if(!r){ alert('Could not reach the server. Please check your internet.'); return; }
@@ -2397,24 +2481,14 @@ function parseJwt(token){
 }
 
 async function handleGoogleCredential(response){
-  const payload = parseJwt(response.credential);
-  if(!payload || !payload.email) return;
   const nameEl = document.getElementById('loginName');
   const typedName = nameEl ? nameEl.value.trim() : '';
   const msg = document.getElementById('loginMsg');
   if(msg) msg.innerHTML = `<div class="msg info">${t('processing_word')}</div>`;
-  // The server checks the Google sign-in itself, records new people as "pending", and
-  // hands back a private session token. Nothing about access is decided on this device.
-  const r = await apiJson_({ action:'login', idToken: response.credential, name: typedName });
-  if(!r || !r.ok){
-    const m2 = document.getElementById('loginMsg');
-    if(m2) m2.innerHTML = `<div class="msg err">${escapeHtml((r && r.error) || 'Could not sign in — please check your internet and try again.')}</div>`;
-    return;
-  }
-  if(r.status === 'approved'){ finishLogin_({ token:r.token, email:r.email, name:r.name }); return; }
-  waitingSession_ = { token:r.token, email:r.email, name:r.name, status: r.status === 'rejected' ? 'rejected' : 'pending' };
-  loginWaitingEmail = r.email;
-  render();
+  if(!sb){ if(msg) msg.innerHTML = '<div class="msg err">Could not load. Please check your internet and refresh.</div>'; return; }
+  const { error } = await sb.auth.signInWithIdToken({ provider:'google', token: response.credential });
+  if(error){ const m2 = document.getElementById('loginMsg'); if(m2) m2.innerHTML = `<div class="msg err">${escapeHtml(error.message)}</div>`; return; }
+  await sbResolve_(typedName);
 }
 
 function loginStaffManual(){
