@@ -2463,8 +2463,14 @@ function cancelLoginWait(){
   render();
 }
 
+let googleBtnTries_ = 0;
 function initGoogleButton(){
-  if(!window.google || !google.accounts || !google.accounts.id) return;
+  if(!window.google || !google.accounts || !google.accounts.id){
+    // Google's script can finish loading after the login screen is drawn - keep trying for ~15s
+    if(googleBtnTries_++ < 50) setTimeout(initGoogleButton, 300);
+    return;
+  }
+  googleBtnTries_ = 0;
   try{
     google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleGoogleCredential });
     const el = document.getElementById('googleSignInBtn');
