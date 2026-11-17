@@ -590,16 +590,19 @@
 <div class="bottom-nav" id="bottomNav">
   <div class="side-brand"><img id="sideLogo" alt=""><div><b id="sideBrandName">BahiAi</b><span>Order &amp; Dispatch</span></div></div>
   <button class="navbtn" data-tab="dashboard"><span class="ic">📊</span>Dashboard</button>
-  <button class="navbtn" data-tab="book"><span class="ic">📝</span>TakeOrder</button>
+  <button class="navbtn" data-tab="orderHub"><span class="ic">📝</span>Order</button>
+  <button class="navbtn" data-child="1" data-tab="book" style="display:none;"><span class="ic">📝</span>TakeOrder</button>
   <button class="navbtn" data-tab="dispatch"><span class="ic">🔎</span>Article</button>
-  <button class="navbtn" data-tab="catalog"><span class="ic">🖼️</span>Catalog</button>
-  <button class="navbtn" data-tab="dispatchedOrders"><span class="ic">📦</span>Dispatched</button>
-  <button class="navbtn" data-tab="pendingOrders"><span class="ic">⏳</span>Pending</button>
-  <button class="navbtn" data-tab="catPending"><span class="ic">🛍️<i class="navbadge" id="catPendBadge"></i></span>Cat. Pending</button>
-  <button class="navbtn" data-tab="catDispatched"><span class="ic">🚚</span>Cat. Dispatched</button>
+  <button class="navbtn" data-tab="catHub"><span class="ic">🖼️<i class="navbadge" id="catPendBadge2"></i></span>Catalog Report</button>
+  <button class="navbtn" data-child="1" data-tab="catalog" style="display:none;"><span class="ic">🖼️</span>Catalog</button>
+  <button class="navbtn" data-child="1" data-tab="dispatchedOrders" style="display:none;"><span class="ic">📦</span>Dispatched</button>
+  <button class="navbtn" data-child="1" data-tab="pendingOrders" style="display:none;"><span class="ic">⏳</span>Pending</button>
+  <button class="navbtn" data-child="1" data-tab="catPending" style="display:none;"><span class="ic">🛍️<i class="navbadge" id="catPendBadge"></i></span>Cat. Pending</button>
+  <button class="navbtn" data-child="1" data-tab="catDispatched" style="display:none;"><span class="ic">🚚</span>Cat. Dispatched</button>
   <button class="navbtn" data-tab="customers"><span class="ic">👤</span>Customers</button>
   <button class="navbtn" data-tab="deletedOrders"><span class="ic">🗑️</span>Deleted</button>
   <button class="navbtn" data-tab="acct"><span class="ic">🧾</span>Sale/Purchase</button>
+  <button class="navbtn" data-tab="stock"><span class="ic">📦</span>Stock Summary</button>
   <button class="navbtn" data-tab="activity"><span class="ic">📋</span>Activity</button>
   <button class="navbtn" data-tab="approvals" id="approvalsNavBtn" style="display:none;"><span class="ic">✅</span>Approvals</button>
   <button class="navbtn" data-tab="admin" id="adminNavBtn" style="display:none;"><span class="ic">🛡️</span>Admin</button>
@@ -771,6 +774,7 @@ const RESTRICTABLE_TABS = [
   { key:'acct',             label:'Sale/Purchase' },
   { key:'activity',         label:'Activity' }
   , { key:'approvals', label:'Approvals' }
+  , { key:'stock', label:'Stock Summary' }
 ];
 
 function isOwnerUser_(){ return !!(currentStaff && ((currentStaff.mobile && isOwnerEmail_(currentStaff.mobile)) || currentStaff.role === 'owner')); }
@@ -786,6 +790,8 @@ function canAccessTab(tabKey){
   if(!currentStaff) return false;
   if(isCustomerUser_()) return tabKey === 'custCatalog' || tabKey === 'custOrders';
   if(tabKey === 'custCatalog' || tabKey === 'custOrders') return false;
+  if(tabKey === 'orderHub') return ['book','dispatchedOrders','pendingOrders'].some(canAccessTab);
+  if(tabKey === 'catHub') return ['catalog','catPending','catDispatched'].some(canAccessTab);
   if(tabKey === 'admin') return !!(currentStaff && isOwnerEmail_(currentStaff.mobile));
   if(!currentStaff.mobile) return true; // legacy name-only login predates this system
   if(isOwnerUser_()) return true;
@@ -842,7 +848,7 @@ const I18N = {
   en: {
     app_title:'BahiAi',
     nav_order:'TakeOrder', nav_article:'Article', nav_dispatched:'Dispatched', nav_pending:'Pending',
-    nav_customers:'Customers', nav_deleted:'Deleted', nav_activity:'Activity', nav_approvals:'Approvals', nav_admin:'Admin', nav_dashboard:'Dashboard', nav_catalog:'Catalog', nav_catpend:'Cat. Pending', nav_catdisp:'Cat. Dispatched', nav_custorders:'Saved Orders',
+    nav_customers:'Customers', nav_deleted:'Deleted', nav_activity:'Activity', nav_approvals:'Approvals', nav_admin:'Admin', nav_stock:'Stock Summary', nav_dashboard:'Dashboard', nav_catalog:'Catalog', nav_catpend:'Cat. Pending', nav_catdisp:'Cat. Dispatched', nav_custorders:'Saved Orders',
     pending_sets:'Pending', sets:'Sets', set:'Set', pcs:'Pcs', box:'Box', switch_btn:'Switch',
 
     login_title:'Staff Login',
@@ -942,7 +948,7 @@ const I18N = {
   hi: {
     app_title:'BahiAi',
     nav_order:'ऑर्डर', nav_article:'आर्टिकल', nav_dispatched:'डिस्पैच', nav_pending:'पेंडिंग',
-    nav_customers:'ग्राहक', nav_deleted:'डिलीटेड', nav_activity:'एक्टिविटी', nav_approvals:'अप्रूवल्स', nav_admin:'एडमिन', nav_dashboard:'डैशबोर्ड', nav_catalog:'कैटलॉग', nav_catpend:'कैट. पेंडिंग', nav_catdisp:'कैट. डिस्पैच', nav_custorders:'सेव ऑर्डर',
+    nav_customers:'ग्राहक', nav_deleted:'डिलीटेड', nav_activity:'एक्टिविटी', nav_approvals:'अप्रूवल्स', nav_admin:'एडमिन', nav_stock:'स्टॉक', nav_dashboard:'डैशबोर्ड', nav_catalog:'कैटलॉग', nav_catpend:'कैट. पेंडिंग', nav_catdisp:'कैट. डिस्पैच', nav_custorders:'सेव ऑर्डर',
     pending_sets:'पेंडिंग', sets:'सेट', set:'सेट', pcs:'पीस', box:'बॉक्स', switch_btn:'स्विच',
 
     login_title:'स्टाफ लॉगिन',
@@ -1063,7 +1069,7 @@ function applyStaticLanguage(){
   if(langBtn) langBtn.textContent = t('lang_toggle');
   const navMap = { book:'nav_order', dispatch:'nav_article', dispatchedOrders:'nav_dispatched',
     pendingOrders:'nav_pending', customers:'nav_customers', deletedOrders:'nav_deleted',
-    activity:'nav_activity', approvals:'nav_approvals', admin:'nav_admin', dashboard:'nav_dashboard', catalog:'nav_catalog', catPending:'nav_catpend', catDispatched:'nav_catdisp', custCatalog:'nav_catalog', custOrders:'nav_custorders' };
+    activity:'nav_activity', approvals:'nav_approvals', admin:'nav_admin', stock:'nav_stock', dashboard:'nav_dashboard', catalog:'nav_catalog', catPending:'nav_catpend', catDispatched:'nav_catdisp', custCatalog:'nav_catalog', custOrders:'nav_custorders' };
   document.querySelectorAll('.navbtn').forEach(btn=>{
     const key = navMap[btn.dataset.tab];
     if(!key) return;
@@ -1693,6 +1699,25 @@ function adminWatch_(){
     }catch(e){}
   };
   tick(); setInterval(tick, 60000);
+}
+
+/* ---------- Menu groups: "Order" and "Catalog Report" ---------- */
+const GROUPS_ = {
+  order: { title:'Order',          tabs:[['book','📝','TakeOrder'], ['dispatchedOrders','📦','Dispatched'], ['pendingOrders','⏳','Pending']] },
+  cat:   { title:'Catalog Report', tabs:[['catalog','🖼️','Catalog'], ['catPending','🛍️','Cat. Pending'], ['catDispatched','🚚','Cat. Dispatched']] }
+};
+function groupOf_(tab){ return Object.keys(GROUPS_).find(k=>GROUPS_[k].tabs.some(t=>t[0] === tab)) || ''; }
+function renderHub_(main, g){
+  const G = GROUPS_[g], items = G.tabs.filter(t=>canAccessTab(t[0]));
+  main.innerHTML = `<div style="padding:14px;max-width:560px;margin:0 auto;"><h2 style="margin:0 0 12px;">${G.title}</h2>` +
+    items.map(t=>`<button class="btn-pill" style="display:flex;align-items:center;gap:12px;width:100%;margin:0 0 10px;padding:18px;font-size:17px;" onclick="goTab_('${t[0]}')"><span style="font-size:26px;">${t[1]}</span>${t[2]}</button>`).join('') + '</div>';
+}
+function groupBarPaint_(main){
+  const g = groupOf_(currentTab); if(!g) return;
+  const bar = document.createElement('div');
+  bar.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;padding:8px 10px 0;';
+  bar.innerHTML = GROUPS_[g].tabs.filter(t=>canAccessTab(t[0])).map(t=>`<button class="btn-pill ${t[0] === currentTab ? '' : 'ghost'}" onclick="goTab_('${t[0]}')">${t[1]} ${t[2]}</button>`).join('');
+  main.insertBefore(bar, main.firstChild);
 }
 let firmSetup_ = null;
 function renderFirmSetup(main){
@@ -2483,6 +2508,7 @@ function render(){
   document.querySelectorAll('.navbtn[data-tab]').forEach(btn=>{
     const tab = btn.dataset.tab;
     if(tab === 'approvals') return; // handled above
+    if(btn.dataset.child){ btn.style.display = 'none'; return; }   // lives inside a group (Order / Catalog Report)
     btn.style.display = canAccessTab(tab) ? 'flex' : 'none';
   });
   if(!canAccessTab(currentTab)) currentTab = firstAllowedTab_();
@@ -2496,7 +2522,7 @@ function render(){
   if(!pushTried_ && !isCustomerUser_()){ pushTried_ = true; registerPush_(); }
   document.body.classList.remove('nologin');
   main.className = (currentTab==='dashboard' || currentTab==='catalog' || currentTab==='custCatalog') ? 'wide' : '';
-  document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active', b.dataset.tab===currentTab));
+  document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active', !b.dataset.child && (b.dataset.tab===currentTab || (b.dataset.tab==='orderHub' && groupOf_(currentTab)==='order') || (b.dataset.tab==='catHub' && groupOf_(currentTab)==='cat'))));
   const actBtn = document.querySelector('.navbtn.active'), pt = document.getElementById('pageTitle');
   if(pt) pt.textContent = actBtn && actBtn.lastChild ? actBtn.lastChild.textContent.trim() : '';
   if(planInfo_().mode === 'expired' && !isPlatformAdmin_()){ renderPaywall_(main); return; }
@@ -2516,7 +2542,11 @@ function render(){
   else if(currentTab==='approvals') renderApprovals(main);
   else if(currentTab==='admin') renderAdmin(main);
   else if(currentTab==='acct') renderAcct(main);
+  else if(currentTab==='stock') renderStock(main);
+  else if(currentTab==='orderHub') renderHub_(main, 'order');
+  else if(currentTab==='catHub') renderHub_(main, 'cat');
   else renderCustomers(main);
+  try{ groupBarPaint_(main); }catch(e){}
   try{ planBannerPaint_(main); }catch(e){}
 }
 
@@ -6577,6 +6607,7 @@ function updateCatBadge_(){
   const n = (currentStaff && !isCustomerUser_() && canAccessTab('catPending')) ? pendingCatOrders_().length : 0;
   b.textContent = n > 99 ? '99+' : String(n);
   b.style.display = n ? 'inline-block' : 'none';
+  const b2 = document.getElementById('catPendBadge2'); if(b2){ b2.textContent = b.textContent; b2.style.display = b.style.display; }
 }
 
 // Runs on every refresh: raises the new-order alert + badge and tells the screen when the lists changed.
@@ -7540,11 +7571,60 @@ function lineTax_(inv, l){                      // tax of a single line (for the
 }
 function inPeriod_(inv, from, to){ return inv.date >= from && inv.date <= to; }
 function fyOf_(dateStr){ const y = +dateStr.slice(0, 4), m = +dateStr.slice(5, 7); const s = m >= 4 ? y : y - 1; return { start:s + '-04-01', end:(s + 1) + '-03-31', label:s + '-' + String(s + 1).slice(2) }; }
+let acctNumbering = {};
+try{ acctNumbering = JSON.parse(localStorage.getItem('ssa_acctNumbering') || '{}') || {}; }catch(e){ acctNumbering = {}; }
 function nextInvoiceNo_(invoices, kind, date){
+  const cfg = acctNumbering && acctNumbering[kind];
+  if(cfg && cfg.prefix !== undefined){     // the owner's own numbering: prefix + running number
+    const prefix = cfg.prefix || '', digits = Number(cfg.digits) || 0, start = Number(cfg.start) || 1;
+    let max = -1;
+    invoices.forEach(i=>{ if(i.kind === kind && String(i.no || '').startsWith(prefix)){ const r = String(i.no).slice(prefix.length); if(/^\d+$/.test(r)){ const n = parseInt(r, 10); if(n > max) max = n; } } });
+    const next = max >= 0 ? Math.max(max + 1, start) : start;
+    return prefix + (digits ? String(next).padStart(digits, '0') : String(next));
+  }
   const fy = fyOf_(date).label, prefix = (kind === 'credit_note' ? 'CN/' : kind === 'purchase' ? 'PUR/' : 'INV/') + fy + '/';
   let max = 0;
   invoices.forEach(i=>{ if(i.kind === kind && String(i.no || '').startsWith(prefix)){ const n = parseInt(String(i.no).slice(prefix.length), 10); if(n > max) max = n; } });
   return prefix + String(max + 1).padStart(4, '0');
+}
+
+function acctNumSettings_(){
+  if(!isOwnerUser_()) return alert('Only the owner can change invoice numbering.');
+  const kinds = [['sale', 'Sale invoice'], ['credit_note', 'Credit note']];
+  const ov = document.createElement('div'); ov.id = 'numOv';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:10000;display:flex;align-items:center;justify-content:center;padding:12px;';
+  const inp = 'style="width:100%;padding:9px;border:1px solid #d7e3ee;border-radius:8px;"';
+  ov.innerHTML = `<div style="background:#fff;border-radius:14px;max-width:460px;width:100%;max-height:92vh;overflow:auto;padding:16px;">
+    <h3 style="margin:0 0 6px;color:#0288D1;">Invoice numbering</h3>
+    <p class="subtle" style="font-size:13px;margin:0 0 10px;">Set the starting letters and number. New invoices then continue automatically, for example <b>SSA/</b> + start <b>1</b> gives SSA/0001, SSA/0002 ... Numbers of cancelled invoices are never used again.</p>
+    ${kinds.map(k=>{ const c = acctNumbering[k[0]] || {}; return `<div style="background:#f4f8fb;border-radius:10px;padding:10px;margin-bottom:10px;"><b>${k[1]}</b>
+      <div style="display:flex;gap:8px;margin-top:6px;"><div style="flex:2;"><label style="font-size:12px;">Starting letters</label><input id="nm_${k[0]}_p" value="${escapeHtml(c.prefix || '')}" maxlength="8" placeholder="e.g. SSA/" ${inp}></div>
+      <div style="flex:1;"><label style="font-size:12px;">Start no.</label><input id="nm_${k[0]}_s" type="number" min="1" value="${c.start || 1}" ${inp}></div>
+      <div style="flex:1;"><label style="font-size:12px;">Digits</label><input id="nm_${k[0]}_d" type="number" min="0" max="8" value="${c.digits === undefined ? 4 : c.digits}" ${inp}></div></div>
+      <div class="subtle" style="font-size:12px;margin-top:4px;">Next: <b id="nm_${k[0]}_n">${escapeHtml(nextInvoiceNo_(acctInvoices, k[0], todayIso_()))}</b></div></div>`; }).join('')}
+    <div id="numMsg"></div>
+    <div style="display:flex;gap:8px;"><button class="primary" style="flex:1;" onclick="acctNumSave_()">💾 Save</button><button class="secondary" style="flex:1;" onclick="document.getElementById('numOv').remove()">Cancel</button></div></div>`;
+  document.body.appendChild(ov);
+}
+function acctNumSave_(){
+  const out = {}, msg = document.getElementById('numMsg');
+  for(const k of ['sale', 'credit_note']){
+    const pre = document.getElementById('nm_' + k + '_p').value.trim(), st = parseInt(document.getElementById('nm_' + k + '_s').value, 10) || 1, dg = parseInt(document.getElementById('nm_' + k + '_d').value, 10) || 0;
+    if(!/^[A-Za-z0-9\/\-]{0,8}$/.test(pre)){ msg.innerHTML = '<div class="msg err">Starting letters can have only letters, digits, / and -.</div>'; return; }
+    if(pre.length + Math.max(String(st).length, dg) > 16){ msg.innerHTML = '<div class="msg err">Number is too long (maximum 16 characters in all).</div>'; return; }
+    out[k] = { prefix:pre, start:st, digits:dg };
+  }
+  acctNumbering = out;
+  try{ localStorage.setItem('ssa_acctNumbering', JSON.stringify(out)); storageSet('acctNumbering', JSON.stringify(out)); }catch(e){}
+  document.getElementById('numOv').remove(); render();
+}
+function acctDeleteInv_(id){
+  const inv = acctInvoices.find(x=>x.id === id); if(!inv || inv.status !== 'cancelled') return;
+  if(!canCurrentUserDelete()) return alert('You do not have permission to delete.');
+  if(!confirm('Delete cancelled document ' + inv.no + ' permanently? This cannot be undone.')) return;
+  acctInvoices = acctInvoices.filter(x=>x.id !== id); acctSave_();
+  try{ logActivity('Cancelled Document Deleted', `${inv.no} · ${inv.partyName}`); }catch(e){}
+  render();
 }
 function rupeesInWords_(amount){
   const a = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
@@ -7722,11 +7802,201 @@ function reconcile2b_(books, twoB, tolerance){
    Data is kept on THIS device for now (and is included in Backup). Shared storage for all
    devices comes with the new online database.
    ===================================================================== */
+
+/* =====================  STOCK  (items, groups, automatic stock from bills)  ===================== */
+let stockItems = [], stockGroups = [];
+try{ stockItems = JSON.parse(localStorage.getItem('ssa_stockItems') || '[]') || []; stockGroups = JSON.parse(localStorage.getItem('ssa_stockGroups') || '[]') || []; }catch(e){ stockItems = []; stockGroups = []; }
+let stockView = 'summary', stockQuery = '', stockDraft_ = null, stockAfter_ = null, dataPulledAt_ = 0;
+function stockSave_(){
+  try{ storageSet('stockItems', JSON.stringify(stockItems)); storageSet('stockGroups', JSON.stringify(stockGroups)); return true; }
+  catch(e){ alert('Could not save.'); return false; }
+}
+// Pull the books + stock written by other devices / staff (at most every 20 s)
+async function dataPull_(){
+  if(!sb || !navigator.onLine || !sbFirmId_() || Date.now() - dataPulledAt_ < 20000) return false;
+  dataPulledAt_ = Date.now();
+  let changed = false;
+  const defs = [['acctInvoices', v=>{ acctInvoices = v; }], ['acctParties', v=>{ acctParties = v; }], ['stockItems', v=>{ stockItems = v; }], ['stockGroups', v=>{ stockGroups = v; }], ['acctNumbering', v=>{ acctNumbering = v; }]];
+  for(const [k, set] of defs){
+    if(isKeyBusy_(k)) continue;
+    const before = localStorage.getItem('ssa_' + k);
+    const raw = await storageGet(k);
+    if(raw && raw !== before){ try{ set(JSON.parse(raw) || []); changed = true; }catch(e){} }
+  }
+  return changed;
+}
+function stockCalc_(){   // stock position of every item, worked out from the sale / purchase bills
+  const mv = {};
+  const get = n=>{ const k = String(n || '').trim().toLowerCase(); if(!k) return null; return mv[k] || (mv[k] = { name:String(n).trim(), inQ:0, inV:0, outQ:0 }); };
+  acctInvoices.forEach(inv=>{
+    if(!inv || inv.status === 'cancelled') return;
+    (inv.lines || []).forEach(l=>{
+      const m = get(l.desc); if(!m) return;
+      const q = Number(l.qty) || 0, v = q * (Number(l.rate) || 0) * (1 - (Number(l.disc) || 0) / 100);
+      if(inv.kind === 'purchase'){ m.inQ += q; m.inV += v; }
+      else if(inv.kind === 'credit_note'){ m.inQ += q; m.inV += v; }
+      else { m.outQ += q; }
+    });
+  });
+  const rows = [], seen = new Set();
+  stockItems.forEach(it=>{
+    const k = it.name.trim().toLowerCase(); seen.add(k);
+    const m = mv[k] || { inQ:0, inV:0, outQ:0 };
+    const oq = Number(it.openQty) || 0, orate = Number(it.openRate) || Number(it.purchaseRate) || 0;
+    const totQ = oq + m.inQ, avg = totQ > 0 ? (oq * orate + m.inV) / totQ : (Number(it.purchaseRate) || 0);
+    const close = oq + m.inQ - m.outQ;
+    rows.push({ item:it, name:it.name, group:it.group || '', unit:it.unit || '', open:oq, inQ:m.inQ, outQ:m.outQ, close, avg, value:close * avg, listed:true });
+  });
+  Object.keys(mv).forEach(k=>{ if(seen.has(k)) return; const m = mv[k]; const avg = m.inQ > 0 ? m.inV / m.inQ : 0; rows.push({ item:null, name:m.name, group:'', unit:'', open:0, inQ:m.inQ, outQ:m.outQ, close:m.inQ - m.outQ, avg, value:(m.inQ - m.outQ) * avg, listed:false }); });
+  return rows.sort((a, b)=>(a.group + a.name).localeCompare(b.group + b.name));
+}
+function stockClosingValue_(){ return stockCalc_().reduce((t, r)=>t + (r.close > 0 ? r.value : 0), 0); }
+
+function renderStock(main){
+  dataPull_().then(ch=>{ if(ch && currentTab === 'stock') render(); }).catch(()=>{});
+  const seg = (k, l)=>`<button class="btn-pill ${stockView === k ? '' : 'ghost'}" onclick="stockView='${k}';render()">${l}</button>`;
+  const q = stockQuery.toLowerCase();
+  let body = '';
+  if(stockView === 'summary'){
+    const rows = stockCalc_().filter(r=>!q || (r.name + ' ' + r.group).toLowerCase().includes(q));
+    const tot = rows.reduce((t, r)=>t + (r.close > 0 ? r.value : 0), 0);
+    body = `<div style="overflow-x:auto;"><table class="acct-table" style="width:100%;border-collapse:collapse;font-size:14px;">
+      <tr style="text-align:left;border-bottom:2px solid #d7e3ee;"><th>Item</th><th>Group</th><th>Open</th><th>In</th><th>Out</th><th>Closing</th><th>Avg rate</th><th>Value</th></tr>` +
+      (rows.map(r=>`<tr style="border-bottom:1px solid #eef3f7;${r.close < 0 ? 'color:#c0392b;' : ''}">
+        <td><b>${escapeHtml(r.name)}</b>${r.listed ? '' : ` <a href="#" onclick="stockForm_(null,null,'${escapeHtml(r.name).replace(/'/g, '&#39;')}');return false;" style="font-size:12px;">＋ create</a>`}</td>
+        <td>${escapeHtml(r.group)}</td><td>${r.open}</td><td>${r.inQ}</td><td>${r.outQ}</td><td><b>${r.close}</b> ${escapeHtml(r.unit)}</td><td>${inr_(r.avg)}</td><td>${inr_(r.value)}</td></tr>`).join('') || '<tr><td colspan="8" style="padding:14px;">No stock yet. Create items, then make purchase and sale bills.</td></tr>') +
+      `<tr style="font-weight:700;border-top:2px solid #d7e3ee;"><td colspan="7">Closing stock value</td><td>${inr_(tot)}</td></tr></table></div>
+      <p class="subtle" style="font-size:12px;">Stock is worked out automatically: Purchase adds, Sale subtracts, Credit note adds back. Cancelled bills are left out.</p>`;
+  } else if(stockView === 'items'){
+    const list = stockItems.filter(i=>!q || (i.name + ' ' + (i.group || '')).toLowerCase().includes(q));
+    body = `<button class="btn-pill" onclick="stockForm_()">＋ New stock item</button>` + (list.map(i=>`<div class="cust-card" style="margin-top:8px;">
+      <div class="cust-head"><span class="name">${escapeHtml(i.name)}</span><span class="set-pill approved">${escapeHtml(i.group || 'No group')}</span></div>
+      <div style="font-size:13px;color:#5b6472;">Purchase ${inr_(i.purchaseRate || 0)} · +${Number(i.markupPct || 0)}% · Sale <b>${inr_(i.saleRate || 0)}</b> · GST ${Number(i.gst || 0)}% · HSN ${escapeHtml(i.hsn || '-')} · ${escapeHtml(i.unit || '')}</div>
+      <div class="action-row"><button class="action-btn" onclick="stockForm_('${i.id}')">Edit</button><button class="action-btn del" onclick="stockDel_('${i.id}')">Delete</button></div></div>`).join('') || '<p>No items yet.</p>');
+  } else {
+    body = `<div style="display:flex;gap:6px;margin-bottom:10px;"><input id="sgName" placeholder="New stock group name" style="flex:1;padding:10px;border:1px solid #d7e3ee;border-radius:8px;"><button class="btn-pill" onclick="stockAddGroup_()">＋ Add</button></div>` +
+      (stockGroups.map(g=>`<div class="cust-card" style="margin-top:8px;"><div class="cust-head"><span class="name">${escapeHtml(g.name)}</span><span class="set-pill approved">${stockItems.filter(i=>i.group === g.name).length} items</span></div>
+        <div class="action-row"><button class="action-btn" onclick="stockRenameGroup_('${g.id}')">Rename</button><button class="action-btn del" onclick="stockDelGroup_('${g.id}')">Delete</button></div></div>`).join('') || '<p>No groups yet. Groups help you sort items, like Tiles, Taps, Paint.</p>');
+  }
+  main.innerHTML = `<div style="padding:12px;max-width:980px;margin:0 auto;"><h2 style="margin:0 0 8px;">Stock Summary</h2>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">${seg('summary', '📦 Summary')}${seg('items', '🏷️ Items')}${seg('groups', '🗂️ Groups')}</div>
+    <input placeholder="Search" value="${escapeHtml(stockQuery)}" oninput="stockQuery=this.value;clearTimeout(window._sq);window._sq=setTimeout(render,250)" style="width:100%;padding:10px;border:1px solid #d7e3ee;border-radius:8px;margin-bottom:10px;">${body}</div>`;
+}
+function stockAddGroup_(){
+  const el = document.getElementById('sgName'), n = el ? el.value.trim() : ''; if(!n) return;
+  if(stockGroups.some(g=>g.name.toLowerCase() === n.toLowerCase())) return alert('This group already exists.');
+  stockGroups.push({ id:uid(), name:n }); stockSave_(); render();
+}
+function stockRenameGroup_(id){
+  const g = stockGroups.find(x=>x.id === id); if(!g) return;
+  const n = (prompt('Group name', g.name) || '').trim(); if(!n || n === g.name) return;
+  stockItems.forEach(i=>{ if(i.group === g.name) i.group = n; }); g.name = n; stockSave_(); render();
+}
+function stockDelGroup_(id){
+  const g = stockGroups.find(x=>x.id === id); if(!g) return;
+  if(stockItems.some(i=>i.group === g.name)) return alert('This group still has items. Move or delete them first.');
+  if(!confirm('Delete group ' + g.name + '?')) return;
+  stockGroups = stockGroups.filter(x=>x.id !== id); stockSave_(); render();
+}
+function stockDel_(id){
+  const it = stockItems.find(x=>x.id === id); if(!it) return;
+  if(!confirm('Delete ' + it.name + '? Old bills keep their item names.')) return;
+  stockItems = stockItems.filter(x=>x.id !== id); stockSave_(); render();
+}
+// Create / edit a stock item. afterSave(item) is used when created from inside a bill.
+function stockForm_(id, afterSave, presetName){
+  const f = firm_(), ex = id ? stockItems.find(x=>x.id === id) : null;
+  stockAfter_ = afterSave || null;
+  stockDraft_ = ex ? Object.assign({}, ex) : { id:uid(), name:presetName || '', group:'', unit:unitDefault_(), hsn:'', gst:(f.type === 'regular' ? 18 : 0), openQty:'', purchaseRate:'', markupPct:'', saleRate:'' };
+  const ov = document.createElement('div'); ov.id = 'stockOv';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:10000;display:flex;align-items:center;justify-content:center;padding:12px;';
+  const d = stockDraft_, gs = stockGroups.map(g=>`<option value="${escapeHtml(g.name)}" ${d.group === g.name ? 'selected' : ''}>${escapeHtml(g.name)}</option>`).join('');
+  const fld = (l, inner)=>`<div style="margin-bottom:8px;"><label style="font-size:13px;font-weight:600;">${l}</label>${inner}</div>`;
+  const inp = 'style="width:100%;padding:10px;border:1px solid #d7e3ee;border-radius:8px;"';
+  ov.innerHTML = `<div style="background:#fff;border-radius:14px;max-width:460px;width:100%;max-height:92vh;overflow:auto;padding:16px;">
+    <h3 style="margin:0 0 10px;color:#0288D1;">${ex ? 'Edit' : 'New'} stock item</h3>
+    ${fld('Item name *', `<input id="sfName" value="${escapeHtml(d.name)}" ${inp}>`)}
+    ${fld('Stock group', `<select id="sfGroup" ${inp}><option value="">— none —</option>${gs}<option value="__new">＋ New group…</option></select>`)}
+    <div style="display:flex;gap:8px;"><div style="flex:1;">${fld('Unit', unitSelectHtml_('sfUnit', d.unit, 'width:100%;padding:10px;border:1px solid #d7e3ee;border-radius:8px;', ''))}</div>
+      <div style="flex:1;">${fld('HSN', `<input id="sfHsn" value="${escapeHtml(d.hsn || '')}" inputmode="numeric" ${inp}>`)}</div></div>
+    <div style="display:flex;gap:8px;"><div style="flex:1;">${fld('GST %', `<select id="sfGst" ${inp}>${GST_RATES.map(r=>`<option value="${r}" ${Number(d.gst) === r ? 'selected' : ''}>${r}%</option>`).join('')}</select>`)}</div>
+      <div style="flex:1;">${fld('Opening qty', `<input id="sfOpen" type="number" step="any" value="${d.openQty === undefined ? '' : d.openQty}" ${inp}>`)}</div></div>
+    <div style="background:#f4f8fb;border-radius:10px;padding:10px;margin:6px 0 8px;">
+      <div style="display:flex;gap:8px;">
+        <div style="flex:1;">${fld('Purchase rate ₹', `<input id="sfPur" type="number" step="any" value="${d.purchaseRate === undefined ? '' : d.purchaseRate}" oninput="stockRate_('pur')" ${inp}>`)}</div>
+        <div style="flex:1;">${fld('Add % (+)', `<input id="sfPct" type="number" step="any" value="${d.markupPct === undefined ? '' : d.markupPct}" oninput="stockRate_('pct')" ${inp}>`)}</div>
+        <div style="flex:1;">${fld('Sale rate ₹', `<input id="sfSale" type="number" step="any" value="${d.saleRate === undefined ? '' : d.saleRate}" oninput="stockRate_('sale')" ${inp}>`)}</div>
+      </div>
+      <div class="subtle" style="font-size:12px;">Type the purchase rate and the % to add, and the sale rate is filled in. Or type the sale rate directly.</div>
+    </div>
+    <div id="sfMsg"></div>
+    <div style="display:flex;gap:8px;"><button class="primary" style="flex:1;" onclick="stockSaveItem_()">💾 Save</button><button class="secondary" style="flex:1;" onclick="document.getElementById('stockOv').remove()">Cancel</button></div></div>`;
+  document.body.appendChild(ov);
+  document.getElementById('sfGroup').onchange = function(){
+    if(this.value !== '__new') return;
+    const n = (prompt('New group name') || '').trim(); this.value = '';
+    if(!n) return;
+    if(!stockGroups.some(g=>g.name.toLowerCase() === n.toLowerCase())){ stockGroups.push({ id:uid(), name:n }); stockSave_(); }
+    const g = stockGroups.find(x=>x.name.toLowerCase() === n.toLowerCase());
+    this.innerHTML = '<option value="">— none —</option>' + stockGroups.map(x=>`<option value="${escapeHtml(x.name)}">${escapeHtml(x.name)}</option>`).join('') + '<option value="__new">＋ New group…</option>';
+    this.value = g.name;
+  };
+}
+function stockRate_(from){
+  const pur = document.getElementById('sfPur'), pct = document.getElementById('sfPct'), sale = document.getElementById('sfSale');
+  const P = parseFloat(pur.value), C = parseFloat(pct.value), S = parseFloat(sale.value);
+  const r2 = x=>String(Math.round(x * 100) / 100);
+  if(from === 'sale'){ if(P > 0 && !isNaN(S)) pct.value = r2((S / P - 1) * 100); }
+  else if(P >= 0 && !isNaN(P) && !isNaN(C)) sale.value = r2(P * (1 + C / 100));
+  else if(from === 'pur' && isNaN(C) && !isNaN(S) && P > 0) pct.value = r2((S / P - 1) * 100);
+}
+function stockSaveItem_(){
+  const d = stockDraft_, msg = document.getElementById('sfMsg'), err = m=>{ msg.innerHTML = `<div class="msg err">${m}</div>`; };
+  const v = id=>document.getElementById(id).value;
+  d.name = v('sfName').trim(); d.group = v('sfGroup') === '__new' ? '' : v('sfGroup'); d.unit = v('sfUnit'); d.hsn = v('sfHsn').trim(); d.gst = Number(v('sfGst'));
+  d.openQty = v('sfOpen') === '' ? 0 : Number(v('sfOpen'));
+  d.purchaseRate = v('sfPur') === '' ? 0 : Number(v('sfPur')); d.markupPct = v('sfPct') === '' ? 0 : Number(v('sfPct')); d.saleRate = v('sfSale') === '' ? 0 : Number(v('sfSale'));
+  if(!d.name) return err('Please enter the item name.');
+  if(stockItems.some(x=>x.id !== d.id && x.name.trim().toLowerCase() === d.name.toLowerCase())) return err('An item with this name already exists.');
+  const i = stockItems.findIndex(x=>x.id === d.id);
+  if(i >= 0) stockItems[i] = d; else stockItems.push(d);
+  if(!stockSave_()) return;
+  document.getElementById('stockOv').remove();
+  const cb = stockAfter_; stockAfter_ = null;
+  if(cb) cb(d); else render();
+}
+// ---- used inside the sale / purchase bill ----
+function acctPickItem_(i, name){
+  const it = stockItems.find(x=>x.name.trim().toLowerCase() === String(name).trim().toLowerCase());
+  const l = acctDraft_.lines[i]; l.desc = name;
+  if(it){ acctApplyItem_(i, it); }
+}
+function acctApplyItem_(i, it){
+  const d = acctDraft_, f = firm_(), l = d.lines[i], sale = d.kind !== 'purchase';
+  l.desc = it.name; l.hsn = it.hsn || l.hsn; l.unit = it.unit || l.unit;
+  l.rate = sale ? (it.saleRate || '') : (it.purchaseRate || '');
+  if(f.type === 'regular' || d.kind === 'purchase') l.gst = Number(it.gst) || 0;
+  acctForm_();
+}
+function acctNewItem_(){
+  const d = acctDraft_; let i = d.lines.findIndex(l=>!String(l.desc || '').trim());
+  if(i < 0){ acctAddLine_(); i = d.lines.length - 1; }
+  stockForm_(null, it=>{ acctApplyItem_(i, it); });
+}
+// Computer shortcut: Alt + C inside a sale / purchase bill opens "New stock item" (like Tally)
+document.addEventListener('keydown', e=>{
+  if(!e.altKey || e.ctrlKey || e.metaKey || String(e.key).toLowerCase() !== 'c') return;
+  if(!document.getElementById('acctOv') || document.getElementById('stockOv') || !acctDraft_) return;
+  e.preventDefault(); acctNewItem_();
+  setTimeout(()=>{ const n = document.getElementById('sfName'); if(n){ n.focus(); n.select(); } }, 50);
+});
 let acctInvoices = [], acctParties = [];
 try{ acctInvoices = JSON.parse(localStorage.getItem('ssa_acctInvoices') || '[]') || []; acctParties = JSON.parse(localStorage.getItem('ssa_acctParties') || '[]') || []; }catch(e){ acctInvoices = []; acctParties = []; }
 let acctView = 'sales', acctMonth = '', acctQuery = '', acctDraft_ = null, acctEditId_ = null;
 function acctSave_(){
-  try{ localStorage.setItem('ssa_acctInvoices', JSON.stringify(acctInvoices)); localStorage.setItem('ssa_acctParties', JSON.stringify(acctParties)); return true; }
+  try{ localStorage.setItem('ssa_acctInvoices', JSON.stringify(acctInvoices)); localStorage.setItem('ssa_acctParties', JSON.stringify(acctParties));
+       try{ storageSet('acctInvoices', JSON.stringify(acctInvoices)); storageSet('acctParties', JSON.stringify(acctParties)); }catch(e){}
+       return true; }
   catch(e){ alert(BT_('Phone storage is full. Please take a backup and free some space.', 'फोन की जगह भर गई है। बैकअप लेकर जगह खाली करें।')); return false; }
 }
 function firm_(){
@@ -7740,6 +8010,7 @@ const KIND_LABEL_ = { sale:'Sale', purchase:'Purchase', credit_note:'Credit Note
 function acctDocTitle_(inv){ const t = firm_().type; return inv.kind === 'credit_note' ? 'CREDIT NOTE' : (t === 'regular' ? 'TAX INVOICE' : 'BILL OF SUPPLY'); }
 
 function renderAcct(main){
+  dataPull_().then(ch=>{ if(ch && currentTab === 'acct' && !document.getElementById('acctOv')) render(); }).catch(()=>{});
   const f = firm_();
   if(!f.ok){
     main.innerHTML = `<div class="card"><h2>🧾 ${BT_('Sale / Purchase','सेल / परचेज')}</h2><div class="subtle" style="margin:8px 0 12px;">${BT_('First set your GST details: registration type (Regular / Composition / Unregistered), GSTIN and state.','पहले अपनी GST जानकारी भरें: रजिस्ट्रेशन का प्रकार (Regular / Composition / Unregistered), GSTIN और राज्य।')}</div>${isOwnerUser_() ? `<button class="primary" onclick="openBizProfile()">🏢 ${BT_('Open Business Profile','बिज़नेस प्रोफाइल खोलें')}</button>` : `<div class="msg info">${BT_('Please ask the owner to set the GST details in Business Profile.','कृपया ओनर से बिज़नेस प्रोफाइल में GST जानकारी भरने को कहें।')}</div>`}</div>`;
@@ -7757,12 +8028,12 @@ function renderAcct(main){
     const tot = live.reduce((o, i)=>{ o.t += sg(i) * i.taxable; o.x += sg(i) * (i.cgst + i.sgst + i.igst); o.g += sg(i) * i.total; return o; }, { t:0, x:0, g:0 });
     body = `<div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;">
         ${sales ? `<button class="primary" style="width:auto;padding:10px 16px;" onclick="acctOpen_('sale')">＋ ${BT_('New Sale','नई बिक्री')}</button><button class="btn-pill alt" onclick="acctOpen_('credit_note')">↩ ${BT_('Credit Note','क्रेडिट नोट')}</button>` : `<button class="primary" style="width:auto;padding:10px 16px;" onclick="acctOpen_('purchase')">＋ ${BT_('New Purchase','नई खरीद')}</button>`}
-        <input type="month" value="${acctMonth}" onchange="acctMonth=this.value;render()" style="max-width:170px;">
+        ${sales && isOwnerUser_() ? `<button class="btn-pill ghost" onclick="acctNumSettings_()">⚙ ${BT_('Invoice numbering','इनवॉइस नंबरिंग')}</button>` : ''}<input type="month" value="${acctMonth}" onchange="acctMonth=this.value;render()" style="max-width:170px;">
         <input placeholder="${BT_('Search no. / party','नंबर / पार्टी खोजें')}" value="${escapeHtml(acctQuery)}" onchange="acctQuery=this.value;render()" style="flex:1;min-width:140px;">
       </div>
       ${list.length ? `<div style="overflow-x:auto;"><table class="acct-tbl"><thead><tr><th>${BT_('No.','नं.')}</th><th>${BT_('Date','तारीख')}</th><th>${BT_('Party','पार्टी')}</th><th class="r">${BT_('Taxable','टैक्सेबल')}</th><th class="r">GST</th><th class="r">${BT_('Total','कुल')}</th><th></th></tr></thead><tbody>
-        ${list.map(i=>`<tr class="${i.status === 'cancelled' ? 'cx' : ''}"><td>${escapeHtml(i.no)}${i.kind === 'credit_note' ? ' <small>(CN)</small>' : ''}${i.status === 'cancelled' ? ' <small>(cancelled)</small>' : ''}</td><td>${dmy_(i.date)}</td><td>${escapeHtml(i.partyName || '')}${i.partyGstin ? `<br><small>${escapeHtml(i.partyGstin)}</small>` : ''}</td><td class="r">${inr_(sg(i) * i.taxable)}</td><td class="r">${inr_(sg(i) * (i.cgst + i.sgst + i.igst))}</td><td class="r"><b>${inr_(sg(i) * i.total)}</b></td>
-          <td class="act">${sales ? `<button title="PDF" onclick="acctPdf_('${i.id}')">📄</button>` : ''}${i.status === 'cancelled' ? '' : `<button title="Edit" onclick="acctOpen_('${i.kind}','${i.id}')">✏️</button>`}${i.status !== 'cancelled' && canCurrentUserDelete() ? `<button title="Cancel" onclick="acctCancel_('${i.id}')">✖</button>` : ''}</td></tr>`).join('')}
+        ${list.map(i=>`<tr class="${i.status === 'cancelled' ? 'cx' : ''}"><td>${escapeHtml(i.no)}${i.kind === 'credit_note' ? ' <small>(CN)</small>' : ''}${i.status === 'cancelled' ? ' <span style="color:#c0392b;font-weight:700;font-size:11px;">CANCELLED</span>' : ''}</td><td>${dmy_(i.date)}</td><td>${escapeHtml(i.partyName || '')}${i.partyGstin ? `<br><small>${escapeHtml(i.partyGstin)}</small>` : ''}</td><td class="r">${inr_(sg(i) * i.taxable)}</td><td class="r">${inr_(sg(i) * (i.cgst + i.sgst + i.igst))}</td><td class="r"><b>${inr_(sg(i) * i.total)}</b></td>
+          <td class="act">${sales ? `<button title="PDF" onclick="acctPdf_('${i.id}')">📄</button>` : ''}${i.status === 'cancelled' ? '' : `<button title="Edit" onclick="acctOpen_('${i.kind}','${i.id}')">✏️</button>`}${i.status !== 'cancelled' && canCurrentUserDelete() ? `<button title="Cancel" onclick="acctCancel_('${i.id}')">✖</button>` : ''}${i.status === 'cancelled' && canCurrentUserDelete() ? `<button title="Delete permanently" onclick="acctDeleteInv_('${i.id}')">🗑️</button>` : ''}</td></tr>`).join('')}
         </tbody><tfoot><tr><td colspan="3"><b>${BT_('Total','कुल')}</b></td><td class="r"><b>${inr_(tot.t)}</b></td><td class="r"><b>${inr_(tot.x)}</b></td><td class="r"><b>${inr_(tot.g)}</b></td><td></td></tr></tfoot></table></div>`
       : `<div class="empty">${BT_('Nothing here yet','अभी कुछ नहीं है')}</div>`}`;
   }
@@ -7775,7 +8046,7 @@ function renderAcct(main){
 function acctOpen_(kind, id){
   const f = firm_(), old = id ? acctInvoices.find(x=>x.id === id) : null;
   acctEditId_ = old ? old.id : null;
-  acctDraft_ = old ? JSON.parse(JSON.stringify(old)) : { id:uid(), kind, no:'', date:todayIso_(), partyName:'', partyGstin:'', partyState:(kind === 'purchase' ? '' : f.state), pos:'', reverseCharge:false, itcEligible:true, refNo:'', refDate:'', note:'', status:'active', lines:[{ desc:'', hsn:'', qty:1, unit:unitDefault_(), rate:'', disc:'', gst:(f.type === 'regular' || kind === 'purchase') ? 18 : 0 }], createdAt:new Date().toISOString(), createdBy:(currentStaff && currentStaff.name) || '' };
+  acctDraft_ = old ? JSON.parse(JSON.stringify(old)) : { id:uid(), kind, no:'', date:todayIso_(), partyName:'', partyGstin:'', partyState:(kind === 'purchase' ? '' : f.state), pos:'', reverseCharge:false, itcEligible:true, refNo:'', refDate:'', note:'', status:'active', partyAddr:'', shipTo:'', vehicleNo:'', dispatchThrough:'', orderNo:'', orderDate:'', otherRef:'', lines:[{ desc:'', hsn:'', qty:1, unit:unitDefault_(), rate:'', disc:'', gst:(f.type === 'regular' || kind === 'purchase') ? 18 : 0 }], createdAt:new Date().toISOString(), createdBy:(currentStaff && currentStaff.name) || '' };
   if(!old) acctDraft_.no = kind === 'purchase' ? '' : nextInvoiceNo_(acctInvoices, kind, acctDraft_.date);
   const ex = document.getElementById('acctOv'); if(ex) ex.remove();
   const ov = document.createElement('div'); ov.className = 'modal-ov'; ov.id = 'acctOv'; ov.style.zIndex = 9350;
@@ -7792,15 +8063,23 @@ function acctForm_(){
     <div class="acct-grid">
       <div><label>${BT_('Date','तारीख')}</label><input type="date" value="${d.date}" onchange="acctDraft_.date=this.value;acctCalc_()"></div>
       <div><label>${d.kind === 'purchase' ? BT_("Supplier's invoice no.",'सप्लायर का बिल नं.') : BT_('Number','नंबर')}</label><input value="${escapeHtml(d.no)}" oninput="acctDraft_.no=this.value.trim()" maxlength="16"></div>
-      <div style="grid-column:1/-1"><label>${d.kind === 'purchase' ? BT_('Supplier','सप्लायर') : BT_('Customer','ग्राहक')}</label><input list="acctPartyList" value="${escapeHtml(d.partyName)}" onchange="acctPickParty_(this.value)" oninput="acctDraft_.partyName=this.value" placeholder="${sale ? BT_('Leave blank for cash / walk-in','कैश / वॉक-इन के लिए खाली छोड़ें') : ''}"></div>
+      <div style="grid-column:1/-1"><label>${d.kind === 'purchase' ? BT_('Supplier','सप्लायर') : BT_('Customer','ग्राहक')}</label><input list="acctPartyList" style="${sale ? 'font-weight:700;color:#b7410e;' : ''}" value="${escapeHtml(d.partyName)}" onchange="acctPickParty_(this.value)" oninput="acctDraft_.partyName=this.value" placeholder="${sale ? BT_('Leave blank for cash / walk-in','कैश / वॉक-इन के लिए खाली छोड़ें') : ''}"></div>
       <div><label>GSTIN ${gOk}</label><input value="${escapeHtml(d.partyGstin)}" maxlength="15" style="text-transform:uppercase" oninput="acctGstin_(this.value)" placeholder="${BT_('if registered','अगर रजिस्टर्ड हो')}"></div>
       <div><label>${BT_('State','राज्य')}</label><select onchange="acctDraft_.partyState=this.value;acctCalc_()">${acctStateOpts_(d.partyState)}</select></div>
       ${sale ? `<div><label>${BT_('Place of supply','सप्लाई का स्थान')}</label><select onchange="acctDraft_.pos=this.value;acctCalc_()">${acctStateOpts_(d.pos || d.partyState || f.state)}</select></div>` : ''}
+      <div style="grid-column:1/-1"><label>${BT_('Address','पता')}</label><textarea rows="2" oninput="acctDraft_.partyAddr=this.value" style="width:100%;padding:10px;border:1px solid #d7e3ee;border-radius:8px;">${escapeHtml(d.partyAddr || '')}</textarea></div>
+      ${sale && d.kind !== 'credit_note' ? `<div style="grid-column:1/-1"><label>${BT_('Ship to (only if different) - name & address','डिलीवरी का पता (अलग हो तो) - नाम और पता')}</label><textarea rows="2" oninput="acctDraft_.shipTo=this.value" style="width:100%;padding:10px;border:1px solid #d7e3ee;border-radius:8px;">${escapeHtml(d.shipTo || '')}</textarea></div>` : ''}
+      ${d.kind !== 'credit_note' ? `<div><label>${BT_('Vehicle no.','गाड़ी नंबर')}</label><input value="${escapeHtml(d.vehicleNo || '')}" style="text-transform:uppercase" oninput="acctDraft_.vehicleNo=this.value.toUpperCase()"></div>
+      <div><label>${BT_('Dispatch through','डिस्पैच किससे')}</label><input value="${escapeHtml(d.dispatchThrough || '')}" oninput="acctDraft_.dispatchThrough=this.value"></div>
+      <div><label>${BT_('Order no.','ऑर्डर नं.')}</label><input value="${escapeHtml(d.orderNo || '')}" oninput="acctDraft_.orderNo=this.value"></div>
+      <div><label>${BT_('Order date','ऑर्डर की तारीख')}</label><input type="date" value="${d.orderDate || ''}" onchange="acctDraft_.orderDate=this.value"></div>
+      <div style="grid-column:1/-1"><label>${BT_('Other / delivery reference','अन्य / डिलीवरी रेफरेंस')}</label><input value="${escapeHtml(d.otherRef || '')}" oninput="acctDraft_.otherRef=this.value"></div>` : ''}
       ${d.kind === 'credit_note' ? `<div><label>${BT_('Against invoice no.','किस बिल के against')}</label><input value="${escapeHtml(d.refNo)}" oninput="acctDraft_.refNo=this.value"></div><div><label>${BT_('Invoice date','बिल की तारीख')}</label><input type="date" value="${d.refDate}" onchange="acctDraft_.refDate=this.value"></div>` : ''}
       ${d.kind === 'purchase' && f.type === 'regular' ? `<div style="grid-column:1/-1;display:flex;gap:16px;flex-wrap:wrap;"><label style="display:flex;gap:6px;align-items:center;"><input type="checkbox" ${d.itcEligible !== false ? 'checked' : ''} onchange="acctDraft_.itcEligible=this.checked"> ${BT_('ITC can be claimed','ITC ले सकते हैं')}</label><label style="display:flex;gap:6px;align-items:center;"><input type="checkbox" ${d.reverseCharge ? 'checked' : ''} onchange="acctDraft_.reverseCharge=this.checked"> ${BT_('Reverse charge (RCM)','रिवर्स चार्ज (RCM)')}</label></div>` : ''}
       ${d.kind === 'purchase' && f.type !== 'regular' ? `<div style="grid-column:1/-1;display:flex;gap:16px;"><label style="display:flex;gap:6px;align-items:center;"><input type="checkbox" ${d.reverseCharge ? 'checked' : ''} onchange="acctDraft_.reverseCharge=this.checked"> ${BT_('Reverse charge (RCM)','रिवर्स चार्ज (RCM)')}</label></div>` : ''}
     </div>
-    <div style="margin:12px 0 4px;"><b>${BT_('Items','आइटम')}</b></div>
+    <datalist id="stockItemList">${stockItems.map(i=>`<option value="${escapeHtml(i.name)}">`).join('')}</datalist>
+    <div style="margin:12px 0 4px;display:flex;justify-content:space-between;align-items:center;"><b>${BT_('Items','आइटम')}</b><button class="btn-pill ghost" onclick="acctNewItem_()">＋ ${BT_('New stock item','नया स्टॉक आइटम')} <small>(Alt+C)</small></button></div>
     <div id="acctLines">${d.lines.map((l, i)=>acctLineHtml_(l, i, taxCol)).join('')}</div>
     <button class="btn-pill alt" onclick="acctAddLine_()">＋ ${BT_('Add item','आइटम जोड़ें')}</button>
     <div id="acctTot" class="acct-tot"></div>
@@ -7810,7 +8089,7 @@ function acctForm_(){
   acctCalc_();
 }
 function acctLineHtml_(l, i, taxCol){
-  return `<div class="acct-line"><input class="w-desc" placeholder="${BT_('Item','आइटम')}" value="${escapeHtml(l.desc)}" oninput="acctLine_(${i},'desc',this.value)">
+  return `<div class="acct-line"><input class="w-desc" list="stockItemList" placeholder="${BT_('Item','आइटम')}" value="${escapeHtml(l.desc)}" oninput="acctLine_(${i},'desc',this.value)" onchange="acctPickItem_(${i},this.value)">
     <input class="w-hsn" placeholder="HSN" value="${escapeHtml(l.hsn)}" inputmode="numeric" oninput="acctLine_(${i},'hsn',this.value)">
     <input class="w-n" type="number" step="any" placeholder="${BT_('Qty','मात्रा')}" value="${l.qty}" oninput="acctLine_(${i},'qty',this.value)">
     ${unitSelectHtml_('', l.unit || 'pcs', 'width:78px;', `acctLine_(${i},'unit',this.value)`)}
@@ -7829,7 +8108,7 @@ function acctGstin_(v){
 }
 function acctPickParty_(name){
   acctDraft_.partyName = name; const p = acctParties.find(x=>x.name.toLowerCase() === String(name).toLowerCase());
-  if(p){ acctDraft_.partyGstin = p.gstin || ''; acctDraft_.partyState = p.state || acctDraft_.partyState; acctForm_(); }
+  if(p){ acctDraft_.partyGstin = p.gstin || ''; acctDraft_.partyState = p.state || acctDraft_.partyState; acctDraft_.partyAddr = p.addr || acctDraft_.partyAddr || ''; acctForm_(); }
 }
 function acctCalc_(){
   const d = acctDraft_, f = firm_(); calcInvoice_(d, f);
@@ -7854,7 +8133,7 @@ function acctSaveInvoice_(){
   calcInvoice_(d, f);
   const i = acctInvoices.findIndex(x=>x.id === d.id);
   if(i >= 0) acctInvoices[i] = d; else acctInvoices.push(d);
-  if(d.partyName && d.partyName !== 'Cash'){ const p = acctParties.find(x=>x.name.toLowerCase() === d.partyName.toLowerCase()); if(p){ p.gstin = d.partyGstin || p.gstin; p.state = d.partyState || p.state; } else acctParties.push({ id:uid(), name:d.partyName, gstin:d.partyGstin, state:d.partyState }); }
+  if(d.partyName && d.partyName !== 'Cash'){ const p = acctParties.find(x=>x.name.toLowerCase() === d.partyName.toLowerCase()); if(p){ p.gstin = d.partyGstin || p.gstin; p.state = d.partyState || p.state; p.addr = d.partyAddr || p.addr; } else acctParties.push({ id:uid(), name:d.partyName, gstin:d.partyGstin, state:d.partyState, addr:d.partyAddr || '' }); }
   if(!acctSave_()) return;
   try{ logActivity(i >= 0 ? KIND_LABEL_[d.kind] + ' Edited' : KIND_LABEL_[d.kind] + ' Created', `${d.no} · ${d.partyName} · ₹${d.total}`); }catch(e){}
   const ov = document.getElementById('acctOv'); if(ov) ov.remove();
@@ -7871,25 +8150,42 @@ function acctCancel_(id){
 
 /* ---------------- PDF ---------------- */
 function acctPdfBlob_(inv){
-  const { jsPDF } = window.jspdf, doc = new jsPDF({ unit:'mm', format:'a4' }), f = firm_(), W = 210, M = 10;
-  doc.setDrawColor(40, 40, 40); doc.setLineWidth(0.4); doc.rect(M, M, W - 2 * M, 30);
+  const { jsPDF } = window.jspdf, doc = new jsPDF({ unit:'mm', format:'a4' }), f = firm_(), W = 210, M = 10, RUST = [183, 65, 14];
+  // Heading at the very top of the page
+  doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'bold'); doc.setFontSize(17);
+  doc.text(acctDocTitle_(inv), W / 2, M + 6, { align:'center' });
+  const T = M + 10;
+  doc.setDrawColor(40, 40, 40); doc.setLineWidth(0.4); doc.rect(M, T, W - 2 * M, 30);
   const ar = (bizProfile && bizProfile.logoAR > 0) ? bizProfile.logoAR : 1; let lw = 22, lh = 22 * ar; if(lh > 24){ lh = 24; lw = 24 / ar; }
-  try{ doc.addImage(COMPANY_LOGO_B64, /^data:image\/png/.test(COMPANY_LOGO_B64) ? 'PNG' : 'JPEG', M + 3 + (22 - lw) / 2, M + 3 + (24 - lh) / 2, lw, lh); }catch(e){}
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(15); doc.text(f.name, M + 30, M + 10);
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); let y = M + 15;
+  try{ doc.addImage(COMPANY_LOGO_B64, /^data:image\/png/.test(COMPANY_LOGO_B64) ? 'PNG' : 'JPEG', M + 3 + (22 - lw) / 2, T + 3 + (24 - lh) / 2, lw, lh); }catch(e){}
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(15); doc.text(f.name, M + 30, T + 10);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); let y = T + 15;
   if(f.address){ doc.splitTextToSize(f.address, 150).slice(0, 2).forEach(t=>{ doc.text(t, M + 30, y); y += 4; }); }
   if(f.gstin && f.type !== 'unregistered'){ doc.text('GSTIN: ' + f.gstin, M + 30, y); y += 4; }
   if(f.contact) doc.text(f.contact, M + 30, y);
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.text(acctDocTitle_(inv), W / 2, M + 38, { align:'center' });
-  doc.setFontSize(9.5); doc.setFont('helvetica', 'normal');
-  const info = [['No.', inv.no], ['Date', dmy_(inv.date)], ['Place of supply', posLabel_(inv.pos)]]; if(inv.kind === 'credit_note') info.push(['Against invoice', (inv.refNo || '') + (inv.refDate ? ' dt ' + dmy_(inv.refDate) : '')]);
-  info.forEach((r, k)=>{ doc.text(r[0] + ':', M, M + 45 + k * 5); doc.text(String(r[1]), M + 32, M + 45 + k * 5); });
-  doc.setFont('helvetica', 'bold'); doc.text('Bill to', 120, M + 45); doc.setFont('helvetica', 'normal');
-  doc.text(inv.partyName || 'Cash', 120, M + 50); if(inv.partyGstin) doc.text('GSTIN: ' + inv.partyGstin, 120, M + 55); if(inv.partyState) doc.text('State: ' + posLabel_(inv.partyState), 120, M + 60);
+  // Left: invoice details.  Right: Bill to / Ship to
+  const y0 = T + 37; doc.setFontSize(9.5);
+  const info = [['Invoice No.', inv.no], ['Date', dmy_(inv.date)], ['Place of supply', posLabel_(inv.pos)]];
+  if(inv.kind === 'credit_note') info.push(['Against invoice', (inv.refNo || '') + (inv.refDate ? ' dt ' + dmy_(inv.refDate) : '')]);
+  [['Vehicle No.', inv.vehicleNo], ['Dispatch through', inv.dispatchThrough], ['Order No.', inv.orderNo], ['Order date', inv.orderDate ? dmy_(inv.orderDate) : ''], ['Other / Delivery ref.', inv.otherRef]].forEach(r=>{ if(r[1]) info.push(r); });
+  let ly = y0;
+  info.forEach(r=>{ doc.setFont('helvetica', 'normal'); doc.text(r[0] + ':', M, ly); doc.setFont('helvetica', 'bold'); const ls = doc.splitTextToSize(String(r[1]), 52); doc.text(ls, M + 40, ly); ly += 5 * ls.length; });
+  let ry = y0; doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5); doc.text('Bill to', 112, ry); ry += 5;
+  doc.setTextColor(RUST[0], RUST[1], RUST[2]); doc.setFontSize(11.5);
+  const nm = doc.splitTextToSize(inv.partyName || 'Cash', 86); doc.text(nm, 112, ry); ry += 5 * nm.length;
+  doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5);
+  if(inv.partyAddr) doc.splitTextToSize(inv.partyAddr, 86).forEach(t=>{ doc.text(t, 112, ry); ry += 4.5; });
+  if(inv.partyGstin){ doc.text('GSTIN: ' + inv.partyGstin, 112, ry); ry += 5; }
+  if(inv.partyState){ doc.text('State: ' + posLabel_(inv.partyState), 112, ry); ry += 5; }
+  if(inv.shipTo && inv.shipTo.trim()){
+    ry += 2; doc.setFont('helvetica', 'bold'); doc.text('Ship to', 112, ry); ry += 5; doc.setFont('helvetica', 'normal');
+    doc.splitTextToSize(inv.shipTo, 86).forEach(t=>{ doc.text(t, 112, ry); ry += 4.5; });
+  }
+  const startY = Math.max(ly, ry) + 2;
   const tax = f.type === 'regular' && inv.kind !== 'purchase';
   const head = [['#', 'Description', 'HSN', 'Qty', 'Rate', 'Disc %', 'Taxable'].concat(tax ? ['GST %'] : [])];
   const body = inv.lines.map((l, k)=>[k + 1, l.desc, l.hsn || '', (l.qty) + ' ' + unitEn_(l.unit || 'pcs'), inr_(l.rate), l.disc ? l.disc : '', inr_(l._tv)].concat(tax ? [l._rate + '%'] : []));
-  doc.autoTable({ startY:M + 68, head, body, theme:'grid', styles:{ fontSize:8.5, cellPadding:1.6 }, headStyles:{ fillColor:[23, 60, 107] }, columnStyles:{ 0:{ cellWidth:8 }, 4:{ halign:'right' }, 6:{ halign:'right' } }, margin:{ left:M, right:M } });
+  doc.autoTable({ startY, head, body, theme:'grid', styles:{ fontSize:8.5, cellPadding:1.6 }, headStyles:{ fillColor:[23, 60, 107] }, columnStyles:{ 0:{ cellWidth:8 }, 4:{ halign:'right' }, 6:{ halign:'right' } }, margin:{ left:M, right:M } });
   let ty = doc.lastAutoTable.finalY + 5; const right = W - M, line = (a, b, bold)=>{ doc.setFont('helvetica', bold ? 'bold' : 'normal'); doc.text(a, right - 70, ty); doc.text(b, right, ty, { align:'right' }); ty += 5; };
   doc.setFontSize(9.5); line('Taxable value', inr_(inv.taxable));
   if(tax) Object.keys(inv.groups).map(Number).filter(r=>r > 0).sort((a, b)=>a - b).forEach(r=>{ const tv = inv.groups[r]; if(inv.intra){ line('CGST @ ' + (r / 2) + '%', inr_(round2_(tv * r / 200))); line('SGST @ ' + (r / 2) + '%', inr_(round2_(tv * r / 200))); } else line('IGST @ ' + r + '%', inr_(round2_(tv * r / 100))); });
@@ -7899,6 +8195,14 @@ function acctPdfBlob_(inv){
   if(f.type === 'composition' && inv.kind !== 'purchase'){ doc.text('Composition taxable person, not eligible to collect tax on supplies.', M, ty); ty += 5; }
   if(inv.note){ doc.text(doc.splitTextToSize('Note: ' + inv.note, 120), M, ty); ty += 6; }
   doc.setFont('helvetica', 'bold'); doc.text('For ' + f.name, right, ty + 12, { align:'right' }); doc.setFont('helvetica', 'normal'); doc.text('Authorised Signatory', right, ty + 28, { align:'right' });
+  if(inv.status === 'cancelled'){     // big CANCELLED stamp across the page
+    doc.setPage(1);
+    try{ doc.setGState(new doc.GState({ opacity:0.28 })); }catch(e){}
+    doc.setTextColor(200, 30, 30); doc.setFont('helvetica', 'bold'); doc.setFontSize(70);
+    doc.text('CANCELLED', W / 2, 160, { align:'center', angle:35 });
+    try{ doc.setGState(new doc.GState({ opacity:1 })); }catch(e){}
+    doc.setTextColor(0, 0, 0);
+  }
   return doc.output('blob');
 }
 async function acctPdf_(id){
