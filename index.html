@@ -603,6 +603,7 @@
   <button class="navbtn" data-tab="deletedOrders"><span class="ic">🗑️</span>Deleted</button>
   <button class="navbtn" data-tab="acct"><span class="ic">🧾</span>Sale/Purchase</button>
   <button class="navbtn" data-tab="stock"><span class="ic">📦</span>Stock Summary</button>
+  <button class="navbtn" data-tab="vouchers"><span class="ic">💰</span>Vouchers</button>
   <button class="navbtn" data-tab="activity"><span class="ic">📋</span>Activity</button>
   <button class="navbtn" data-tab="approvals" id="approvalsNavBtn" style="display:none;"><span class="ic">✅</span>Approvals</button>
   <button class="navbtn" data-tab="admin" id="adminNavBtn" style="display:none;"><span class="ic">🛡️</span>Admin</button>
@@ -775,6 +776,7 @@ const RESTRICTABLE_TABS = [
   { key:'activity',         label:'Activity' }
   , { key:'approvals', label:'Approvals' }
   , { key:'stock', label:'Stock Summary' }
+  , { key:'vouchers', label:'Vouchers' }
 ];
 
 function isOwnerUser_(){ return !!(currentStaff && ((currentStaff.mobile && isOwnerEmail_(currentStaff.mobile)) || currentStaff.role === 'owner')); }
@@ -848,7 +850,7 @@ const I18N = {
   en: {
     app_title:'BahiAi',
     nav_order:'TakeOrder', nav_article:'Article', nav_dispatched:'Dispatched', nav_pending:'Pending',
-    nav_customers:'Customers', nav_deleted:'Deleted', nav_activity:'Activity', nav_approvals:'Approvals', nav_admin:'Admin', nav_stock:'Stock Summary', nav_dashboard:'Dashboard', nav_catalog:'Catalog', nav_catpend:'Cat. Pending', nav_catdisp:'Cat. Dispatched', nav_custorders:'Saved Orders',
+    nav_customers:'Customers', nav_deleted:'Deleted', nav_activity:'Activity', nav_approvals:'Approvals', nav_admin:'Admin', nav_stock:'Stock Summary', nav_vouchers:'Vouchers', nav_dashboard:'Dashboard', nav_catalog:'Catalog', nav_catpend:'Cat. Pending', nav_catdisp:'Cat. Dispatched', nav_custorders:'Saved Orders',
     pending_sets:'Pending', sets:'Sets', set:'Set', pcs:'Pcs', box:'Box', switch_btn:'Switch',
 
     login_title:'Staff Login',
@@ -948,7 +950,7 @@ const I18N = {
   hi: {
     app_title:'BahiAi',
     nav_order:'ऑर्डर', nav_article:'आर्टिकल', nav_dispatched:'डिस्पैच', nav_pending:'पेंडिंग',
-    nav_customers:'ग्राहक', nav_deleted:'डिलीटेड', nav_activity:'एक्टिविटी', nav_approvals:'अप्रूवल्स', nav_admin:'एडमिन', nav_stock:'स्टॉक', nav_dashboard:'डैशबोर्ड', nav_catalog:'कैटलॉग', nav_catpend:'कैट. पेंडिंग', nav_catdisp:'कैट. डिस्पैच', nav_custorders:'सेव ऑर्डर',
+    nav_customers:'ग्राहक', nav_deleted:'डिलीटेड', nav_activity:'एक्टिविटी', nav_approvals:'अप्रूवल्स', nav_admin:'एडमिन', nav_stock:'स्टॉक', nav_vouchers:'वाउचर', nav_dashboard:'डैशबोर्ड', nav_catalog:'कैटलॉग', nav_catpend:'कैट. पेंडिंग', nav_catdisp:'कैट. डिस्पैच', nav_custorders:'सेव ऑर्डर',
     pending_sets:'पेंडिंग', sets:'सेट', set:'सेट', pcs:'पीस', box:'बॉक्स', switch_btn:'स्विच',
 
     login_title:'स्टाफ लॉगिन',
@@ -1069,7 +1071,7 @@ function applyStaticLanguage(){
   if(langBtn) langBtn.textContent = t('lang_toggle');
   const navMap = { book:'nav_order', dispatch:'nav_article', dispatchedOrders:'nav_dispatched',
     pendingOrders:'nav_pending', customers:'nav_customers', deletedOrders:'nav_deleted',
-    activity:'nav_activity', approvals:'nav_approvals', admin:'nav_admin', stock:'nav_stock', dashboard:'nav_dashboard', catalog:'nav_catalog', catPending:'nav_catpend', catDispatched:'nav_catdisp', custCatalog:'nav_catalog', custOrders:'nav_custorders' };
+    activity:'nav_activity', approvals:'nav_approvals', admin:'nav_admin', stock:'nav_stock', vouchers:'nav_vouchers', dashboard:'nav_dashboard', catalog:'nav_catalog', catPending:'nav_catpend', catDispatched:'nav_catdisp', custCatalog:'nav_catalog', custOrders:'nav_custorders' };
   document.querySelectorAll('.navbtn').forEach(btn=>{
     const key = navMap[btn.dataset.tab];
     if(!key) return;
@@ -1535,6 +1537,28 @@ async function sbApi_(o){
       if(error) return { ok:false, code: (error.status === 401 || /JWT/i.test(error.message || '')) ? 'auth' : 'error', error:error.message };
       return { ok:true, value: data ? data.value : null };
     }
+    if(a === 'placeOrder'){
+      const od = Object.assign({}, o.order || {}); od.id = String(od.id || uid()); od.createdAt = od.createdAt || new Date().toISOString();
+      const { data:{ user } } = await sb.auth.getUser();
+      od.custEmail = od.custEmail || (currentStaff && currentStaff.mobile) || ''; od.custName = od.custName || (currentStaff && currentStaff.name) || '';
+      const { error } = await sb.from('cat_orders').insert({ id:od.id, firm_id:fid, user_id:user.id, email:od.custEmail, name:od.custName, data:od });
+      if(error){ if(error.code === '23505') return { ok:true }; return { ok:false, code: error.code === '42501' ? 'forbidden' : 'error', error:error.message }; }
+      return { ok:true };
+    }
+    if(a === 'catOrders' || a === 'myOrders'){
+      const { data, error } = await sb.from('cat_orders').select('id,data,status,created_at').eq('firm_id', fid).order('created_at', { ascending:false }).limit(300);
+      if(error) return { ok:false, code:'error', error:error.message };
+      const mk = r=>Object.assign({}, r.data, { id:r.id });
+      const pending = (data || []).filter(r=>r.status === 'pending').map(mk), accepted = (data || []).filter(r=>r.status === 'accepted').slice(0, 200).map(mk);
+      return { ok:true, pending, accepted, notify: a === 'myOrders' ? accepted.slice(0, 50) : [] };
+    }
+    if(a === 'decideOrder'){
+      const st = o.decision === 'accept' ? 'accepted' : 'rejected';
+      const { data, error } = await sb.from('cat_orders').update({ status:st, decided_at:new Date().toISOString() }).eq('id', o.id).eq('firm_id', fid).eq('status', 'pending').select('id,data');
+      if(error) return { ok:false, code:'error', error:error.message };
+      if(!data || !data.length) return { ok:false, code:'conflict' };
+      return { ok:true, order:Object.assign({}, data[0].data, { id:data[0].id }) };
+    }
     if(!a && o.key !== undefined){
       const { error } = await sb.from('app_store').upsert({ firm_id:fid, key:o.key, value:o.value, updated_at:new Date().toISOString() });
       if(error) return { ok:false, code: (error.status === 401 || /JWT/i.test(error.message || '')) ? 'auth' : (error.code === '42501' ? 'forbidden' : 'error'), error:error.message };
@@ -1554,7 +1578,14 @@ async function sbResolve_(typedName){
   const { data, error } = await sb.rpc('my_memberships');
   const msg = document.getElementById('loginMsg');
   if(error){ if(msg) msg.innerHTML = `<div class="msg err">${escapeHtml(error.message)}</div>`; return; }
-  const rows = data || [];
+  let rows = data || [];
+  let pj = ''; try{ pj = localStorage.getItem('ssa_join') || ''; }catch(e){}
+  if(pj && !rows.some(r=>r.license_id === pj)){        // opened through a customer invite link
+    const j = await sb.rpc('join_as_customer', { p_license:pj });
+    try{ localStorage.removeItem('ssa_join'); }catch(e){}
+    if(j.error){ if(msg) msg.innerHTML = `<div class="msg err">${escapeHtml(j.error.message)}</div>`; if(!rows.length){ await sb.auth.signOut(); return; } }
+    else { const r2 = await sb.rpc('my_memberships'); rows = r2.data || rows; }
+  } else if(pj){ try{ localStorage.removeItem('ssa_join'); }catch(e){} }
   const today_ = todayStr_();
   const ok = rows.find(r=>r.status === 'approved' && r.firm_status === 'active' && (!r.valid_until || r.valid_until >= today_));
   if(ok){
@@ -1610,10 +1641,10 @@ async function sbSetApprovals_(fid, str){
 
 /* ---- Plans popup (shown to owners during the free trial) ---- */
 const PLANS_ = [
-  { price:199,  staff:'Up to 5 staff' },
-  { price:499,  staff:'6 to 15 staff' },
-  { price:1099, staff:'16 to 30 staff' },
-  { price:2199, staff:'31 to 50 staff' }
+  { m:199,  y:2199,  staff:'Up to 5 staff' },
+  { m:499,  y:5799,  staff:'6 to 15 staff' },
+  { m:1099, y:12899, staff:'16 to 30 staff' },
+  { m:2199, y:25999, staff:'31 to 50 staff' }
 ];
 function showPlansPopup_(validUntil, limit){
   try{
@@ -1622,13 +1653,13 @@ function showPlansPopup_(validUntil, limit){
     localStorage.setItem('ssa_plans_seen', day);
   }catch(e){}
   const left = validUntil ? Math.max(0, Math.ceil((new Date(validUntil) - new Date(todayStr_())) / 86400000)) : 0;
-  const rows = PLANS_.map(p=>`<div style="display:flex;justify-content:space-between;padding:10px 12px;border:1px solid #d7e3ee;border-radius:10px;margin-top:8px;"><b>₹${p.price} / month</b><span>${p.staff}</span></div>`).join('');
+  const rows = PLANS_.map(p=>`<div style="padding:10px 12px;border:1px solid #d7e3ee;border-radius:10px;margin-top:8px;"><div style="font-weight:700;">${p.staff}</div><div style="display:flex;justify-content:space-between;margin-top:2px;"><span>₹${p.m} / month</span><span>₹${p.y.toLocaleString('en-IN')} / year</span></div></div>`).join('');
   const ov = document.createElement('div');
   ov.id = 'plansOverlay';
   ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
   ov.innerHTML = `<div style="background:#fff;border-radius:16px;max-width:420px;width:100%;padding:20px;max-height:90vh;overflow:auto;">
-    <h3 style="margin:0 0 6px;color:#0288D1;">Your free trial</h3>
-    <p style="margin:0 0 10px;">${left} day${left === 1 ? '' : 's'} left. During the trial you can add up to ${limit || 5} staff. After the trial, choose a plan:</p>
+    <h3 style="margin:0 0 6px;color:#0288D1;">Your 28-day free trial</h3>
+    <p style="margin:0 0 10px;">${left} day${left === 1 ? '' : 's'} left. During the trial you can add up to ${limit || 5} staff, and invite any number of customers. After the trial, choose a plan:</p>
     ${rows}
     <p style="font-size:13px;color:#5b6472;margin:12px 0;">To start a plan, message us on WhatsApp or email. Please do not call.</p>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -1654,7 +1685,7 @@ function renderAdmin(main){
       const pill = f.status === 'active' && !exp ? 'approved' : (f.status === 'pending' ? 'pending' : 'rejected');
       const nStaff = (f.members || []).filter(m=>m.role === 'staff' && m.status === 'approved').length;
       const planSel = `<select id="plan_${f.id}" style="padding:8px;border-radius:8px;border:1px solid #d7e3ee;margin-right:6px;">` +
-        [['trial:5','Trial (5 staff)'],['199:5','₹199 · 5 staff'],['499:15','₹499 · 6-15 staff'],['1099:30','₹1099 · 16-30 staff'],['2199:50','₹2199 · 31-50 staff']]
+        [['trial:5','Trial (5 staff)'],['199:5','₹199/mo · ₹2199/yr · 5 staff'],['499:15','₹499/mo · ₹5799/yr · 6-15 staff'],['1099:30','₹1099/mo · ₹12899/yr · 16-30 staff'],['2199:50','₹2199/mo · ₹25999/yr · 31-50 staff']]
           .map(o=>`<option value="${o[0]}"${(f.plan || 'trial') + ':' + (f.staff_limit || 5) === o[0] ? ' selected' : ''}>${o[1]}</option>`).join('') + '</select>';
       return `<div class="cust-card">
         <div class="cust-head"><span class="name">${escapeHtml(f.name)}</span><span class="set-pill ${pill}">${f.status}${exp ? ' · expired' : ''}</span></div>
@@ -1691,10 +1722,10 @@ function adminWatch_(){
   try{ if('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); }catch(e){}
   const tick = async ()=>{
     try{
-      const { count } = await sb.from('firms').select('id', { count:'exact', head:true }).eq('status', 'pending');
+      const { count } = await sb.from('firms').select('id', { count:'exact', head:true });
       if(count == null) return;
       document.title = (count ? '(' + count + ') ' : '') + 'BahiAi';
-      if(adminSeen_ >= 0 && count > adminSeen_){ try{ new Notification('BahiAi', { body:'A new business signed up and is waiting for activation', icon:'icon-192.png' }); }catch(e){} }
+      if(adminSeen_ >= 0 && count > adminSeen_){ try{ new Notification('BahiAi', { body:'A new business has signed up', icon:'icon-192.png' }); }catch(e){} }
       adminSeen_ = count;
     }catch(e){}
   };
@@ -1719,6 +1750,7 @@ function groupBarPaint_(main){
   bar.innerHTML = GROUPS_[g].tabs.filter(t=>canAccessTab(t[0])).map(t=>`<button class="btn-pill ${t[0] === currentTab ? '' : 'ghost'}" onclick="goTab_('${t[0]}')">${t[1]} ${t[2]}</button>`).join('');
   main.insertBefore(bar, main.firstChild);
 }
+try{ const jc = (new URLSearchParams(location.search).get('join') || '').trim().toUpperCase(); if(jc) localStorage.setItem('ssa_join', jc); }catch(e){}
 let firmSetup_ = null;
 function renderFirmSetup(main){
   main.innerHTML = `<div class="login-wrap"><div class="login-card">
@@ -2543,6 +2575,7 @@ function render(){
   else if(currentTab==='admin') renderAdmin(main);
   else if(currentTab==='acct') renderAcct(main);
   else if(currentTab==='stock') renderStock(main);
+  else if(currentTab==='vouchers') renderVouchers(main);
   else if(currentTab==='orderHub') renderHub_(main, 'order');
   else if(currentTab==='catHub') renderHub_(main, 'cat');
   else renderCustomers(main);
@@ -5959,6 +5992,13 @@ async function catUploadImg_(id, dataUrl){
 
 /* ---------- Catalog photos always go to the BUSINESS OWNER's Google Drive (folder "BahiAi Catalog") ----------
    The owner connects their Drive once; any staff upload is sent through a secure server function (Supabase Edge Function "drive"). */
+async function fnErr_(error, data){
+  if(data && data.error) return data.error;
+  if(!error) return 'unknown error';
+  if(error.name === 'FunctionsFetchError') return 'Cannot reach the server function "drive". It may not be deployed, or it has an error (Supabase > Edge Functions > drive > Logs).';
+  if(error.name === 'FunctionsHttpError'){ try{ const j = await error.context.json(); return (j && (j.error || j.message)) || ('Server error ' + error.context.status); }catch(e){ return 'Server error ' + ((error.context && error.context.status) || ''); } }
+  return error.message || 'unknown error';
+}
 let driveOk_ = null;
 async function driveStatus_(){
   try{ const { data } = await sb.rpc('drive_connected', { p_firm: sbFirmId_() }); driveOk_ = !!data; }catch(e){ driveOk_ = false; }
@@ -5974,7 +6014,7 @@ function driveConnect_(){
       callback: async r=>{
         if(!r || !r.code) return rej(new Error('denied'));
         const { data, error } = await sb.functions.invoke('drive', { body:{ action:'connect', firmId:sbFirmId_(), code:r.code } });
-        if(error || !data || !data.ok) return rej(new Error((data && data.error) || (error && error.message) || 'connect failed'));
+        if(error || !data || !data.ok) return rej(new Error(await fnErr_(error, data)));
         driveOk_ = true; res(true); render();
       },
       error_callback: e=>rej(new Error((e && e.type) || 'popup'))
@@ -5988,7 +6028,7 @@ async function driveToken_(){                       // called before saving phot
 }
 async function catDriveUpload_(id, dataUrl){
   const { data, error } = await sb.functions.invoke('drive', { body:{ action:'upload', firmId:sbFirmId_(), name:'design-' + id + '.jpg', image:(dataUrl.split(',')[1] || '') } });
-  if(error || !data || !data.fileId) throw new Error((data && data.error) || 'DRIVE_UPLOAD_FAILED');
+  if(error || !data || !data.fileId) throw new Error(await fnErr_(error, data));
   return data.fileId;
 }
 function catTitle_(c){ return c.name + (c.sizes ? ' ' + c.sizes : ''); }
@@ -6467,9 +6507,7 @@ async function deleteCatDesign(){
   closeCatForm(); render();
 }
 function catLink_(onlySel){
-  let u = appShareUrl_() + '?catalog=1';
-  if(onlySel && catSel.size) u += '&ids=' + [...catSel].join(',');
-  return u;
+  return appShareUrl_() + '?join=' + encodeURIComponent((bizProfile && bizProfile.licenseId) || '');   // customer invite link: opens the app, customer signs in with Google and lands in the catalog
 }
 /* ---------- Send the selected catalog photos directly (WhatsApp / any app), 30 at a time ---------- */
 async function catImgDataUrl_(it){
@@ -7542,7 +7580,7 @@ function uqcOf_(unit){ return UQC_MAP[unit] || 'OTH'; }
 // Works out taxable value, CGST/SGST or IGST and the round-off of ONE invoice (fills the fields on the invoice).
 function calcInvoice_(inv, firm){
   const type = (firm && firm.type) || 'regular', firmState = (firm && firm.state) || '';
-  const isSale = inv.kind !== 'purchase';
+  const isSale = !isPur_(inv.kind);
   const sellerState = isSale ? firmState : (inv.partyState || '');
   const pos = inv.pos || (isSale ? (inv.partyState || firmState) : firmState);
   const intra = !!sellerState && sellerState === pos;
@@ -7582,7 +7620,7 @@ function nextInvoiceNo_(invoices, kind, date){
     const next = max >= 0 ? Math.max(max + 1, start) : start;
     return prefix + (digits ? String(next).padStart(digits, '0') : String(next));
   }
-  const fy = fyOf_(date).label, prefix = (kind === 'credit_note' ? 'CN/' : kind === 'purchase' ? 'PUR/' : 'INV/') + fy + '/';
+  const fy = fyOf_(date).label, prefix = (kind === 'credit_note' ? 'CN/' : kind === 'debit_note' ? 'DN/' : kind === 'payment' ? 'PAY/' : kind === 'receipt' ? 'RCT/' : kind === 'journal' ? 'JV/' : kind === 'purchase' ? 'PUR/' : 'INV/') + fy + '/';
   let max = 0;
   invoices.forEach(i=>{ if(i.kind === kind && String(i.no || '').startsWith(prefix)){ const n = parseInt(String(i.no).slice(prefix.length), 10); if(n > max) max = n; } });
   return prefix + String(max + 1).padStart(4, '0');
@@ -7590,7 +7628,7 @@ function nextInvoiceNo_(invoices, kind, date){
 
 function acctNumSettings_(){
   if(!isOwnerUser_()) return alert('Only the owner can change invoice numbering.');
-  const kinds = [['sale', 'Sale invoice'], ['credit_note', 'Credit note']];
+  const kinds = [['sale', 'Sale invoice'], ['credit_note', 'Credit note'], ['debit_note', 'Debit note']];
   const ov = document.createElement('div'); ov.id = 'numOv';
   ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:10000;display:flex;align-items:center;justify-content:center;padding:12px;';
   const inp = 'style="width:100%;padding:9px;border:1px solid #d7e3ee;border-radius:8px;"';
@@ -7608,7 +7646,7 @@ function acctNumSettings_(){
 }
 function acctNumSave_(){
   const out = {}, msg = document.getElementById('numMsg');
-  for(const k of ['sale', 'credit_note']){
+  for(const k of ['sale', 'credit_note', 'debit_note']){
     const pre = document.getElementById('nm_' + k + '_p').value.trim(), st = parseInt(document.getElementById('nm_' + k + '_s').value, 10) || 1, dg = parseInt(document.getElementById('nm_' + k + '_d').value, 10) || 0;
     if(!/^[A-Za-z0-9\/\-]{0,8}$/.test(pre)){ msg.innerHTML = '<div class="msg err">Starting letters can have only letters, digits, / and -.</div>'; return; }
     if(pre.length + Math.max(String(st).length, dg) > 16){ msg.innerHTML = '<div class="msg err">Number is too long (maximum 16 characters in all).</div>'; return; }
@@ -7698,6 +7736,8 @@ function gstr3bBuild_(invs, firm, from, to){
       add(R.t31a, sign * taxedTv, sign * inv.igst, sign * inv.cgst, sign * inv.sgst);
       add(R.t31c, sign * nilTv, 0, 0, 0);
       if(!reg && !inv.intra && taxedTv > 0){ const o = R.t32[inv.pos] || (R.t32[inv.pos] = z()); add(o, sign * taxedTv, sign * inv.igst, 0, 0); }
+    } else if(inv.kind === 'debit_note'){
+      if(!inv.reverseCharge && inv.itcEligible !== false) add(R.t4b, 0, inv.igst, inv.cgst, inv.sgst);   // ITC to be reversed (purchase return)
     } else if(inv.kind === 'purchase'){
       if(inv.reverseCharge) add(R.t31d, taxedTv, inv.igst, inv.cgst, inv.sgst);
       if(inv.reverseCharge && inv.itcEligible !== false) add(R.t4a3, 0, inv.igst, inv.cgst, inv.sgst);
@@ -7722,9 +7762,10 @@ function compositionBuild_(invs, firm, from, to){
     if(inv.kind === 'sale' || inv.kind === 'credit_note'){
       const sign = inv.kind === 'credit_note' ? -1 : 1; R.turnover = round2_(R.turnover + sign * (inv.taxable || 0));
       if(!inv.intra && inv.kind === 'sale') R.warnings.push(`${inv.no}: inter-state sale — a composition dealer cannot make inter-state supplies.`);
-    } else if(inv.kind === 'purchase'){
-      if(inv.reverseCharge){ R.rcmTaxable = round2_(R.rcmTaxable + inv.taxable); R.rcmTax = round2_(R.rcmTax + inv.cgst + inv.sgst + inv.igst); }
-      else if(gstinValid_(inv.partyGstin)) R.inwardReg = round2_(R.inwardReg + inv.taxable); else R.inwardUnreg = round2_(R.inwardUnreg + inv.taxable);
+    } else if(isPur_(inv.kind)){
+      const sg = inv.kind === 'debit_note' ? -1 : 1;
+      if(inv.reverseCharge){ R.rcmTaxable = round2_(R.rcmTaxable + sg * inv.taxable); R.rcmTax = round2_(R.rcmTax + sg * (inv.cgst + inv.sgst + inv.igst)); }
+      else if(gstinValid_(inv.partyGstin)) R.inwardReg = round2_(R.inwardReg + sg * inv.taxable); else R.inwardUnreg = round2_(R.inwardUnreg + sg * inv.taxable);
     }
   });
   R.cgst = round2_(Math.max(0, R.turnover) * rate / 200); R.sgst = R.cgst; R.tax = round2_(R.cgst + R.sgst);
@@ -7816,12 +7857,13 @@ async function dataPull_(){
   if(!sb || !navigator.onLine || !sbFirmId_() || Date.now() - dataPulledAt_ < 20000) return false;
   dataPulledAt_ = Date.now();
   let changed = false;
-  const defs = [['acctInvoices', v=>{ acctInvoices = v; }], ['acctParties', v=>{ acctParties = v; }], ['stockItems', v=>{ stockItems = v; }], ['stockGroups', v=>{ stockGroups = v; }], ['acctNumbering', v=>{ acctNumbering = v; }]];
+  const defs = [['acctInvoices', v=>{ acctInvoices = v; }], ['acctParties', v=>{ acctParties = v; }], ['stockItems', v=>{ stockItems = v; }], ['stockGroups', v=>{ stockGroups = v; }], ['acctNumbering', v=>{ acctNumbering = v; }], ['acctVouchers', v=>{ acctVouchers = v; }]];
   for(const [k, set] of defs){
     if(isKeyBusy_(k)) continue;
     const before = localStorage.getItem('ssa_' + k);
     const raw = await storageGet(k);
     if(raw && raw !== before){ try{ set(JSON.parse(raw) || []); changed = true; }catch(e){} }
+    else if(!raw && before && before !== '[]' && before !== '{}'){ pushKeyInBackground_(k); }   // this device has data the cloud does not: upload it
   }
   return changed;
 }
@@ -7835,6 +7877,7 @@ function stockCalc_(){   // stock position of every item, worked out from the sa
       const q = Number(l.qty) || 0, v = q * (Number(l.rate) || 0) * (1 - (Number(l.disc) || 0) / 100);
       if(inv.kind === 'purchase'){ m.inQ += q; m.inV += v; }
       else if(inv.kind === 'credit_note'){ m.inQ += q; m.inV += v; }
+      else if(inv.kind === 'debit_note'){ m.inQ -= q; m.inV -= v; }   // purchase return
       else { m.outQ += q; }
     });
   });
@@ -7972,10 +8015,10 @@ function acctPickItem_(i, name){
   if(it){ acctApplyItem_(i, it); }
 }
 function acctApplyItem_(i, it){
-  const d = acctDraft_, f = firm_(), l = d.lines[i], sale = d.kind !== 'purchase';
+  const d = acctDraft_, f = firm_(), l = d.lines[i], sale = !isPur_(d.kind);
   l.desc = it.name; l.hsn = it.hsn || l.hsn; l.unit = it.unit || l.unit;
   l.rate = sale ? (it.saleRate || '') : (it.purchaseRate || '');
-  if(f.type === 'regular' || d.kind === 'purchase') l.gst = Number(it.gst) || 0;
+  if(f.type === 'regular' || isPur_(d.kind)) l.gst = Number(it.gst) || 0;
   acctForm_();
 }
 function acctNewItem_(){
@@ -7990,6 +8033,125 @@ document.addEventListener('keydown', e=>{
   e.preventDefault(); acctNewItem_();
   setTimeout(()=>{ const n = document.getElementById('sfName'); if(n){ n.focus(); n.select(); } }, 50);
 });
+
+/* =====================  VOUCHERS: Payment, Receipt, Journal (with registers)  ===================== */
+let acctVouchers = [];
+try{ acctVouchers = JSON.parse(localStorage.getItem('ssa_acctVouchers') || '[]') || []; }catch(e){ acctVouchers = []; }
+const VCH_LABEL_ = { payment:'Payment', receipt:'Receipt', journal:'Journal' };
+const VCH_MODES_ = ['Cash', 'Bank transfer', 'UPI', 'Cheque', 'Card', 'Other'];
+const COMMON_LEDGERS_ = ['Cash', 'Bank', 'Sales', 'Purchase', 'Capital', 'Drawings', 'Rent', 'Salary', 'Electricity', 'Telephone', 'Transport', 'Interest paid', 'Interest received', 'Discount allowed', 'Discount received', 'Office expenses', 'Repairs', 'Loan', 'Fixed assets'];
+let vchView = 'payment', vchMonth = '', vchQuery = '', vchDraft_ = null;
+function vchSave_(){
+  try{ localStorage.setItem('ssa_acctVouchers', JSON.stringify(acctVouchers)); storageSet('acctVouchers', JSON.stringify(acctVouchers)); return true; }
+  catch(e){ alert('Could not save.'); return false; }
+}
+function vchAmount_(v){ return v.kind === 'journal' ? (v.lines || []).reduce((t, l)=>t + (Number(l.dr) || 0), 0) : (Number(v.amount) || 0); }
+function renderVouchers(main){
+  dataPull_().then(ch=>{ if(ch && currentTab === 'vouchers' && !document.getElementById('vchOv')) render(); }).catch(()=>{});
+  const q = vchQuery.toLowerCase();
+  const list = acctVouchers.filter(v=>v.kind === vchView && (!vchMonth || v.date.slice(0, 7) === vchMonth) && (!q || ((v.no || '') + ' ' + (v.party || '') + ' ' + (v.narration || '') + ' ' + (v.ref || '')).toLowerCase().includes(q)))
+    .sort((a, b)=>a.date < b.date ? 1 : a.date > b.date ? -1 : String(b.no) < String(a.no) ? -1 : 1);
+  const total = list.filter(v=>v.status !== 'cancelled').reduce((t, v)=>t + vchAmount_(v), 0);
+  const seg = (k, l)=>`<button class="btn-pill ${vchView === k ? '' : 'ghost'}" onclick="vchView='${k}';render()">${l}</button>`;
+  const who = vchView === 'payment' ? 'Paid to' : vchView === 'receipt' ? 'Received from' : 'Entry';
+  const rows = list.map(v=>{
+    const cx = v.status === 'cancelled';
+    const mid = v.kind === 'journal' ? (v.lines || []).map(l=>(Number(l.dr) ? 'Dr ' : 'Cr ') + escapeHtml(l.ledger)).join('<br>') : escapeHtml(v.party || '') + (v.against ? `<br><small>Against ${escapeHtml(v.against)}</small>` : '');
+    return `<tr class="${cx ? 'cx' : ''}"><td>${escapeHtml(v.no)}${cx ? ' <span style="color:#c0392b;font-weight:700;font-size:11px;">CANCELLED</span>' : ''}</td><td>${dmy_(v.date)}</td><td>${mid}</td>
+      <td>${v.kind === 'journal' ? '' : escapeHtml(v.mode || '') + (v.ref ? `<br><small>${escapeHtml(v.ref)}</small>` : '')}</td><td>${escapeHtml(v.narration || '')}</td><td class="r"><b>${inr_(vchAmount_(v))}</b></td>
+      <td class="act">${cx ? '' : `<button title="Edit" onclick="vchOpen_('${v.kind}','${v.id}')">✏️</button>`}${!cx && canCurrentUserDelete() ? `<button title="Cancel" onclick="vchCancel_('${v.id}')">✖</button>` : ''}${cx && canCurrentUserDelete() ? `<button title="Delete permanently" onclick="vchDelete_('${v.id}')">🗑️</button>` : ''}</td></tr>`;
+  }).join('');
+  main.innerHTML = `<div class="card"><h2 style="margin:0 0 8px;">💰 ${BT_('Vouchers','वाउचर')}</h2>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">${seg('payment', '💸 Payment')}${seg('receipt', '💵 Receipt')}${seg('journal', '📒 Journal')}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;">
+      <button class="primary" style="width:auto;padding:10px 16px;" onclick="vchOpen_('${vchView}')">＋ New ${VCH_LABEL_[vchView]}</button>
+      <input type="month" value="${vchMonth}" onchange="vchMonth=this.value;render()" style="max-width:170px;">
+      <input placeholder="Search no. / party / narration" value="${escapeHtml(vchQuery)}" onchange="vchQuery=this.value;render()" style="flex:1;min-width:140px;"></div>
+    ${list.length ? `<div style="overflow-x:auto;"><table class="acct-tbl"><thead><tr><th>No.</th><th>Date</th><th>${who}</th><th>Mode</th><th>Narration</th><th class="r">Amount</th><th></th></tr></thead><tbody>${rows}</tbody>
+      <tfoot><tr><td colspan="5"><b>${VCH_LABEL_[vchView]} register total</b></td><td class="r"><b>${inr_(total)}</b></td><td></td></tr></tfoot></table></div>` : '<div class="empty">Nothing here yet</div>'}</div>`;
+}
+function vchOpen_(kind, id){
+  const old = id ? acctVouchers.find(x=>x.id === id) : null;
+  vchDraft_ = old ? JSON.parse(JSON.stringify(old)) : { id:uid(), kind, no:'', date:todayIso_(), party:'', mode:'Cash', ref:'', amount:'', against:'', narration:'', status:'active', lines:[{ ledger:'', dr:'', cr:'' }, { ledger:'', dr:'', cr:'' }] };
+  if(!old) vchDraft_.no = nextInvoiceNo_(acctVouchers, kind, vchDraft_.date);
+  const ex = document.getElementById('vchOv'); if(ex) ex.remove();
+  const ov = document.createElement('div'); ov.id = 'vchOv';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9400;display:flex;align-items:center;justify-content:center;padding:10px;';
+  document.body.appendChild(ov);
+  vchForm_();
+}
+function vchForm_(){
+  const d = vchDraft_, ov = document.getElementById('vchOv'); if(!ov) return;
+  const inp = 'style="width:100%;padding:10px;border:1px solid #d7e3ee;border-radius:8px;"', fld = (l, h, full)=>`<div style="${full ? 'grid-column:1/-1;' : ''}"><label style="font-size:13px;font-weight:600;">${l}</label>${h}</div>`;
+  const dl = `<datalist id="vchLedgerList">${acctParties.map(p=>`<option value="${escapeHtml(p.name)}">`).join('')}${COMMON_LEDGERS_.map(n=>`<option value="${n}">`).join('')}</datalist>`;
+  let body;
+  if(d.kind === 'journal'){
+    const dr = d.lines.reduce((t, l)=>t + (Number(l.dr) || 0), 0), cr = d.lines.reduce((t, l)=>t + (Number(l.cr) || 0), 0), diff = Math.round((dr - cr) * 100) / 100;
+    body = `<div style="margin-top:10px;"><b>Entries</b></div>` + d.lines.map((l, i)=>`<div style="display:flex;gap:6px;margin-top:6px;align-items:center;">
+        <input list="vchLedgerList" placeholder="Ledger / party" value="${escapeHtml(l.ledger)}" oninput="vchDraft_.lines[${i}].ledger=this.value" style="flex:2;padding:9px;border:1px solid #d7e3ee;border-radius:8px;">
+        <input type="number" step="any" placeholder="Debit" value="${l.dr}" oninput="vchDraft_.lines[${i}].dr=this.value;if(this.value)vchDraft_.lines[${i}].cr='';vchTot_()" style="flex:1;min-width:0;padding:9px;border:1px solid #d7e3ee;border-radius:8px;">
+        <input type="number" step="any" placeholder="Credit" value="${l.cr}" oninput="vchDraft_.lines[${i}].cr=this.value;if(this.value)vchDraft_.lines[${i}].dr='';vchTot_()" style="flex:1;min-width:0;padding:9px;border:1px solid #d7e3ee;border-radius:8px;">
+        ${d.lines.length > 2 ? `<button class="btn-pill ghost" onclick="vchDraft_.lines.splice(${i},1);vchForm_()">✕</button>` : ''}</div>`).join('') +
+      `<button class="btn-pill ghost" style="margin-top:8px;" onclick="vchDraft_.lines.push({ledger:'',dr:'',cr:''});vchForm_()">＋ Add line</button>
+       <div id="vchTot" style="margin-top:8px;font-weight:700;">Debit ${inr_(dr)} · Credit ${inr_(cr)} ${diff ? `<span style="color:#c0392b;">· Difference ${inr_(Math.abs(diff))}</span>` : '<span style="color:#1e8449;">· Balanced ✓</span>'}</div>`;
+  } else {
+    body = `${fld(d.kind === 'payment' ? 'Paid to' : 'Received from', `<input list="vchLedgerList" value="${escapeHtml(d.party)}" oninput="vchDraft_.party=this.value" ${inp}>`, true)}
+      ${fld('Amount ₹', `<input type="number" step="any" value="${d.amount}" oninput="vchDraft_.amount=this.value" ${inp}>`)}
+      ${fld('Mode', `<select onchange="vchDraft_.mode=this.value" ${inp}>${VCH_MODES_.map(m=>`<option ${d.mode === m ? 'selected' : ''}>${m}</option>`).join('')}</select>`)}
+      ${fld('Cheque / UTR / reference', `<input value="${escapeHtml(d.ref || '')}" oninput="vchDraft_.ref=this.value" ${inp}>`)}
+      ${fld('Against bill no. (optional)', `<input value="${escapeHtml(d.against || '')}" oninput="vchDraft_.against=this.value" ${inp}>`)}`;
+  }
+  ov.innerHTML = `<div style="background:#fff;border-radius:14px;max-width:560px;width:100%;max-height:94vh;overflow:auto;padding:16px;">${dl}
+    <h3 style="margin:0 0 10px;color:#0288D1;">${acctVouchers.some(x=>x.id === d.id) ? 'Edit' : 'New'} ${VCH_LABEL_[d.kind]}</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      ${fld('Voucher no.', `<input value="${escapeHtml(d.no)}" maxlength="20" oninput="vchDraft_.no=this.value.trim()" ${inp}>`)}
+      ${fld('Date', `<input type="date" value="${d.date}" onchange="vchDraft_.date=this.value" ${inp}>`)}
+      ${d.kind === 'journal' ? '' : body}
+    </div>${d.kind === 'journal' ? body : ''}
+    <div style="margin-top:8px;"><label style="font-size:13px;font-weight:600;">Narration</label><textarea rows="2" oninput="vchDraft_.narration=this.value" ${inp}>${escapeHtml(d.narration || '')}</textarea></div>
+    <div id="vchMsg"></div>
+    <div style="display:flex;gap:8px;margin-top:10px;"><button class="primary" style="flex:1;" onclick="vchSaveDraft_()">💾 Save</button><button class="secondary" style="flex:1;" onclick="document.getElementById('vchOv').remove()">Cancel</button></div></div>`;
+}
+function vchTot_(){
+  const d = vchDraft_, el = document.getElementById('vchTot'); if(!el) return;
+  const dr = d.lines.reduce((t, l)=>t + (Number(l.dr) || 0), 0), cr = d.lines.reduce((t, l)=>t + (Number(l.cr) || 0), 0), diff = Math.round((dr - cr) * 100) / 100;
+  el.innerHTML = `Debit ${inr_(dr)} · Credit ${inr_(cr)} ${diff ? `<span style="color:#c0392b;">· Difference ${inr_(Math.abs(diff))}</span>` : '<span style="color:#1e8449;">· Balanced ✓</span>'}`;
+}
+function vchSaveDraft_(){
+  const d = vchDraft_, msg = document.getElementById('vchMsg'), err = m=>{ msg.innerHTML = `<div class="msg err">${m}</div>`; };
+  if(!d.date) return err('Please choose the date.');
+  if(!d.no) return err('Please enter the voucher number.');
+  if(acctVouchers.some(x=>x.id !== d.id && x.kind === d.kind && x.no === d.no)) return err('This number is already used.');
+  if(d.kind === 'journal'){
+    const ls = d.lines.filter(l=>String(l.ledger || '').trim() || Number(l.dr) || Number(l.cr));
+    if(ls.length < 2) return err('A journal needs at least two lines.');
+    if(ls.some(l=>!String(l.ledger || '').trim() || (!(Number(l.dr) > 0) && !(Number(l.cr) > 0)))) return err('Every line needs a ledger and an amount.');
+    const dr = ls.reduce((t, l)=>t + (Number(l.dr) || 0), 0), cr = ls.reduce((t, l)=>t + (Number(l.cr) || 0), 0);
+    if(Math.round((dr - cr) * 100) !== 0) return err('Debit and credit must be equal.');
+    d.lines = ls.map(l=>({ ledger:l.ledger.trim(), dr:Number(l.dr) || 0, cr:Number(l.cr) || 0 }));
+  } else {
+    if(!String(d.party || '').trim()) return err(d.kind === 'payment' ? 'Please enter who was paid.' : 'Please enter who paid you.');
+    if(!(Number(d.amount) > 0)) return err('Please enter the amount.');
+    d.amount = Number(d.amount); d.party = d.party.trim();
+    if(!acctParties.some(p=>p.name.toLowerCase() === d.party.toLowerCase()) && !COMMON_LEDGERS_.some(n=>n.toLowerCase() === d.party.toLowerCase())) acctParties.push({ id:uid(), name:d.party, gstin:'', state:'', addr:'' });
+  }
+  const i = acctVouchers.findIndex(x=>x.id === d.id);
+  if(i >= 0) acctVouchers[i] = d; else acctVouchers.push(d);
+  if(!vchSave_()) return;
+  acctSave_();
+  try{ logActivity((i >= 0 ? 'Edited ' : 'New ') + VCH_LABEL_[d.kind], `${d.no} · ${d.party || ''} · ${inr_(vchAmount_(d))}`); }catch(e){}
+  document.getElementById('vchOv').remove(); render();
+}
+function vchCancel_(id){
+  const v = acctVouchers.find(x=>x.id === id); if(!v || !canCurrentUserDelete()) return;
+  if(!confirm('Cancel ' + v.no + '? It stays in the register marked CANCELLED.')) return;
+  v.status = 'cancelled'; vchSave_(); render();
+}
+function vchDelete_(id){
+  const v = acctVouchers.find(x=>x.id === id); if(!v || v.status !== 'cancelled' || !canCurrentUserDelete()) return;
+  if(!confirm('Delete cancelled voucher ' + v.no + ' permanently? This cannot be undone.')) return;
+  acctVouchers = acctVouchers.filter(x=>x.id !== id); vchSave_(); render();
+}
 let acctInvoices = [], acctParties = [];
 try{ acctInvoices = JSON.parse(localStorage.getItem('ssa_acctInvoices') || '[]') || []; acctParties = JSON.parse(localStorage.getItem('ssa_acctParties') || '[]') || []; }catch(e){ acctInvoices = []; acctParties = []; }
 let acctView = 'sales', acctMonth = '', acctQuery = '', acctDraft_ = null, acctEditId_ = null;
@@ -8006,8 +8168,10 @@ function firm_(){
 const inr_ = n=>(Number(n) || 0).toLocaleString('en-IN', { minimumFractionDigits:2, maximumFractionDigits:2 });
 const dmy_ = iso=>{ if(!iso) return ''; const m = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']; return iso.slice(8, 10) + '-' + m[+iso.slice(5, 7) - 1] + '-' + iso.slice(2, 4); };
 const todayIso_ = ()=>{ const d = new Date(), p = n=>String(n).padStart(2, '0'); return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); };
-const KIND_LABEL_ = { sale:'Sale', purchase:'Purchase', credit_note:'Credit Note' };
-function acctDocTitle_(inv){ const t = firm_().type; return inv.kind === 'credit_note' ? 'CREDIT NOTE' : (t === 'regular' ? 'TAX INVOICE' : 'BILL OF SUPPLY'); }
+const KIND_LABEL_ = { sale:'Sale', purchase:'Purchase', credit_note:'Credit Note', debit_note:'Debit Note' };
+function isPur_(k){ return k === 'purchase' || k === 'debit_note'; }   // purchase side (incl. debit note = purchase return)
+function isNeg_(k){ return k === 'credit_note' || k === 'debit_note'; } // returns reduce the totals
+function acctDocTitle_(inv){ const t = firm_().type; return inv.kind === 'credit_note' ? 'CREDIT NOTE' : inv.kind === 'debit_note' ? 'DEBIT NOTE' : (t === 'regular' ? 'TAX INVOICE' : 'BILL OF SUPPLY'); }
 
 function renderAcct(main){
   dataPull_().then(ch=>{ if(ch && currentTab === 'acct' && !document.getElementById('acctOv')) render(); }).catch(()=>{});
@@ -8022,18 +8186,18 @@ function renderAcct(main){
   if(acctView === 'reports') body = acctReportsHtml_(f);
   else{
     const sales = acctView === 'sales', q = acctQuery.toLowerCase();
-    const list = acctInvoices.filter(i=>(sales ? i.kind !== 'purchase' : i.kind === 'purchase') && (!acctMonth || i.date.slice(0, 7) === acctMonth) && (!q || (i.no + ' ' + (i.partyName || '') + ' ' + (i.partyGstin || '')).toLowerCase().includes(q)))
+    const list = acctInvoices.filter(i=>(sales ? !isPur_(i.kind) : isPur_(i.kind)) && (!acctMonth || i.date.slice(0, 7) === acctMonth) && (!q || (i.no + ' ' + (i.partyName || '') + ' ' + (i.partyGstin || '')).toLowerCase().includes(q)))
       .sort((a, b)=>a.date < b.date ? 1 : a.date > b.date ? -1 : String(b.no) < String(a.no) ? -1 : 1);
-    const live = list.filter(i=>i.status !== 'cancelled'), sg = i=>i.kind === 'credit_note' ? -1 : 1;
+    const live = list.filter(i=>i.status !== 'cancelled'), sg = i=>isNeg_(i.kind) ? -1 : 1;
     const tot = live.reduce((o, i)=>{ o.t += sg(i) * i.taxable; o.x += sg(i) * (i.cgst + i.sgst + i.igst); o.g += sg(i) * i.total; return o; }, { t:0, x:0, g:0 });
     body = `<div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;">
-        ${sales ? `<button class="primary" style="width:auto;padding:10px 16px;" onclick="acctOpen_('sale')">＋ ${BT_('New Sale','नई बिक्री')}</button><button class="btn-pill alt" onclick="acctOpen_('credit_note')">↩ ${BT_('Credit Note','क्रेडिट नोट')}</button>` : `<button class="primary" style="width:auto;padding:10px 16px;" onclick="acctOpen_('purchase')">＋ ${BT_('New Purchase','नई खरीद')}</button>`}
+        ${sales ? `<button class="primary" style="width:auto;padding:10px 16px;" onclick="acctOpen_('sale')">＋ ${BT_('New Sale','नई बिक्री')}</button><button class="btn-pill alt" onclick="acctOpen_('credit_note')">↩ ${BT_('Credit Note','क्रेडिट नोट')}</button>` : `<button class="primary" style="width:auto;padding:10px 16px;" onclick="acctOpen_('purchase')">＋ ${BT_('New Purchase','नई खरीद')}</button><button class="btn-pill alt" onclick="acctOpen_('debit_note')">↩ ${BT_('Debit Note (Purchase Return)','डेबिट नोट (परचेज रिटर्न)')}</button>`}
         ${sales && isOwnerUser_() ? `<button class="btn-pill ghost" onclick="acctNumSettings_()">⚙ ${BT_('Invoice numbering','इनवॉइस नंबरिंग')}</button>` : ''}<input type="month" value="${acctMonth}" onchange="acctMonth=this.value;render()" style="max-width:170px;">
         <input placeholder="${BT_('Search no. / party','नंबर / पार्टी खोजें')}" value="${escapeHtml(acctQuery)}" onchange="acctQuery=this.value;render()" style="flex:1;min-width:140px;">
       </div>
       ${list.length ? `<div style="overflow-x:auto;"><table class="acct-tbl"><thead><tr><th>${BT_('No.','नं.')}</th><th>${BT_('Date','तारीख')}</th><th>${BT_('Party','पार्टी')}</th><th class="r">${BT_('Taxable','टैक्सेबल')}</th><th class="r">GST</th><th class="r">${BT_('Total','कुल')}</th><th></th></tr></thead><tbody>
-        ${list.map(i=>`<tr class="${i.status === 'cancelled' ? 'cx' : ''}"><td>${escapeHtml(i.no)}${i.kind === 'credit_note' ? ' <small>(CN)</small>' : ''}${i.status === 'cancelled' ? ' <span style="color:#c0392b;font-weight:700;font-size:11px;">CANCELLED</span>' : ''}</td><td>${dmy_(i.date)}</td><td>${escapeHtml(i.partyName || '')}${i.partyGstin ? `<br><small>${escapeHtml(i.partyGstin)}</small>` : ''}</td><td class="r">${inr_(sg(i) * i.taxable)}</td><td class="r">${inr_(sg(i) * (i.cgst + i.sgst + i.igst))}</td><td class="r"><b>${inr_(sg(i) * i.total)}</b></td>
-          <td class="act">${sales ? `<button title="PDF" onclick="acctPdf_('${i.id}')">📄</button>` : ''}${i.status === 'cancelled' ? '' : `<button title="Edit" onclick="acctOpen_('${i.kind}','${i.id}')">✏️</button>`}${i.status !== 'cancelled' && canCurrentUserDelete() ? `<button title="Cancel" onclick="acctCancel_('${i.id}')">✖</button>` : ''}${i.status === 'cancelled' && canCurrentUserDelete() ? `<button title="Delete permanently" onclick="acctDeleteInv_('${i.id}')">🗑️</button>` : ''}</td></tr>`).join('')}
+        ${list.map(i=>`<tr class="${i.status === 'cancelled' ? 'cx' : ''}"><td>${escapeHtml(i.no)}${i.kind === 'credit_note' ? ' <small>(CN)</small>' : ''}${i.kind === 'debit_note' ? ' <small>(DN - purchase return)</small>' : ''}${i.status === 'cancelled' ? ' <span style="color:#c0392b;font-weight:700;font-size:11px;">CANCELLED</span>' : ''}</td><td>${dmy_(i.date)}</td><td>${escapeHtml(i.partyName || '')}${i.partyGstin ? `<br><small>${escapeHtml(i.partyGstin)}</small>` : ''}</td><td class="r">${inr_(sg(i) * i.taxable)}</td><td class="r">${inr_(sg(i) * (i.cgst + i.sgst + i.igst))}</td><td class="r"><b>${inr_(sg(i) * i.total)}</b></td>
+          <td class="act">${sales || i.kind === 'debit_note' ? `<button title="PDF" onclick="acctPdf_('${i.id}')">📄</button>` : ''}${i.status === 'cancelled' ? '' : `<button title="Edit" onclick="acctOpen_('${i.kind}','${i.id}')">✏️</button>`}${i.status !== 'cancelled' && canCurrentUserDelete() ? `<button title="Cancel" onclick="acctCancel_('${i.id}')">✖</button>` : ''}${i.status === 'cancelled' && canCurrentUserDelete() ? `<button title="Delete permanently" onclick="acctDeleteInv_('${i.id}')">🗑️</button>` : ''}</td></tr>`).join('')}
         </tbody><tfoot><tr><td colspan="3"><b>${BT_('Total','कुल')}</b></td><td class="r"><b>${inr_(tot.t)}</b></td><td class="r"><b>${inr_(tot.x)}</b></td><td class="r"><b>${inr_(tot.g)}</b></td><td></td></tr></tfoot></table></div>`
       : `<div class="empty">${BT_('Nothing here yet','अभी कुछ नहीं है')}</div>`}`;
   }
@@ -8046,7 +8210,7 @@ function renderAcct(main){
 function acctOpen_(kind, id){
   const f = firm_(), old = id ? acctInvoices.find(x=>x.id === id) : null;
   acctEditId_ = old ? old.id : null;
-  acctDraft_ = old ? JSON.parse(JSON.stringify(old)) : { id:uid(), kind, no:'', date:todayIso_(), partyName:'', partyGstin:'', partyState:(kind === 'purchase' ? '' : f.state), pos:'', reverseCharge:false, itcEligible:true, refNo:'', refDate:'', note:'', status:'active', partyAddr:'', shipTo:'', vehicleNo:'', dispatchThrough:'', orderNo:'', orderDate:'', otherRef:'', lines:[{ desc:'', hsn:'', qty:1, unit:unitDefault_(), rate:'', disc:'', gst:(f.type === 'regular' || kind === 'purchase') ? 18 : 0 }], createdAt:new Date().toISOString(), createdBy:(currentStaff && currentStaff.name) || '' };
+  acctDraft_ = old ? JSON.parse(JSON.stringify(old)) : { id:uid(), kind, no:'', date:todayIso_(), partyName:'', partyGstin:'', partyState:(isPur_(kind) ? '' : f.state), pos:'', reverseCharge:false, itcEligible:true, refNo:'', refDate:'', note:'', status:'active', partyAddr:'', shipTo:'', vehicleNo:'', dispatchThrough:'', orderNo:'', orderDate:'', otherRef:'', lines:[{ desc:'', hsn:'', qty:1, unit:unitDefault_(), rate:'', disc:'', gst:(f.type === 'regular' || kind === 'purchase') ? 18 : 0 }], createdAt:new Date().toISOString(), createdBy:(currentStaff && currentStaff.name) || '' };
   if(!old) acctDraft_.no = kind === 'purchase' ? '' : nextInvoiceNo_(acctInvoices, kind, acctDraft_.date);
   const ex = document.getElementById('acctOv'); if(ex) ex.remove();
   const ov = document.createElement('div'); ov.className = 'modal-ov'; ov.id = 'acctOv'; ov.style.zIndex = 9350;
@@ -8057,25 +8221,25 @@ function acctOpen_(kind, id){
 }
 function acctStateOpts_(sel){ return '<option value="">—</option>' + Object.keys(GST_STATES).map(c=>`<option value="${c}" ${c === sel ? 'selected' : ''}>${c} - ${GST_STATES[c]}</option>`).join(''); }
 function acctForm_(){
-  const d = acctDraft_, f = firm_(), sale = d.kind !== 'purchase', taxCol = !(sale && f.type !== 'regular');
+  const d = acctDraft_, f = firm_(), sale = !isPur_(d.kind), taxCol = !(sale && f.type !== 'regular');
   const gOk = !d.partyGstin ? '' : (gstinValid_(d.partyGstin) ? '<span style="color:#1a7f37">✔ valid</span>' : '<span style="color:#c0392b">✖ not valid</span>');
   document.getElementById('acctForm').innerHTML = `
     <div class="acct-grid">
       <div><label>${BT_('Date','तारीख')}</label><input type="date" value="${d.date}" onchange="acctDraft_.date=this.value;acctCalc_()"></div>
       <div><label>${d.kind === 'purchase' ? BT_("Supplier's invoice no.",'सप्लायर का बिल नं.') : BT_('Number','नंबर')}</label><input value="${escapeHtml(d.no)}" oninput="acctDraft_.no=this.value.trim()" maxlength="16"></div>
-      <div style="grid-column:1/-1"><label>${d.kind === 'purchase' ? BT_('Supplier','सप्लायर') : BT_('Customer','ग्राहक')}</label><input list="acctPartyList" style="${sale ? 'font-weight:700;color:#b7410e;' : ''}" value="${escapeHtml(d.partyName)}" onchange="acctPickParty_(this.value)" oninput="acctDraft_.partyName=this.value" placeholder="${sale ? BT_('Leave blank for cash / walk-in','कैश / वॉक-इन के लिए खाली छोड़ें') : ''}"></div>
+      <div style="grid-column:1/-1"><label>${isPur_(d.kind) ? BT_('Supplier','सप्लायर') : BT_('Customer','ग्राहक')}</label><input list="acctPartyList" style="${sale ? 'font-weight:700;color:#b7410e;' : ''}" value="${escapeHtml(d.partyName)}" onchange="acctPickParty_(this.value)" oninput="acctDraft_.partyName=this.value" placeholder="${sale ? BT_('Leave blank for cash / walk-in','कैश / वॉक-इन के लिए खाली छोड़ें') : ''}"></div>
       <div><label>GSTIN ${gOk}</label><input value="${escapeHtml(d.partyGstin)}" maxlength="15" style="text-transform:uppercase" oninput="acctGstin_(this.value)" placeholder="${BT_('if registered','अगर रजिस्टर्ड हो')}"></div>
       <div><label>${BT_('State','राज्य')}</label><select onchange="acctDraft_.partyState=this.value;acctCalc_()">${acctStateOpts_(d.partyState)}</select></div>
       ${sale ? `<div><label>${BT_('Place of supply','सप्लाई का स्थान')}</label><select onchange="acctDraft_.pos=this.value;acctCalc_()">${acctStateOpts_(d.pos || d.partyState || f.state)}</select></div>` : ''}
       <div style="grid-column:1/-1"><label>${BT_('Address','पता')}</label><textarea rows="2" oninput="acctDraft_.partyAddr=this.value" style="width:100%;padding:10px;border:1px solid #d7e3ee;border-radius:8px;">${escapeHtml(d.partyAddr || '')}</textarea></div>
       ${sale && d.kind !== 'credit_note' ? `<div style="grid-column:1/-1"><label>${BT_('Ship to (only if different) - name & address','डिलीवरी का पता (अलग हो तो) - नाम और पता')}</label><textarea rows="2" oninput="acctDraft_.shipTo=this.value" style="width:100%;padding:10px;border:1px solid #d7e3ee;border-radius:8px;">${escapeHtml(d.shipTo || '')}</textarea></div>` : ''}
-      ${d.kind !== 'credit_note' ? `<div><label>${BT_('Vehicle no.','गाड़ी नंबर')}</label><input value="${escapeHtml(d.vehicleNo || '')}" style="text-transform:uppercase" oninput="acctDraft_.vehicleNo=this.value.toUpperCase()"></div>
+      ${d.kind !== 'credit_note' && d.kind !== 'debit_note' ? `<div><label>${BT_('Vehicle no.','गाड़ी नंबर')}</label><input value="${escapeHtml(d.vehicleNo || '')}" style="text-transform:uppercase" oninput="acctDraft_.vehicleNo=this.value.toUpperCase()"></div>
       <div><label>${BT_('Dispatch through','डिस्पैच किससे')}</label><input value="${escapeHtml(d.dispatchThrough || '')}" oninput="acctDraft_.dispatchThrough=this.value"></div>
       <div><label>${BT_('Order no.','ऑर्डर नं.')}</label><input value="${escapeHtml(d.orderNo || '')}" oninput="acctDraft_.orderNo=this.value"></div>
       <div><label>${BT_('Order date','ऑर्डर की तारीख')}</label><input type="date" value="${d.orderDate || ''}" onchange="acctDraft_.orderDate=this.value"></div>
       <div style="grid-column:1/-1"><label>${BT_('Other / delivery reference','अन्य / डिलीवरी रेफरेंस')}</label><input value="${escapeHtml(d.otherRef || '')}" oninput="acctDraft_.otherRef=this.value"></div>` : ''}
-      ${d.kind === 'credit_note' ? `<div><label>${BT_('Against invoice no.','किस बिल के against')}</label><input value="${escapeHtml(d.refNo)}" oninput="acctDraft_.refNo=this.value"></div><div><label>${BT_('Invoice date','बिल की तारीख')}</label><input type="date" value="${d.refDate}" onchange="acctDraft_.refDate=this.value"></div>` : ''}
-      ${d.kind === 'purchase' && f.type === 'regular' ? `<div style="grid-column:1/-1;display:flex;gap:16px;flex-wrap:wrap;"><label style="display:flex;gap:6px;align-items:center;"><input type="checkbox" ${d.itcEligible !== false ? 'checked' : ''} onchange="acctDraft_.itcEligible=this.checked"> ${BT_('ITC can be claimed','ITC ले सकते हैं')}</label><label style="display:flex;gap:6px;align-items:center;"><input type="checkbox" ${d.reverseCharge ? 'checked' : ''} onchange="acctDraft_.reverseCharge=this.checked"> ${BT_('Reverse charge (RCM)','रिवर्स चार्ज (RCM)')}</label></div>` : ''}
+      ${d.kind === 'credit_note' || d.kind === 'debit_note' ? `<div><label>${BT_('Against invoice no.','किस बिल के against')}</label><input value="${escapeHtml(d.refNo)}" oninput="acctDraft_.refNo=this.value"></div><div><label>${BT_('Invoice date','बिल की तारीख')}</label><input type="date" value="${d.refDate}" onchange="acctDraft_.refDate=this.value"></div>` : ''}
+      ${isPur_(d.kind) && f.type === 'regular' ? `<div style="grid-column:1/-1;display:flex;gap:16px;flex-wrap:wrap;"><label style="display:flex;gap:6px;align-items:center;"><input type="checkbox" ${d.itcEligible !== false ? 'checked' : ''} onchange="acctDraft_.itcEligible=this.checked"> ${BT_('ITC can be claimed','ITC ले सकते हैं')}</label><label style="display:flex;gap:6px;align-items:center;"><input type="checkbox" ${d.reverseCharge ? 'checked' : ''} onchange="acctDraft_.reverseCharge=this.checked"> ${BT_('Reverse charge (RCM)','रिवर्स चार्ज (RCM)')}</label></div>` : ''}
       ${d.kind === 'purchase' && f.type !== 'regular' ? `<div style="grid-column:1/-1;display:flex;gap:16px;"><label style="display:flex;gap:6px;align-items:center;"><input type="checkbox" ${d.reverseCharge ? 'checked' : ''} onchange="acctDraft_.reverseCharge=this.checked"> ${BT_('Reverse charge (RCM)','रिवर्स चार्ज (RCM)')}</label></div>` : ''}
     </div>
     <datalist id="stockItemList">${stockItems.map(i=>`<option value="${escapeHtml(i.name)}">`).join('')}</datalist>
@@ -8113,7 +8277,7 @@ function acctPickParty_(name){
 function acctCalc_(){
   const d = acctDraft_, f = firm_(); calcInvoice_(d, f);
   const el = document.getElementById('acctTot'); if(!el) return;
-  const sale = d.kind !== 'purchase', tax = sale && f.type !== 'regular' ? '' : [d.cgst ? `<div>CGST <b>${inr_(d.cgst)}</b></div><div>SGST <b>${inr_(d.sgst)}</b></div>` : '', d.igst ? `<div>IGST <b>${inr_(d.igst)}</b></div>` : ''].join('');
+  const sale = !isPur_(d.kind), tax = sale && f.type !== 'regular' ? '' : [d.cgst ? `<div>CGST <b>${inr_(d.cgst)}</b></div><div>SGST <b>${inr_(d.sgst)}</b></div>` : '', d.igst ? `<div>IGST <b>${inr_(d.igst)}</b></div>` : ''].join('');
   el.innerHTML = `<div>${BT_('Taxable','टैक्सेबल')} <b>${inr_(d.taxable)}</b></div>${tax}${d.roundOff ? `<div>${BT_('Round off','राउंड ऑफ')} <b>${inr_(d.roundOff)}</b></div>` : ''}<div class="g">${BT_('Total','कुल')} ₹ <b>${inr_(d.total)}</b></div>${sale && f.type !== 'regular' ? `<div class="subtle">${BT_('No GST is charged (Bill of Supply).','GST नहीं लगेगा (Bill of Supply)।')}</div>` : ''}`;
 }
 function acctSaveInvoice_(){
@@ -8122,13 +8286,13 @@ function acctSaveInvoice_(){
   if(!d.no) return err(BT_('Please enter the number.', 'नंबर लिखें।'));
   if(!/^[A-Za-z0-9\/\-]{1,16}$/.test(d.no)) return err(BT_('Number can have letters, digits, / and - only (max 16).', 'नंबर में सिर्फ अक्षर, अंक, / और - (अधिकतम 16)।'));
   if(d.partyGstin && !gstinValid_(d.partyGstin)) return err(BT_('GSTIN is not valid. Check it or clear it.', 'GSTIN सही नहीं है। जांचें या खाली करें।'));
-  if(d.kind === 'purchase' && !d.partyName.trim()) return err(BT_('Please enter the supplier name.', 'सप्लायर का नाम लिखें।'));
-  if(d.kind === 'purchase' && !d.partyState) return err(BT_('Please choose the supplier state.', 'सप्लायर का राज्य चुनें।'));
-  if(d.kind !== 'purchase' && !(d.pos || d.partyState || f.state)) return err(BT_('Please choose the place of supply.', 'सप्लाई का स्थान चुनें।'));
+  if(isPur_(d.kind) && !d.partyName.trim()) return err(BT_('Please enter the supplier name.', 'सप्लायर का नाम लिखें।'));
+  if(isPur_(d.kind) && !d.partyState) return err(BT_('Please choose the supplier state.', 'सप्लायर का राज्य चुनें।'));
+  if(!isPur_(d.kind) && !(d.pos || d.partyState || f.state)) return err(BT_('Please choose the place of supply.', 'सप्लाई का स्थान चुनें।'));
   if(!d.lines.length || d.lines.some(l=>!(Number(l.qty) > 0) || l.rate === '' || !(Number(l.rate) >= 0))) return err(BT_('Every item needs quantity and rate.', 'हर आइटम में मात्रा और रेट चाहिए।'));
   if(acctInvoices.some(x=>x.id !== d.id && x.kind === d.kind && x.no === d.no && (d.kind !== 'purchase' || (x.partyGstin || '') === (d.partyGstin || '')))) return err(BT_('This number is already used.', 'यह नंबर पहले से इस्तेमाल हो चुका है।'));
-  if(!d.partyName.trim()) d.partyName = d.kind === 'purchase' ? '' : 'Cash';
-  if(d.kind !== 'purchase' && !d.pos) d.pos = d.partyState || f.state;
+  if(!d.partyName.trim()) d.partyName = isPur_(d.kind) ? '' : 'Cash';
+  if(!isPur_(d.kind) && !d.pos) d.pos = d.partyState || f.state;
   if(f.type === 'composition' && d.kind === 'sale' && d.pos && d.pos !== f.state && !confirm(BT_('A composition dealer cannot make inter-state sales. Save anyway?', 'Composition डीलर इंटर-स्टेट बिक्री नहीं कर सकता। फिर भी सेव करें?'))) return;
   calcInvoice_(d, f);
   const i = acctInvoices.findIndex(x=>x.id === d.id);
@@ -8170,7 +8334,7 @@ function acctPdfBlob_(inv){
   [['Vehicle No.', inv.vehicleNo], ['Dispatch through', inv.dispatchThrough], ['Order No.', inv.orderNo], ['Order date', inv.orderDate ? dmy_(inv.orderDate) : ''], ['Other / Delivery ref.', inv.otherRef]].forEach(r=>{ if(r[1]) info.push(r); });
   let ly = y0;
   info.forEach(r=>{ doc.setFont('helvetica', 'normal'); doc.text(r[0] + ':', M, ly); doc.setFont('helvetica', 'bold'); const ls = doc.splitTextToSize(String(r[1]), 52); doc.text(ls, M + 40, ly); ly += 5 * ls.length; });
-  let ry = y0; doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5); doc.text('Bill to', 112, ry); ry += 5;
+  let ry = y0; doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5); doc.text(inv.kind === 'debit_note' ? 'To (Supplier)' : 'Bill to', 112, ry); ry += 5;
   doc.setTextColor(RUST[0], RUST[1], RUST[2]); doc.setFontSize(11.5);
   const nm = doc.splitTextToSize(inv.partyName || 'Cash', 86); doc.text(nm, 112, ry); ry += 5 * nm.length;
   doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5);
@@ -8248,10 +8412,10 @@ function acctXlsx_(sheets, filename){
 function acctFirmHead_(f, title, per){ return [[title], [BT_('Business','बिज़नेस'), f.name], ['GSTIN', f.gstin || '-'], [BT_('Type','प्रकार'), f.type], [BT_('Period','अवधि'), dmy_(per.from) + ' to ' + dmy_(per.to)], [BT_('Prepared on','तैयार'), new Date().toLocaleString()], []]; }
 function acctXlsRegister_(kind){
   const per = acctPeriod_(); if(!per) return; const f = firm_();
-  const list = acctInvoices.filter(i=>(kind === 'purchase' ? i.kind === 'purchase' : i.kind !== 'purchase') && inPeriod_(i, per.from, per.to)).sort((a, b)=>a.date < b.date ? -1 : 1);
+  const list = acctInvoices.filter(i=>(kind === 'purchase' ? isPur_(i.kind) : !isPur_(i.kind)) && inPeriod_(i, per.from, per.to)).sort((a, b)=>a.date < b.date ? -1 : 1);
   const head = ['Date', 'No.', 'Type', 'Party', 'GSTIN', 'Place of supply', 'Taxable', 'CGST', 'SGST', 'IGST', 'Round off', 'Total', 'Status'].concat(kind === 'purchase' ? ['ITC', 'RCM'] : ['Against invoice']);
-  const rows = list.map(i=>{ const s = i.kind === 'credit_note' ? -1 : 1; return [dmy_(i.date), i.no, KIND_LABEL_[i.kind], i.partyName, i.partyGstin || '', posLabel_(i.pos), s * i.taxable, s * i.cgst, s * i.sgst, s * i.igst, s * i.roundOff, s * i.total, i.status === 'cancelled' ? 'Cancelled' : 'Active'].concat(kind === 'purchase' ? [i.itcEligible === false ? 'No' : 'Yes', i.reverseCharge ? 'Yes' : 'No'] : [i.refNo || '']); });
-  const live = list.filter(i=>i.status !== 'cancelled'), S = k=>round2_(live.reduce((a, i)=>a + (i.kind === 'credit_note' ? -1 : 1) * i[k], 0));
+  const rows = list.map(i=>{ const s = isNeg_(i.kind) ? -1 : 1; return [dmy_(i.date), i.no, KIND_LABEL_[i.kind], i.partyName, i.partyGstin || '', posLabel_(i.pos), s * i.taxable, s * i.cgst, s * i.sgst, s * i.igst, s * i.roundOff, s * i.total, i.status === 'cancelled' ? 'Cancelled' : 'Active'].concat(kind === 'purchase' ? [i.itcEligible === false ? 'No' : 'Yes', i.reverseCharge ? 'Yes' : 'No'] : [i.refNo || '']); });
+  const live = list.filter(i=>i.status !== 'cancelled'), S = k=>round2_(live.reduce((a, i)=>a + (isNeg_(i.kind) ? -1 : 1) * i[k], 0));
   rows.push([], ['TOTAL (active)', '', '', '', '', '', S('taxable'), S('cgst'), S('sgst'), S('igst'), S('roundOff'), S('total')]);
   acctXlsx_([[kind === 'purchase' ? 'Purchase register' : 'Sales register', acctFirmHead_(f, kind === 'purchase' ? 'PURCHASE REGISTER' : 'SALES REGISTER', per).concat([head], rows)]], (kind === 'purchase' ? 'Purchase-register-' : 'Sales-register-') + per.from + '_to_' + per.to + '.xlsx');
 }
@@ -8322,8 +8486,8 @@ function acctXlsComposition_(){
 }
 function acctXlsUnreg_(){
   const per = acctPeriod_(); if(!per) return; const f = firm_(), fy = fyOf_(per.to), months = [];
-  for(let k = 0; k < 12; k++){ const y = +fy.start.slice(0, 4) + (k >= 9 ? 1 : 0), m = ((3 + k) % 12) + 1, a = `${y}-${String(m).padStart(2, '0')}-01`, b = `${y}-${String(m).padStart(2, '0')}-31`; const inv = acctInvoices.filter(i=>i.status !== 'cancelled' && i.date >= a && i.date <= b); const sg = i=>i.kind === 'credit_note' ? -1 : 1;
-    months.push([a.slice(0, 7), round2_(inv.filter(i=>i.kind !== 'purchase').reduce((s, i)=>s + sg(i) * i.total, 0)), round2_(inv.filter(i=>i.kind === 'purchase').reduce((s, i)=>s + i.total, 0))]); }
+  for(let k = 0; k < 12; k++){ const y = +fy.start.slice(0, 4) + (k >= 9 ? 1 : 0), m = ((3 + k) % 12) + 1, a = `${y}-${String(m).padStart(2, '0')}-01`, b = `${y}-${String(m).padStart(2, '0')}-31`; const inv = acctInvoices.filter(i=>i.status !== 'cancelled' && i.date >= a && i.date <= b); const sg = i=>isNeg_(i.kind) ? -1 : 1;
+    months.push([a.slice(0, 7), round2_(inv.filter(i=>!isPur_(i.kind)).reduce((s, i)=>s + sg(i) * i.total, 0)), round2_(inv.filter(i=>isPur_(i.kind)).reduce((s, i)=>s + (i.kind === 'debit_note' ? -1 : 1) * i.total, 0))]); }
   const turn = round2_(months.reduce((s, r)=>s + r[1], 0)), inter = acctInvoices.filter(i=>i.kind === 'sale' && i.status !== 'cancelled' && !i.intra && i.date >= fy.start && i.date <= fy.end).length;
   const rows = acctFirmHead_(f, 'TURNOVER REPORT — FY ' + fy.label, { from:fy.start, to:fy.end }).concat([['Month', 'Sales (net of credit notes)', 'Purchases']].concat(months).concat([['YEAR', turn, round2_(months.reduce((s, r)=>s + r[2], 0))], [], ['Registration limit (goods, most states)', 4000000], ['Used', round2_(turn / 4000000 * 100) + ' %']]).concat(turn >= 3200000 ? [[], ['⚠ Your sales are close to / above Rs 40 lakh — GST registration may be needed (limits differ for services and special category states). Please check with your CA.']] : []).concat(inter ? [[], ['⚠ ' + inter + ' inter-state sale(s) this year — inter-state supply of goods generally needs GST registration. Please check with your CA.']] : []));
   acctXlsx_([['Turnover', rows]], 'Turnover-FY' + fy.label + '.xlsx');

@@ -1,21 +1,15 @@
 // ============================================================
-// Subhash Sales Agencies — Offline Service Worker
+// BahiAi — Offline Service Worker
 // ============================================================
-// WHAT THIS DOES:
-// Caches the app itself (the HTML/CSS/JS, fonts, and the PDF/Excel
-// libraries) so the app can open and be used with NO internet connection
-// at all — just like an installed piece of software. Orders created while
-// offline are saved on the device (see index.html) and automatically sync
-// to Google Sheets the moment internet is back.
+// Caches the app itself (HTML, icons, fonts and the PDF/Excel libraries)
+// so the app opens and works even with no internet. Orders and entries made
+// offline are saved on the device and sync automatically when internet is back.
 //
-// IMPORTANT: this file NEVER caches calls to Google Sheets itself — every
-// request to script.google.com always goes straight to the network, so
-// data always stays live and correct when online.
+// Calls to Supabase (login and data) and to Google APIs are NEVER cached -
+// they always go straight to the network, so data stays live and correct.
 //
-// HOW TO UPDATE:
-// Whenever index.html is updated, bump CACHE_NAME below (e.g. v1 -> v2) —
-// this isn't just housekeeping, it's what makes every device notice there
-// is a new version at all and go fetch it.
+// HOW TO UPDATE: whenever index.html is updated, bump CACHE_NAME below
+// (e.g. v1 -> v2) so every device notices the new version and fetches it.
 // ============================================================
 
 // ------------------------------------------------------------
@@ -50,7 +44,7 @@ try {
   console.error('Push setup skipped in service worker', e);
 }
 
-const CACHE_NAME = 'ssa-app-v47';
+const CACHE_NAME = 'ssa-app-v50';
 const APP_SHELL = [
   './',
   './index.html',
@@ -78,7 +72,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const req = event.request;
 
-  // Never touch the Google Sheets backend — always live network, never cached.
+  // Old Google Apps Script backend (no longer used) - never cached.
   if (req.url.indexOf('script.google.com') !== -1) return;
   // Supabase (login + data) is always live from the network, never cached.
   if (req.url.indexOf('supabase.co') !== -1) return;
