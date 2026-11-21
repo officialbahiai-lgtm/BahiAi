@@ -1528,6 +1528,7 @@ async function sbApi_(o){
     if(!sb) return { ok:false, error:'offline' };
     const a = o && o.action;
     if(a === 'logout'){ await sb.auth.signOut(); return { ok:true }; }
+    if(navigator.onLine){ const { data:{ session:sess_ } } = await sb.auth.getSession(); if(!sess_) return { ok:false, code:'auth' }; }
     const fid = sbFirmId_();
     if(!fid) return { ok:false, code:'nofirm' };
     if(a === 'get' && o.key === 'staffApprovals') return await sbGetApprovals_(fid);
@@ -5999,6 +6000,11 @@ async function fnErr_(error, data){
   if(error.name === 'FunctionsHttpError'){ try{ const j = await error.context.json(); return (j && (j.error || j.message)) || ('Server error ' + error.context.status); }catch(e){ return 'Server error ' + ((error.context && error.context.status) || ''); } }
   return error.message || 'unknown error';
 }
+async function fnHeaders_(){
+  const { data:{ session } } = await sb.auth.getSession();
+  if(!session) throw new Error('Your login has expired. Please log out and log in again.');
+  return { Authorization:'Bearer ' + session.access_token };
+}
 let driveOk_ = null;
 async function driveStatus_(){
   try{ const { data } = await sb.rpc('drive_connected', { p_firm: sbFirmId_() }); driveOk_ = !!data; }catch(e){ driveOk_ = false; }
@@ -6006,28 +6012,44 @@ async function driveStatus_(){
 }
 function driveConnect_(){
   return new Promise((res, rej)=>{
-    if(!isOwnerUser_()) return rej(new Error('owner only'));
-    if(!(window.google && google.accounts && google.accounts.oauth2)) return rej(new Error('Google not loaded'));
-    google.accounts.oauth2.initCodeClient({
-      client_id: GOOGLE_CLIENT_ID, scope: 'https://www.googleapis.com/auth/drive.file', ux_mode: 'popup',
-      login_hint: (currentStaff && currentStaff.mobile) || '',
-      callback: async r=>{
-        if(!r || !r.code) return rej(new Error('denied'));
-        const { data, error } = await sb.functions.invoke('drive', { body:{ action:'connect', firmId:sbFirmId_(), code:r.code } });
-        if(error || !data || !data.ok) return rej(new Error(await fnErr_(error, data)));
-        driveOk_ = true; res(true); render();
-      },
-      error_callback: e=>rej(new Error((e && e.type) || 'popup'))
-    }).requestCode();
+    if(!sbFirmId_()) return rej(new Error('This Google account has no business. Please log in with the business owner account.'));
+    if(!isOwnerUser_()) return rej(new Error('Only the business owner can connect Google Drive.'));
+    const q = new URLSearchParams({ client_id:GOOGLE_CLIENT_ID, redirect_uri:location.origin + location.pathname, response_type:'code',
+      scope:'https://www.googleapis.com/auth/drive.file', access_type:'offline', prompt:'consent', include_granted_scopes:'true',
+      state:'bahiai-drive', login_hint:(currentStaff && currentStaff.mobile) || '' });
+    location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + q.toString();   // returns to this page with ?code=...
   });
 }
+// Coming back from Google: finish the connection as soon as the person is logged in
+try{
+  const u_ = new URL(location.href);
+  if(u_.searchParams.get('state') === 'bahiai-drive'){
+    if(u_.searchParams.get('code')) sessionStorage.setItem('ssa_drive_code', u_.searchParams.get('code'));
+    if(u_.searchParams.get('error')) sessionStorage.setItem('ssa_drive_err', u_.searchParams.get('error'));
+    history.replaceState({}, '', location.pathname);
+  }
+}catch(e){}
+async function driveFinish_(){
+  let code = '', err = ''; try{ code = sessionStorage.getItem('ssa_drive_code') || ''; err = sessionStorage.getItem('ssa_drive_err') || ''; }catch(e){}
+  if(!code && !err) return true;
+  if(!currentStaff || !sbFirmId_()) return false;
+  try{ sessionStorage.removeItem('ssa_drive_code'); sessionStorage.removeItem('ssa_drive_err'); }catch(e){}
+  if(err){ alert('Google Drive was not connected (' + err + ').'); return true; }
+  try{
+    const { data, error } = await sb.functions.invoke('drive', { headers:await fnHeaders_(), body:{ action:'connect', firmId:sbFirmId_(), code, redirectUri:location.origin + location.pathname } });
+    if(error || !data || !data.ok) throw new Error(await fnErr_(error, data));
+    driveOk_ = true; alert('Google Drive connected. Catalog photos will now be saved in your Drive folder "BahiAi Catalog".'); render();
+  }catch(e){ alert('Could not connect Google Drive: ' + e.message); }
+  return true;
+}
+(function(){ let n = 0; const t = setInterval(async ()=>{ n++; if((await driveFinish_()) || n > 60) clearInterval(t); }, 700); })();
 function driveConnectBtn_(){ driveConnect_().then(()=>alert('Google Drive connected. Catalog photos will now be saved in your Drive folder "BahiAi Catalog".')).catch(e=>alert('Could not connect Google Drive: ' + e.message)); }
 async function driveToken_(){                       // called before saving photos: makes sure the owner's Drive is connected
   if(driveOk_ !== true && !(await driveStatus_())) await driveConnect_();
   return true;
 }
 async function catDriveUpload_(id, dataUrl){
-  const { data, error } = await sb.functions.invoke('drive', { body:{ action:'upload', firmId:sbFirmId_(), name:'design-' + id + '.jpg', image:(dataUrl.split(',')[1] || '') } });
+  const { data, error } = await sb.functions.invoke('drive', { headers:await fnHeaders_(), body:{ action:'upload', firmId:sbFirmId_(), name:'design-' + id + '.jpg', image:(dataUrl.split(',')[1] || '') } });
   if(error || !data || !data.fileId) throw new Error(await fnErr_(error, data));
   return data.fileId;
 }
