@@ -565,6 +565,16 @@
 .acct-tbl{width:100%;border-collapse:collapse;font-size:13px}.acct-tbl th,.acct-tbl td{padding:7px 6px;border-bottom:1px solid #e3e8ef;text-align:left;vertical-align:top}
 .acct-tbl .r{text-align:right;white-space:nowrap}.acct-tbl tr.cx td{opacity:.5;text-decoration:line-through}.acct-tbl td.act{white-space:nowrap}.acct-tbl td.act button{background:none;border:none;font-size:17px;cursor:pointer;padding:2px 4px}
 .acct-tbl tfoot td{border-top:2px solid #cfd8e3}
+.tv{position:fixed;inset:0;background:#f6fcee;display:flex;flex-direction:column;font-size:14px}.tvroot{display:flex;flex-direction:column;height:100%;width:100%}
+.tv-top{background:#173c6b;color:#fff;padding:7px 14px;display:flex;justify-content:space-between;align-items:center}.tv-top b{font-size:15px}.tv-x{background:none;border:none;color:#fff;font-size:18px;cursor:pointer}
+.tv-sub{background:#9cc6e8;padding:4px 14px;display:flex;justify-content:space-between;align-items:center;font-weight:700}.tv-type{background:#2f6fb2;color:#fff;padding:3px 14px;border-radius:2px;letter-spacing:.5px}.tv-sub input{padding:4px 6px;border:1px solid #6f9fc8;border-radius:3px;background:#fffef2;font-weight:700}
+.tv-main{flex:1;display:flex;min-height:0}.tv-form{flex:1;overflow:auto;padding:10px 18px}
+.tv-keys{width:200px;background:#dcebf8;border-left:1px solid #b9d2ea;padding:8px;overflow:auto}.tv-keys button{display:flex;gap:8px;width:100%;margin:4px 0;padding:8px 10px;border:1px solid #b9d2ea;background:#fff;border-radius:4px;font-weight:600;text-align:left;cursor:pointer;font-size:13px}.tv-keys button b{color:#1769aa;min-width:34px}.tv-keys button.cur{background:#fff3d6;border-color:#f5a623}.tv-keys button[disabled]{opacity:.45;cursor:default}.tv-keys .hint{font-size:11px;color:#4b6075;margin-top:10px;line-height:1.5}
+.tv-bottom{display:flex;gap:6px;padding:6px 10px;background:#eef3f7;border-top:2px solid #b9d2ea;flex-wrap:wrap}.tv-bottom button{padding:8px 18px;border:1px solid #9bb5cc;background:#fff;border-radius:4px;font-weight:700;cursor:pointer}.tv-bottom button.ok{background:#1e8449;color:#fff;border-color:#1e8449}.tv-bottom button.dn{color:#c0392b}
+.tv-field{display:flex;gap:10px;align-items:center;margin:5px 0;flex-wrap:wrap}.tv-field label{width:150px;margin:0;font-size:14px}.tv-field input,.tv-field select,.tv-field textarea{padding:6px 8px;border:1px solid #bcd0e0;border-radius:3px;background:#fffef2;font-size:14px}.tv-inline{display:flex;gap:16px;flex-wrap:wrap;align-items:center}.tv-inline label{margin:0 6px 0 0;font-size:13px;width:auto}
+.tv-det{margin:8px 0;background:#fff;border:1px solid #dce6d0;border-radius:4px;padding:6px 10px}.tv-det summary{cursor:pointer;font-weight:700;color:#173c6b}
+.tv-tbl{width:100%;border-collapse:collapse;background:#fff;margin-top:10px}.tv-tbl th{background:#e6f0d9;border:1px solid #c8d8b4;padding:5px 6px;font-size:13px;text-align:left}.tv-tbl td{border:1px solid #dfe8d0;padding:1px}.tv-tbl input,.tv-tbl select{width:100%;border:none;padding:7px 6px;background:transparent;font-size:14px;box-sizing:border-box}.tv-tbl input:focus,.tv-tbl select:focus{outline:2px solid #f5a623;background:#fff3d6}.tv-tbl td.amt{text-align:right;font-weight:700;padding:6px 8px}.tv-tbl button.x{background:none;border:none;color:#c0392b;cursor:pointer}
+@media(max-width:899px){.tv-keys{display:none}.tv-field label{width:100%}}
 .acct-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.acct-grid label{font-size:12px;display:block;margin-bottom:2px}.acct-grid input,.acct-grid select{width:100%}
 .acct-line{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px;padding-bottom:8px;border-bottom:1px dashed #dfe5ee}
 .acct-line .w-desc{flex:2 1 160px;min-width:120px}.acct-line .w-hsn{width:80px}.acct-line .w-n{width:84px}.acct-line .w-s{width:74px}.acct-line .x{background:none;border:none;color:#c0392b;font-size:18px;cursor:pointer}
@@ -635,6 +645,17 @@ let tempDesignNumber = '';
 let tempColour = '';
 let tempSizeText = '';       // what is typed in the Size box (kept after + so the same size can be reused)
 let tempPrice = '';
+const SIZE_KINDS_ = ['Size', 'Batch Number', 'Expiry Date', 'Item Code', 'Model Name', 'Tracking ID', 'Serial Number', 'Lot Number', 'Weight', 'Grade', 'Pack Size', 'Dimension', 'Capacity', 'MRP'];
+const COLOUR_KINDS_ = ['Colour', 'Other Details', 'Remark', 'Shade', 'Material', 'Finish', 'Variant', 'Flavour', 'Style'];
+let sizeKind = 'Size', colourKind = 'Colour';
+try{ sizeKind = localStorage.getItem('ssa_sizeKind') || 'Size'; colourKind = localStorage.getItem('ssa_colourKind') || 'Colour'; }catch(e){}
+function kindSelectHtml_(id, list, cur, firstLabel, onchg){
+  return `<select id="${id}" onchange="${onchg}" style="font-size:13px;font-weight:700;color:var(--navy);border:none;border-bottom:1.5px dashed var(--navy);background:transparent;border-radius:0;padding:2px 0;margin:0;width:auto;max-width:70%;cursor:pointer;">${list.map((k, i)=>`<option value="${k}" ${k === cur ? 'selected' : ''}>${i === 0 ? firstLabel : k}</option>`).join('')}</select>`;
+}
+function kindChanged_(which, v){
+  if(which === 'size'){ sizeKind = v; try{ localStorage.setItem('ssa_sizeKind', v); }catch(e){} const el = document.getElementById('sizeVal'); if(el) el.placeholder = v === 'Size' ? t('size_ph') : (v === 'Expiry Date' ? 'e.g. 12/2027' : 'Enter ' + v.toLowerCase()); }
+  else { colourKind = v; try{ localStorage.setItem('ssa_colourKind', v); }catch(e){} const el = document.getElementById('designColour'); if(el) el.placeholder = v === 'Colour' ? t('colour_ph') : 'Enter ' + v.toLowerCase(); }
+}
 let activitySearchStaff = '';
 let tempSizes = [];          // [{size, qty}]
 let orderUnit = 'set';
@@ -875,7 +896,7 @@ const I18N = {
 
     customer_name:'Customer Name', enter_customer_name:'Enter customer name', city_name:'City Name (optional)', enter_city_name:'Enter city name',
     brand_name:'Brand Name', enter_brand_name:'Enter brand name',
-    add_design:'Add Design', design_number:'Design Number', design_ph:'e.g. 2145',
+    add_design:'Add Item', design_number:'Item Name', design_ph:'e.g. 2145',
     colour_optional:'Colour (optional)', colour_ph:'e.g. Red Blue Green',
     size:'Size', size_ph:'Tap to choose or type a size', no_size_added:'No size added yet',
     size_add_hint:'Tap + to add each size straight into the order below',
@@ -894,7 +915,7 @@ const I18N = {
     upload_to_ai:'Upload to AI', ai_reading:'AI is reading your order form…',
     ai_read_done:'AI has filled in the order below — please check it before saving',
     ai_read_failed:'Could not read this file', ai_max_files:'Please select at most 5 photos at a time.', ai_no_mix:'Please upload Excel files separately from photos/PDFs.',
-    add_design_btn:'Add This Design to Order', designs_in_order:'Designs in This Order',
+    add_design_btn:'Add This Item to Order', designs_in_order:'Items in This Order',
     no_design_added:'No design added yet', save_order:'Save Order', remove:'Remove',
     enter_design_err:'Please enter design number', add_size_err:'Add at least one size',
     size_qty_err:'Please enter size and set correctly', designs_saved:'designs saved to order',
@@ -975,7 +996,7 @@ const I18N = {
 
     customer_name:'ग्राहक का नाम', enter_customer_name:'ग्राहक का नाम लिखें', city_name:'शहर का नाम (वैकल्पिक)', enter_city_name:'शहर का नाम लिखें',
     brand_name:'ब्रांड का नाम', enter_brand_name:'ब्रांड का नाम लिखें',
-    add_design:'डिज़ाइन जोड़ें', design_number:'डिज़ाइन नंबर', design_ph:'जैसे 2145',
+    add_design:'आइटम जोड़ें', design_number:'आइटम का नाम', design_ph:'जैसे 2145',
     colour_optional:'कलर (वैकल्पिक)', colour_ph:'जैसे लाल नीला हरा',
     size:'साइज़', size_ph:'चुनने के लिए टैप करें या साइज़ लिखें', no_size_added:'अभी कोई साइज़ नहीं जोड़ा गया',
     size_add_hint:'हर साइज़ जोड़ने के लिए + दबाएं, सीधा नीचे ऑर्डर में जुड़ जाएगा',
@@ -994,7 +1015,7 @@ const I18N = {
     upload_to_ai:'AI को दिखाएं', ai_reading:'AI आपका ऑर्डर फॉर्म पढ़ रहा है…',
     ai_read_done:'AI ने नीचे ऑर्डर भर दिया है — कृपया सेव करने से पहले जांच लें',
     ai_read_failed:'यह फाइल पढ़ी नहीं जा सकी', ai_max_files:'एक बार में ज़्यादा से ज़्यादा 5 फोटो चुनें।', ai_no_mix:'Excel फाइलें फोटो/PDF से अलग अपलोड करें।',
-    add_design_btn:'यह डिज़ाइन ऑर्डर में जोड़ें', designs_in_order:'इस ऑर्डर में डिज़ाइन',
+    add_design_btn:'यह आइटम ऑर्डर में जोड़ें', designs_in_order:'इस ऑर्डर में आइटम',
     no_design_added:'अभी कोई डिज़ाइन नहीं जोड़ा गया', save_order:'ऑर्डर सेव करें', remove:'हटाएं',
     enter_design_err:'कृपया डिज़ाइन नंबर लिखें', add_size_err:'कम से कम एक साइज़ जोड़ें',
     size_qty_err:'कृपया साइज़ और सेट सही लिखें', designs_saved:'डिज़ाइन ऑर्डर में सेव हो गए',
@@ -1108,9 +1129,9 @@ let bizProfile = {};
 // Built-in units. `amt:true` = "Price" is per that unit, so Qty x Price gives an Amount.
 // (Set and Box keep the old behaviour: no amount, because a set/box has no fixed pcs count.)
 const UNIT_BUILTIN = [
-  { k:'set',    en:'Set',    hi:'सेट',    amt:false },
+  { k:'set',    en:'Set',    hi:'सेट',    amt:true  },
   { k:'pcs',    en:'Pcs',    hi:'पीस',    amt:true  },
-  { k:'box',    en:'Box',    hi:'बॉक्स',   amt:false },
+  { k:'box',    en:'Box',    hi:'बॉक्स',   amt:true  },
   { k:'dozen',  en:'Dozen',  hi:'दर्जन',   amt:true  },
   { k:'pair',   en:'Pair',   hi:'जोड़ी',   amt:true  },
   { k:'carton', en:'Carton', hi:'कार्टन',  amt:true  },
@@ -3028,9 +3049,9 @@ function renderBook(main){
       <label><span class="label-dot" style="background:var(--rust);"></span>${t('design_number')}</label>
       <input id="designNo" class="field-rust" list="designList" placeholder="${t('design_ph')}" value="${escapeHtml(tempDesignNumber)}" oninput="jumpToSizeOnSpace_(this)" onkeydown="if(event.key===' '){event.preventDefault();jumpToSizeOnSpace_(this);}else{handleOrderFormArrowNav(event,'designNo')}">
 
-      <label style="margin-top:10px;"><span class="label-dot" style="background:var(--mustard);"></span>${t('size')}</label>
+      <div style="margin-top:10px;display:flex;align-items:center;gap:6px;"><span class="label-dot" style="background:var(--mustard);"></span>${kindSelectHtml_('sizeKind', SIZE_KINDS_, sizeKind, t('size'), "kindChanged_('size',this.value)")}</div>
       <div class="row">
-        <input id="sizeVal" class="field-mustard" placeholder="${t('size_ph')}" autocomplete="off" value="${escapeHtml(tempSizeText)}" oninput="tempSizeText=this.value" onkeydown="if(event.key==='Enter'){event.preventDefault();addTempSize();}else{handleOrderFormArrowNav(event,'sizeVal')}">
+        <input id="sizeVal" class="field-mustard" placeholder="${sizeKind === 'Size' ? t('size_ph') : (sizeKind === 'Expiry Date' ? 'e.g. 12/2027' : 'Enter ' + sizeKind.toLowerCase())}" autocomplete="off" value="${escapeHtml(tempSizeText)}" oninput="tempSizeText=this.value" onkeydown="if(event.key==='Enter'){event.preventDefault();addTempSize();}else{handleOrderFormArrowNav(event,'sizeVal')}">
         <div style="max-width:80px;">
           ${unitSelectHtml_('unitVal', unitFix_(), "width:100%;padding:2px 0;margin:0 0 6px;font-size:13px;font-weight:700;color:var(--navy);border:none;border-bottom:1.5px dashed var(--navy);background:transparent;border-radius:0;cursor:pointer;", "onUnitChange_(this.value)")}
           <input id="qtyVal" type="number" min="1" value="${qtyTouched ? 1 : defaultQtyFor_(orderUnit)}" oninput="qtyTouched=true" onkeydown="if(event.key==='Enter'){event.preventDefault();addTempSize();}else{handleOrderFormArrowNav(event,'qtyVal')}">
@@ -3040,8 +3061,8 @@ function renderBook(main){
 
       <div style="display:flex;align-items:flex-end;gap:8px;margin-top:14px;">
           <div style="flex:1.5;min-width:0;">
-            <label>${t('colour_optional')}</label>
-            <input id="designColour" placeholder="${t('colour_ph')}" value="${escapeHtml(tempColour)}" oninput="tempColour=this.value" onkeydown="handleOrderFormArrowNav(event,'designColour')">
+            <div style="display:flex;align-items:center;">${kindSelectHtml_('colourKind', COLOUR_KINDS_, colourKind, t('colour_optional'), "kindChanged_('colour',this.value)")}</div>
+            <input id="designColour" placeholder="${colourKind === 'Colour' ? t('colour_ph') : 'Enter ' + colourKind.toLowerCase()}" value="${escapeHtml(tempColour)}" oninput="tempColour=this.value" onkeydown="handleOrderFormArrowNav(event,'designColour')">
           </div>
           <div style="flex:1;min-width:0;">
             <label id="designPriceLbl" style="font-size:10px;">${priceLabel_(orderUnit)}</label>
@@ -3408,7 +3429,7 @@ function addTempSize(){
   // While Colour/Price are hidden they are ignored, so nothing typed earlier
   // gets silently attached to an order the person can no longer see it on.
   const colourRaw = colourInput ? colourInput.value.trim() : '';
-  const colours = parseColourList_(colourRaw);   // "red blue, green" -> 3 colours, each its own set
+  const colours = colourKind === 'Colour' ? parseColourList_(colourRaw) : (colourRaw ? [colourKind + ': ' + colourRaw] : parseColourList_(''));   // Colour: "red blue, green" -> 3 sets;  other kinds are kept as one value
   const price = priceInput ? priceInput.value.trim() : '';
   const rawSize = sizeInput.value.trim();
   const qty = parseInt(qtyInput.value) || 0;
@@ -3428,7 +3449,7 @@ function addTempSize(){
   // two sizes, not re-expanded.
   const rawTokens = rawSize.split(/[\s,]+/).map(s=>s.trim()).filter(Boolean);
   const brandNow = (document.getElementById('custBrand') && document.getElementById('custBrand').value) || '';
-  const sizes = rawTokens.length === 1 ? expandSizeRange_(rawTokens[0], brandNow) : rawTokens;
+  const sizes = sizeKind !== 'Size' ? (rawSize ? [sizeKind + ': ' + rawSize] : []) : (rawTokens.length === 1 ? expandSizeRange_(rawTokens[0], brandNow) : rawTokens);
   if(!sizes.length || qty <= 0){
     msg.innerHTML = `<div class="msg err">${t('size_qty_err')}</div>`;
     return;
@@ -7915,7 +7936,7 @@ function stockCalc_(){   // stock position of every item, worked out from the sa
   Object.keys(mv).forEach(k=>{ if(seen.has(k)) return; const m = mv[k]; const avg = m.inQ > 0 ? m.inV / m.inQ : 0; rows.push({ item:null, name:m.name, group:'', unit:'', open:0, inQ:m.inQ, outQ:m.outQ, close:m.inQ - m.outQ, avg, value:(m.inQ - m.outQ) * avg, listed:false }); });
   return rows.sort((a, b)=>(a.group + a.name).localeCompare(b.group + b.name));
 }
-function stockClosingValue_(){ return stockCalc_().reduce((t, r)=>t + (r.close > 0 ? r.value : 0), 0); }
+function stockClosingValue_(){ return stockCalc_().reduce((t, r)=>t + r.value, 0); }
 
 function renderStock(main){
   dataPull_().then(ch=>{ if(ch && currentTab === 'stock') render(); }).catch(()=>{});
@@ -7924,7 +7945,7 @@ function renderStock(main){
   let body = '';
   if(stockView === 'summary'){
     const rows = stockCalc_().filter(r=>!q || (r.name + ' ' + r.group).toLowerCase().includes(q));
-    const tot = rows.reduce((t, r)=>t + (r.close > 0 ? r.value : 0), 0);
+    const tot = rows.reduce((t, r)=>t + r.value, 0);
     body = `<div style="overflow-x:auto;"><table class="acct-table" style="width:100%;border-collapse:collapse;font-size:14px;">
       <tr style="text-align:left;border-bottom:2px solid #d7e3ee;"><th>Item</th><th>Group</th><th>Open</th><th>In</th><th>Out</th><th>Closing</th><th>Avg rate</th><th>Value</th></tr>` +
       (rows.map(r=>`<tr style="border-bottom:1px solid #eef3f7;${r.close < 0 ? 'color:#c0392b;' : ''}">
@@ -8034,7 +8055,11 @@ function stockSaveItem_(){
 function acctPickItem_(i, name){
   const it = stockItems.find(x=>x.name.trim().toLowerCase() === String(name).trim().toLowerCase());
   const l = acctDraft_.lines[i]; l.desc = name;
-  if(it){ acctApplyItem_(i, it); }
+  if(it){ tvFocusNext_ = { r:i, c:'qty' }; acctApplyItem_(i, it); }
+  else if(String(name).trim() && !tvAsked_.has(String(name).trim().toLowerCase())){      // new item typed in a bill: create it right here
+    tvAsked_.add(String(name).trim().toLowerCase());
+    stockForm_(null, it2=>{ tvFocusNext_ = { r:i, c:'qty' }; acctApplyItem_(i, it2); }, String(name).trim());
+  }
 }
 function acctApplyItem_(i, it){
   const d = acctDraft_, f = firm_(), l = d.lines[i], sale = !isPur_(d.kind);
@@ -8098,12 +8123,45 @@ function vchOpen_(kind, id){
   if(!old) vchDraft_.no = nextInvoiceNo_(acctVouchers, kind, vchDraft_.date);
   const ex = document.getElementById('vchOv'); if(ex) ex.remove();
   const ov = document.createElement('div'); ov.id = 'vchOv';
-  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9400;display:flex;align-items:center;justify-content:center;padding:10px;';
+  if(tvOn_()){ ov.className = 'tv'; ov.style.zIndex = 9400; }
+  else ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9400;display:flex;align-items:center;justify-content:center;padding:10px;';
   document.body.appendChild(ov);
-  vchForm_();
+  vchForm_(); if(tvOn_()) tvStartFocus_();
+}
+function vchFormTally_(){
+  const d = vchDraft_, ov = document.getElementById('vchOv'); if(!ov) return;
+  const fld = (l, h)=>`<div class="tv-field"><label>${l}</label>${h}</div>`;
+  const dl = `<datalist id="vchLedgerList">${acctParties.map(p=>`<option value="${escapeHtml(p.name)}">`).join('')}${COMMON_LEDGERS_.map(n=>`<option value="${n}">`).join('')}</datalist>`;
+  let body;
+  if(d.kind === 'journal'){
+    const dr = d.lines.reduce((t, l)=>t + (Number(l.dr) || 0), 0), cr = d.lines.reduce((t, l)=>t + (Number(l.cr) || 0), 0), diff = Math.round((dr - cr) * 100) / 100;
+    body = `<table class="tv-tbl" id="tvJ" onkeydown="tvEnter_(event)"><thead><tr><th style="width:40px;">Dr/Cr</th><th>Particulars (Ledger / Party)</th><th style="width:150px;text-align:right;">Debit</th><th style="width:150px;text-align:right;">Credit</th><th></th></tr></thead><tbody>` +
+      d.lines.map((l, i)=>`<tr><td style="text-align:center;font-weight:700;">${Number(l.cr) > 0 && !(Number(l.dr) > 0) ? 'Cr' : 'Dr'}</td>
+        <td><input data-r="${i}" data-c="ledger" list="vchLedgerList" value="${escapeHtml(l.ledger)}" oninput="vchDraft_.lines[${i}].ledger=this.value"></td>
+        <td><input data-r="${i}" data-c="dr" type="number" step="any" value="${l.dr}" style="text-align:right;" oninput="vchDraft_.lines[${i}].dr=this.value;if(this.value)vchDraft_.lines[${i}].cr='';vchTot_()"></td>
+        <td><input data-r="${i}" data-c="cr" type="number" step="any" value="${l.cr}" style="text-align:right;" oninput="vchDraft_.lines[${i}].cr=this.value;if(this.value)vchDraft_.lines[${i}].dr='';vchTot_()"></td>
+        <td style="width:30px;text-align:center;">${d.lines.length > 2 ? `<button class="x" onclick="vchDraft_.lines.splice(${i},1);vchForm_()">✕</button>` : ''}</td></tr>`).join('') +
+      `</tbody></table><div style="margin-top:6px;"><button class="btn-pill ghost" onclick="tvFocusNext_={r:vchDraft_.lines.length,c:'ledger'};vchDraft_.lines.push({ledger:'',dr:'',cr:''});vchForm_()">＋ Add line</button></div>
+       <div id="vchTot" style="margin-top:8px;font-weight:700;">Debit ${inr_(dr)} · Credit ${inr_(cr)} ${diff ? `<span style="color:#c0392b;">· Difference ${inr_(Math.abs(diff))}</span>` : '<span style="color:#1e8449;">· Balanced ✓</span>'}</div>`;
+  } else {
+    const nx = "if(event.key==='Enter'){event.preventDefault();const a=[...document.querySelectorAll('.tv-form input,.tv-form select,.tv-form textarea')];const j=a.indexOf(this);if(a[j+1])a[j+1].focus();}";
+    body = fld(d.kind === 'payment' ? 'Paid to (Account)' : 'Received from (Account)', `<input data-tvstart="1" list="vchLedgerList" style="flex:1;max-width:460px;font-size:16px;font-weight:700;" value="${escapeHtml(d.party)}" oninput="vchDraft_.party=this.value" onkeydown="${nx}">`) +
+      fld('Amount ₹', `<input type="number" step="any" style="width:170px;" value="${d.amount}" oninput="vchDraft_.amount=this.value" onkeydown="${nx}">`) +
+      fld('Mode', `<select onchange="vchDraft_.mode=this.value">${VCH_MODES_.map(m=>`<option ${d.mode === m ? 'selected' : ''}>${m}</option>`).join('')}</select>`) +
+      fld('Cheque / UTR / reference', `<input value="${escapeHtml(d.ref || '')}" oninput="vchDraft_.ref=this.value" onkeydown="${nx}">`) +
+      fld('Against bill no.', `<input value="${escapeHtml(d.against || '')}" oninput="vchDraft_.against=this.value" onkeydown="${nx}">`);
+  }
+  body = dl + body + fld('Narration', `<textarea rows="2" style="flex:1;max-width:620px;" oninput="vchDraft_.narration=this.value">${escapeHtml(d.narration || '')}</textarea>`) + '<div id="vchMsg"></div>';
+  ov.innerHTML = tvWindow_({
+    kind:d.kind, edit:acctVouchers.some(x=>x.id === d.id), typeLabel:VCH_LABEL_[d.kind].toUpperCase(),
+    noHtml:`<input style="width:150px;" value="${escapeHtml(d.no)}" maxlength="20" oninput="vchDraft_.no=this.value.trim()">`,
+    dateHtml:`<input type="date" value="${d.date}" onchange="vchDraft_.date=this.value">`, body
+  });
+  tvApplyFocus_();
 }
 function vchForm_(){
   const d = vchDraft_, ov = document.getElementById('vchOv'); if(!ov) return;
+  if(ov.classList.contains('tv')) return vchFormTally_();
   const inp = 'style="width:100%;padding:10px;border:1px solid #d7e3ee;border-radius:8px;"', fld = (l, h, full)=>`<div style="${full ? 'grid-column:1/-1;' : ''}"><label style="font-size:13px;font-weight:600;">${l}</label>${h}</div>`;
   const dl = `<datalist id="vchLedgerList">${acctParties.map(p=>`<option value="${escapeHtml(p.name)}">`).join('')}${COMMON_LEDGERS_.map(n=>`<option value="${n}">`).join('')}</datalist>`;
   let body;
@@ -8229,13 +8287,130 @@ function renderAcct(main){
 }
 
 /* ---------------- invoice editor ---------------- */
+
+/* =====================  TALLY-STYLE FULL-SCREEN VOUCHER WINDOW (computer)  ===================== */
+let tvFocusNext_ = null; const tvAsked_ = new Set();
+function tvOn_(){ return window.innerWidth >= 900; }
+function tvApplyFocus_(){
+  const f = tvFocusNext_; tvFocusNext_ = null; if(!f) return;
+  const el = document.querySelector(`[data-r="${f.r}"][data-c="${f.c}"]`);
+  if(el){ el.focus(); try{ if(el.select) el.select(); }catch(e){} }
+}
+function tvStartFocus_(){ const el = document.querySelector('[data-tvstart]'); if(el) el.focus(); }
+function tvKeysHtml_(cur){
+  const k = (key, label, fn, type, dis)=>`<button ${dis ? 'disabled' : `onclick="${fn}"`} class="${cur === type ? 'cur' : ''}"><b>${key}</b>${label}</button>`;
+  return k('F4', 'Contra', '', 'contra', true) + k('F5', 'Payment', "tvSwitch_('payment')", 'payment') + k('F6', 'Receipt', "tvSwitch_('receipt')", 'receipt') + k('F7', 'Journal', "tvSwitch_('journal')", 'journal') +
+    k('F8', 'Sales', "tvSwitch_('sale')", 'sale') + k('F9', 'Purchase', "tvSwitch_('purchase')", 'purchase') +
+    k('Ctrl+F8', 'Credit Note', "tvSwitch_('credit_note')", 'credit_note') + k('Ctrl+F9', 'Debit Note', "tvSwitch_('debit_note')", 'debit_note') +
+    (['sale', 'purchase', 'credit_note', 'debit_note'].includes(cur) ? k('Alt+C', 'New stock item', 'acctNewItem_()', 'x') : '') +
+    '<div class="hint">Enter = next box<br>Ctrl+Enter or Alt+A = Accept<br>Esc = Quit</div>';
+}
+function tvWindow_(o){
+  const f = firm_();
+  return `<div class="tv-top"><span>Accounting Voucher ${o.edit ? 'Alteration' : 'Creation'}</span><b>${escapeHtml(f.name || 'BahiAi')} (Running)</b><button class="tv-x" onclick="tvQuit_()">✕</button></div>
+    <div class="tv-sub"><span><span class="tv-type">${o.typeLabel}</span> &nbsp; No. ${o.noHtml}</span><span>${o.dateHtml}</span></div>
+    <div class="tv-main"><div class="tv-form">${o.body}</div><div class="tv-keys">${tvKeysHtml_(o.kind)}</div></div>
+    <div class="tv-bottom"><button onclick="tvQuit_()"><u>Q</u>: Quit</button><button class="ok" onclick="tvAccept_()"><u>A</u>: Accept</button>${o.extra || ''}</div>`;
+}
+function closeTv_(){ ['acctOv', 'vchOv'].forEach(id=>{ const e = document.getElementById(id); if(e) e.remove(); }); }
+function tvDirty_(){
+  if(document.getElementById('acctOv') && acctDraft_ && !acctEditId_) return !!(String(acctDraft_.partyName || '').trim() || acctDraft_.lines.some(l=>String(l.desc || '').trim()));
+  if(document.getElementById('vchOv') && vchDraft_ && !acctVouchers.some(x=>x.id === vchDraft_.id)) return !!(vchDraft_.party || vchDraft_.amount || vchDraft_.lines.some(l=>l.ledger));
+  return false;
+}
+function tvQuit_(){ if(tvDirty_() && !confirm('Quit without saving this entry?')) return; closeTv_(); }
+function tvAccept_(){ if(document.getElementById('acctOv')) acctSaveInvoice_(); else if(document.getElementById('vchOv')) vchSaveDraft_(); }
+function tvSwitch_(type){
+  if(tvDirty_() && !confirm('Leave this entry without saving and open ' + (KIND_LABEL_[type] || VCH_LABEL_[type]) + '?')) return;
+  closeTv_();
+  if(['payment', 'receipt', 'journal'].includes(type)) vchOpen_(type); else acctOpen_(type);
+}
+function tvEnter_(e){
+  if(e.key !== 'Enter') return;
+  const t = e.target; if(!t.matches || !t.matches('input,select')) return;
+  const tbl = t.closest('table'); if(!tbl) return;
+  e.preventDefault();
+  const els = [...tbl.querySelectorAll('input,select')], i = els.indexOf(t);
+  if(i < 0) return;
+  if(i < els.length - 1){ els[i + 1].focus(); try{ if(els[i + 1].select) els[i + 1].select(); }catch(x){} return; }
+  if(tbl.id === 'tvTbl'){ tvFocusNext_ = { r:acctDraft_.lines.length, c:'desc' }; acctAddLine_(); }
+  else { tvFocusNext_ = { r:vchDraft_.lines.length, c:'ledger' }; vchDraft_.lines.push({ ledger:'', dr:'', cr:'' }); vchForm_(); }
+}
+document.addEventListener('keydown', e=>{
+  const a = document.getElementById('acctOv'), v = document.getElementById('vchOv');
+  if(!((a && a.classList.contains('tv')) || (v && v.classList.contains('tv')))) return;
+  const so = document.getElementById('stockOv');
+  if(so){ if(e.key === 'Escape'){ e.preventDefault(); so.remove(); } return; }
+  const map = { F5:'payment', F6:'receipt', F7:'journal', F8:(e.ctrlKey ? 'credit_note' : 'sale'), F9:(e.ctrlKey ? 'debit_note' : 'purchase') };
+  if(map[e.key]){ e.preventDefault(); tvSwitch_(map[e.key]); return; }
+  if(e.key === 'F4'){ e.preventDefault(); return; }
+  if(e.key === 'Escape'){ e.preventDefault(); tvQuit_(); return; }
+  if((e.ctrlKey && e.key === 'Enter') || (e.altKey && String(e.key).toLowerCase() === 'a')){ e.preventDefault(); tvAccept_(); }
+});
+function acctRowTally_(l, i, taxCol){
+  const c = col=>`data-r="${i}" data-c="${col}"`;
+  const unit = unitSelectHtml_('', l.unit || 'pcs', '', `acctLine_(${i},'unit',this.value)`).replace('<select', `<select ${c('unit')}`);
+  return `<tr><td style="width:34px;text-align:center;">${i + 1}</td>
+    <td style="min-width:240px;"><input ${c('desc')} list="stockItemList" value="${escapeHtml(l.desc)}" oninput="acctLine_(${i},'desc',this.value)" onchange="acctPickItem_(${i},this.value)"></td>
+    <td style="width:110px;"><input ${c('hsn')} value="${escapeHtml(l.hsn)}" inputmode="numeric" oninput="acctLine_(${i},'hsn',this.value)"></td>
+    ${taxCol ? `<td style="width:86px;"><select ${c('gst')} onchange="acctLine_(${i},'gst',this.value)">${GST_RATES.map(r=>`<option value="${r}" ${Number(l.gst) === r ? 'selected' : ''}>${r}%</option>`).join('')}</select></td>` : ''}
+    <td style="width:96px;"><input ${c('qty')} type="number" step="any" value="${l.qty}" oninput="acctLine_(${i},'qty',this.value)"></td>
+    <td style="width:104px;"><input ${c('rate')} type="number" step="any" value="${l.rate}" oninput="acctLine_(${i},'rate',this.value)"></td>
+    <td style="width:84px;">${unit}</td>
+    <td style="width:84px;"><input ${c('disc')} type="number" step="any" value="${l.disc}" oninput="acctLine_(${i},'disc',this.value)"></td>
+    <td class="amt" id="amt_${i}" style="width:120px;"></td>
+    <td style="width:30px;text-align:center;">${acctDraft_.lines.length > 1 ? `<button class="x" onclick="acctDelLine_(${i})">✕</button>` : ''}</td></tr>`;
+}
+function acctFormTally_(){
+  const d = acctDraft_, f = firm_(), sale = !isPur_(d.kind), taxCol = !(sale && f.type !== 'regular');
+  const gOk = !d.partyGstin ? '' : (gstinValid_(d.partyGstin) ? '<span style="color:#1a7f37">✔</span>' : '<span style="color:#c0392b">✖</span>');
+  const fld = (l, h)=>`<div class="tv-field"><label>${l}</label>${h}</div>`;
+  const ta = (v, k)=>`<textarea rows="2" style="flex:1;max-width:460px;" oninput="acctDraft_.${k}=this.value">${escapeHtml(v || '')}</textarea>`;
+  const cn = d.kind === 'credit_note' || d.kind === 'debit_note';
+  const more = fld(BT_('Address','पता'), ta(d.partyAddr, 'partyAddr')) +
+    (sale && d.kind !== 'credit_note' ? fld(BT_('Ship to (if different)','डिलीवरी का पता (अलग हो तो)'), ta(d.shipTo, 'shipTo')) : '') +
+    (!cn ? fld(BT_('Vehicle no.','गाड़ी नंबर'), `<input style="text-transform:uppercase" value="${escapeHtml(d.vehicleNo || '')}" oninput="acctDraft_.vehicleNo=this.value.toUpperCase()">`) +
+      fld(BT_('Dispatch through','डिस्पैच किससे'), `<input value="${escapeHtml(d.dispatchThrough || '')}" oninput="acctDraft_.dispatchThrough=this.value">`) +
+      fld(BT_('Order no. / date','ऑर्डर नं. / तारीख'), `<input value="${escapeHtml(d.orderNo || '')}" oninput="acctDraft_.orderNo=this.value"> <input type="date" value="${d.orderDate || ''}" onchange="acctDraft_.orderDate=this.value">`) +
+      fld(BT_('Other / delivery ref.','अन्य / डिलीवरी रेफरेंस'), `<input style="flex:1;max-width:460px;" value="${escapeHtml(d.otherRef || '')}" oninput="acctDraft_.otherRef=this.value">`) : '') +
+    (cn ? fld(BT_('Against invoice no. / date','किस बिल के against'), `<input value="${escapeHtml(d.refNo)}" oninput="acctDraft_.refNo=this.value"> <input type="date" value="${d.refDate}" onchange="acctDraft_.refDate=this.value">`) : '') +
+    (isPur_(d.kind) && f.type === 'regular' ? `<div class="tv-inline" style="margin:6px 0;"><label><input type="checkbox" ${d.itcEligible !== false ? 'checked' : ''} onchange="acctDraft_.itcEligible=this.checked"> ${BT_('ITC can be claimed','ITC ले सकते हैं')}</label><label><input type="checkbox" ${d.reverseCharge ? 'checked' : ''} onchange="acctDraft_.reverseCharge=this.checked"> ${BT_('Reverse charge (RCM)','रिवर्स चार्ज (RCM)')}</label></div>` : '') +
+    (d.kind === 'purchase' && f.type !== 'regular' ? `<div class="tv-inline" style="margin:6px 0;"><label><input type="checkbox" ${d.reverseCharge ? 'checked' : ''} onchange="acctDraft_.reverseCharge=this.checked"> ${BT_('Reverse charge (RCM)','रिवर्स चार्ज (RCM)')}</label></div>` : '');
+  const body = `<datalist id="tvPartyList">${acctParties.map(p=>`<option value="${escapeHtml(p.name)}">`).join('')}</datalist><datalist id="stockItemList">${stockItems.map(i=>`<option value="${escapeHtml(i.name)}">`).join('')}</datalist>
+    ${fld(isPur_(d.kind) ? BT_('Supplier A/c name','सप्लायर') : BT_('Party A/c name','ग्राहक'), `<input data-tvstart="1" list="tvPartyList" style="flex:1;max-width:460px;font-size:16px;font-weight:700;${sale ? 'color:#b7410e;' : ''}" value="${escapeHtml(d.partyName)}" onchange="acctPickParty_(this.value)" oninput="acctDraft_.partyName=this.value" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();const r=document.querySelector('[data-r=&quot;0&quot;][data-c=&quot;desc&quot;]');if(r)r.focus();}" placeholder="${sale ? BT_('Leave blank for cash / walk-in','कैश / वॉक-इन के लिए खाली छोड़ें') : ''}">`)}
+    <div class="tv-field"><label>GSTIN ${gOk}</label><input value="${escapeHtml(d.partyGstin)}" maxlength="15" style="text-transform:uppercase;width:170px;" oninput="acctGstin_(this.value)">
+      <label style="width:auto;">${BT_('State','राज्य')}</label><select onchange="acctDraft_.partyState=this.value;acctCalc_()">${acctStateOpts_(d.partyState)}</select>
+      ${sale ? `<label style="width:auto;">${BT_('Place of supply','सप्लाई का स्थान')}</label><select onchange="acctDraft_.pos=this.value;acctCalc_()">${acctStateOpts_(d.pos || d.partyState || f.state)}</select>` : ''}</div>
+    <details class="tv-det"><summary>${BT_('More details (address, ship to, vehicle, order ref ...)','और विवरण (पता, डिलीवरी, गाड़ी, ऑर्डर ...)')}</summary>${more}</details>
+    <table class="tv-tbl" id="tvTbl" onkeydown="tvEnter_(event)"><thead><tr><th>SL</th><th>Name of Item</th><th>HSN/SAC</th>${taxCol ? '<th>GST %</th>' : ''}<th>Quantity</th><th>Rate</th><th>per</th><th>Disc %</th><th style="text-align:right;">Amount</th><th></th></tr></thead>
+      <tbody>${d.lines.map((l, i)=>acctRowTally_(l, i, taxCol)).join('')}</tbody>
+      <tfoot><tr><td colspan="${taxCol ? 4 : 3}" style="text-align:right;font-weight:700;">Total</td><td id="tvQty" style="font-weight:700;padding:6px;"></td><td colspan="3"></td><td class="amt" id="tvSum"></td><td></td></tr></tfoot></table>
+    <div style="margin-top:6px;"><button class="btn-pill ghost" onclick="tvFocusNext_={r:acctDraft_.lines.length,c:'desc'};acctAddLine_()">＋ ${BT_('Add item','आइटम जोड़ें')}</button> <button class="btn-pill ghost" onclick="acctNewItem_()">＋ ${BT_('New stock item','नया स्टॉक आइटम')} (Alt+C)</button></div>
+    ${fld(BT_('Narration','नैरेशन'), `<input style="flex:1;max-width:620px;" value="${escapeHtml(d.note || '')}" oninput="acctDraft_.note=this.value">`)}
+    <div id="acctTot" class="acct-tot"></div><div id="acctMsg"></div>`;
+  const edit = !!acctEditId_;
+  document.getElementById('acctForm').innerHTML = tvWindow_({
+    kind:d.kind, edit, typeLabel:KIND_LABEL_[d.kind].toUpperCase(),
+    noHtml:`<input style="width:150px;" value="${escapeHtml(d.no)}" maxlength="16" oninput="acctDraft_.no=this.value.trim()">`,
+    dateHtml:`<input type="date" value="${d.date}" onchange="acctDraft_.date=this.value;acctCalc_()">`,
+    body, extra: (edit && canCurrentUserDelete() ? `<button class="dn" onclick="tvCancelInv_()"><u>X</u>: Cancel Vch</button>` : '')
+  });
+  acctCalc_();
+  tvApplyFocus_();
+}
+function tvCancelInv_(){ const id = acctEditId_; closeTv_(); if(id) acctCancel_(id); }
 function acctOpen_(kind, id){
   const f = firm_(), old = id ? acctInvoices.find(x=>x.id === id) : null;
   acctEditId_ = old ? old.id : null;
   acctDraft_ = old ? JSON.parse(JSON.stringify(old)) : { id:uid(), kind, no:'', date:todayIso_(), partyName:'', partyGstin:'', partyState:(isPur_(kind) ? '' : f.state), pos:'', reverseCharge:false, itcEligible:true, refNo:'', refDate:'', note:'', status:'active', partyAddr:'', shipTo:'', vehicleNo:'', dispatchThrough:'', orderNo:'', orderDate:'', otherRef:'', lines:[{ desc:'', hsn:'', qty:1, unit:unitDefault_(), rate:'', disc:'', gst:(f.type === 'regular' || kind === 'purchase') ? 18 : 0 }], createdAt:new Date().toISOString(), createdBy:(currentStaff && currentStaff.name) || '' };
   if(!old) acctDraft_.no = kind === 'purchase' ? '' : nextInvoiceNo_(acctInvoices, kind, acctDraft_.date);
   const ex = document.getElementById('acctOv'); if(ex) ex.remove();
-  const ov = document.createElement('div'); ov.className = 'modal-ov'; ov.id = 'acctOv'; ov.style.zIndex = 9350;
+  const ov = document.createElement('div'); ov.id = 'acctOv'; ov.style.zIndex = 9350;
+  if(tvOn_()){
+    ov.className = 'tv'; ov.innerHTML = '<div class="tvroot" id="acctForm"></div>';
+    document.body.appendChild(ov); acctForm_(); tvStartFocus_(); return;
+  }
+  ov.className = 'modal-ov';
   ov.innerHTML = `<div class="modal-sheet" style="max-width:760px;max-height:94vh;overflow:auto;"><div class="voice-head"><b>${KIND_LABEL_[kind]} ${old ? '— ' + escapeHtml(old.no) : ''}</b><button class="voice-x" onclick="document.getElementById('acctOv').remove()">✕</button></div><div id="acctForm"></div></div>`;
   document.body.appendChild(ov);
   ov.addEventListener('click', e=>{ if(e.target === ov) ov.remove(); });
@@ -8243,6 +8418,7 @@ function acctOpen_(kind, id){
 }
 function acctStateOpts_(sel){ return '<option value="">—</option>' + Object.keys(GST_STATES).map(c=>`<option value="${c}" ${c === sel ? 'selected' : ''}>${c} - ${GST_STATES[c]}</option>`).join(''); }
 function acctForm_(){
+  if(document.getElementById('acctOv') && document.getElementById('acctOv').classList.contains('tv')) return acctFormTally_();
   const d = acctDraft_, f = firm_(), sale = !isPur_(d.kind), taxCol = !(sale && f.type !== 'regular');
   const gOk = !d.partyGstin ? '' : (gstinValid_(d.partyGstin) ? '<span style="color:#1a7f37">✔ valid</span>' : '<span style="color:#c0392b">✖ not valid</span>');
   document.getElementById('acctForm').innerHTML = `
@@ -8294,10 +8470,15 @@ function acctGstin_(v){
 }
 function acctPickParty_(name){
   acctDraft_.partyName = name; const p = acctParties.find(x=>x.name.toLowerCase() === String(name).toLowerCase());
-  if(p){ acctDraft_.partyGstin = p.gstin || ''; acctDraft_.partyState = p.state || acctDraft_.partyState; acctDraft_.partyAddr = p.addr || acctDraft_.partyAddr || ''; acctForm_(); }
+  if(p){ tvFocusNext_ = { r:0, c:'desc' }; acctDraft_.partyGstin = p.gstin || ''; acctDraft_.partyState = p.state || acctDraft_.partyState; acctDraft_.partyAddr = p.addr || acctDraft_.partyAddr || ''; acctForm_(); }
 }
 function acctCalc_(){
   const d = acctDraft_, f = firm_(); calcInvoice_(d, f);
+  if(document.getElementById('tvTbl')){
+    let q = 0, sum = 0;
+    d.lines.forEach((l, i)=>{ const a = (Number(l.qty) || 0) * (Number(l.rate) || 0) * (1 - (Number(l.disc) || 0) / 100); q += Number(l.qty) || 0; sum += a; const el = document.getElementById('amt_' + i); if(el) el.textContent = a ? inr_(a) : ''; });
+    const eq = document.getElementById('tvQty'), es = document.getElementById('tvSum'); if(eq) eq.textContent = q || ''; if(es) es.textContent = sum ? inr_(sum) : '';
+  }
   const el = document.getElementById('acctTot'); if(!el) return;
   const sale = !isPur_(d.kind), tax = sale && f.type !== 'regular' ? '' : [d.cgst ? `<div>CGST <b>${inr_(d.cgst)}</b></div><div>SGST <b>${inr_(d.sgst)}</b></div>` : '', d.igst ? `<div>IGST <b>${inr_(d.igst)}</b></div>` : ''].join('');
   el.innerHTML = `<div>${BT_('Taxable','टैक्सेबल')} <b>${inr_(d.taxable)}</b></div>${tax}${d.roundOff ? `<div>${BT_('Round off','राउंड ऑफ')} <b>${inr_(d.roundOff)}</b></div>` : ''}<div class="g">${BT_('Total','कुल')} ₹ <b>${inr_(d.total)}</b></div>${sale && f.type !== 'regular' ? `<div class="subtle">${BT_('No GST is charged (Bill of Supply).','GST नहीं लगेगा (Bill of Supply)।')}</div>` : ''}`;
