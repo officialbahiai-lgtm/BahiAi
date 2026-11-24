@@ -614,6 +614,8 @@
   <button class="navbtn" data-tab="acct"><span class="ic">🧾</span>Sale/Purchase</button>
   <button class="navbtn" data-tab="stock"><span class="ic">📦</span>Stock Summary</button>
   <button class="navbtn" data-tab="vouchers"><span class="ic">💰</span>Vouchers</button>
+  <button class="navbtn" data-tab="gst"><span class="ic">📑</span>GST Reports</button>
+  <button class="navbtn" data-tab="fin"><span class="ic">📊</span>Financial Reports</button>
   <button class="navbtn" data-tab="activity"><span class="ic">📋</span>Activity</button>
   <button class="navbtn" data-tab="approvals" id="approvalsNavBtn" style="display:none;"><span class="ic">✅</span>Approvals</button>
   <button class="navbtn" data-tab="admin" id="adminNavBtn" style="display:none;"><span class="ic">🛡️</span>Admin</button>
@@ -660,7 +662,7 @@ let activitySearchStaff = '';
 let tempSizes = [];          // [{size, qty}]
 let orderUnit = 'set';
 let qtyTouched = false;      // true once the person types their own quantity (then it is never auto-changed)
-function defaultQtyFor_(u){ return u==='pcs' ? 3 : 1; }   // Pcs orders start at 3 pcs
+function defaultQtyFor_(u){ return 1; }   // every unit starts at 1
 function onUnitChange_(u){
   orderUnit = u;
   const q = document.getElementById('qtyVal');
@@ -798,6 +800,8 @@ const RESTRICTABLE_TABS = [
   , { key:'approvals', label:'Approvals' }
   , { key:'stock', label:'Stock Summary' }
   , { key:'vouchers', label:'Vouchers' }
+  , { key:'gst', label:'GST Reports' }
+  , { key:'fin', label:'Financial Reports' }
 ];
 
 function isOwnerUser_(){ return !!(currentStaff && ((currentStaff.mobile && isOwnerEmail_(currentStaff.mobile)) || currentStaff.role === 'owner')); }
@@ -871,7 +875,7 @@ const I18N = {
   en: {
     app_title:'BahiAi',
     nav_order:'TakeOrder', nav_article:'Article', nav_dispatched:'Dispatched', nav_pending:'Pending',
-    nav_customers:'Customers', nav_deleted:'Deleted', nav_activity:'Activity', nav_approvals:'Approvals', nav_admin:'Admin', nav_stock:'Stock Summary', nav_vouchers:'Vouchers', nav_dashboard:'Dashboard', nav_catalog:'Catalog', nav_catpend:'Cat. Pending', nav_catdisp:'Cat. Dispatched', nav_custorders:'Saved Orders',
+    nav_customers:'Customers', nav_deleted:'Deleted', nav_activity:'Activity', nav_approvals:'Approvals', nav_admin:'Admin', nav_stock:'Stock Summary', nav_vouchers:'Vouchers', nav_gst:'GST Reports', nav_fin:'Financial Reports', nav_dashboard:'Dashboard', nav_catalog:'Catalog', nav_catpend:'Cat. Pending', nav_catdisp:'Cat. Dispatched', nav_custorders:'Saved Orders',
     pending_sets:'Pending', sets:'Sets', set:'Set', pcs:'Pcs', box:'Box', switch_btn:'Switch',
 
     login_title:'Staff Login',
@@ -971,7 +975,7 @@ const I18N = {
   hi: {
     app_title:'BahiAi',
     nav_order:'ऑर्डर', nav_article:'आर्टिकल', nav_dispatched:'डिस्पैच', nav_pending:'पेंडिंग',
-    nav_customers:'ग्राहक', nav_deleted:'डिलीटेड', nav_activity:'एक्टिविटी', nav_approvals:'अप्रूवल्स', nav_admin:'एडमिन', nav_stock:'स्टॉक', nav_vouchers:'वाउचर', nav_dashboard:'डैशबोर्ड', nav_catalog:'कैटलॉग', nav_catpend:'कैट. पेंडिंग', nav_catdisp:'कैट. डिस्पैच', nav_custorders:'सेव ऑर्डर',
+    nav_customers:'ग्राहक', nav_deleted:'डिलीटेड', nav_activity:'एक्टिविटी', nav_approvals:'अप्रूवल्स', nav_admin:'एडमिन', nav_stock:'स्टॉक', nav_vouchers:'वाउचर', nav_gst:'GST रिपोर्ट', nav_fin:'वित्तीय रिपोर्ट', nav_dashboard:'डैशबोर्ड', nav_catalog:'कैटलॉग', nav_catpend:'कैट. पेंडिंग', nav_catdisp:'कैट. डिस्पैच', nav_custorders:'सेव ऑर्डर',
     pending_sets:'पेंडिंग', sets:'सेट', set:'सेट', pcs:'पीस', box:'बॉक्स', switch_btn:'स्विच',
 
     login_title:'स्टाफ लॉगिन',
@@ -1092,7 +1096,7 @@ function applyStaticLanguage(){
   if(langBtn) langBtn.textContent = t('lang_toggle');
   const navMap = { book:'nav_order', dispatch:'nav_article', dispatchedOrders:'nav_dispatched',
     pendingOrders:'nav_pending', customers:'nav_customers', deletedOrders:'nav_deleted',
-    activity:'nav_activity', approvals:'nav_approvals', admin:'nav_admin', stock:'nav_stock', vouchers:'nav_vouchers', dashboard:'nav_dashboard', catalog:'nav_catalog', catPending:'nav_catpend', catDispatched:'nav_catdisp', custCatalog:'nav_catalog', custOrders:'nav_custorders' };
+    activity:'nav_activity', approvals:'nav_approvals', admin:'nav_admin', stock:'nav_stock', vouchers:'nav_vouchers', gst:'nav_gst', fin:'nav_fin', dashboard:'nav_dashboard', catalog:'nav_catalog', catPending:'nav_catpend', catDispatched:'nav_catdisp', custCatalog:'nav_catalog', custOrders:'nav_custorders' };
   document.querySelectorAll('.navbtn').forEach(btn=>{
     const key = navMap[btn.dataset.tab];
     if(!key) return;
@@ -2598,6 +2602,8 @@ function render(){
   else if(currentTab==='acct') renderAcct(main);
   else if(currentTab==='stock') renderStock(main);
   else if(currentTab==='vouchers') renderVouchers(main);
+  else if(currentTab==='gst') renderGstTab(main);
+  else if(currentTab==='fin') renderFin(main);
   else if(currentTab==='orderHub') renderHub_(main, 'order');
   else if(currentTab==='catHub') renderHub_(main, 'cat');
   else renderCustomers(main);
@@ -7900,7 +7906,7 @@ async function dataPull_(){
   if(!sb || !navigator.onLine || !sbFirmId_() || Date.now() - dataPulledAt_ < 20000) return false;
   dataPulledAt_ = Date.now();
   let changed = false;
-  const defs = [['acctInvoices', v=>{ acctInvoices = v; }], ['acctParties', v=>{ acctParties = v; }], ['stockItems', v=>{ stockItems = v; }], ['stockGroups', v=>{ stockGroups = v; }], ['acctNumbering', v=>{ acctNumbering = v; }], ['acctVouchers', v=>{ acctVouchers = v; }]];
+  const defs = [['acctInvoices', v=>{ acctInvoices = v; }], ['acctParties', v=>{ acctParties = v; }], ['stockItems', v=>{ stockItems = v; }], ['stockGroups', v=>{ stockGroups = v; }], ['acctNumbering', v=>{ acctNumbering = v; }], ['acctVouchers', v=>{ acctVouchers = v; }], ['acctLedgers', v=>{ acctLedgers = v || {}; }], ['acctOpening', v=>{ acctOpening = v || {}; }]];
   for(const [k, set] of defs){
     if(isKeyBusy_(k)) continue;
     const before = localStorage.getItem('ssa_' + k);
@@ -7910,16 +7916,16 @@ async function dataPull_(){
   }
   return changed;
 }
-function stockCalc_(){   // stock position of every item, worked out from the sale / purchase bills
+function stockCalc_(upto){   // stock position of every item, worked out from the sale / purchase bills (up to a date if given)
   const mv = {};
   const get = n=>{ const k = String(n || '').trim().toLowerCase(); if(!k) return null; return mv[k] || (mv[k] = { name:String(n).trim(), inQ:0, inV:0, outQ:0 }); };
   acctInvoices.forEach(inv=>{
-    if(!inv || inv.status === 'cancelled') return;
+    if(!inv || inv.status === 'cancelled' || (upto && inv.date > upto)) return;
     (inv.lines || []).forEach(l=>{
       const m = get(l.desc); if(!m) return;
       const q = Number(l.qty) || 0, v = q * (Number(l.rate) || 0) * (1 - (Number(l.disc) || 0) / 100);
       if(inv.kind === 'purchase'){ m.inQ += q; m.inV += v; }
-      else if(inv.kind === 'credit_note'){ m.inQ += q; m.inV += v; }
+      else if(inv.kind === 'credit_note'){ m.outQ -= q; }     // sales return: goods come back, at the average cost
       else if(inv.kind === 'debit_note'){ m.inQ -= q; m.inV -= v; }   // purchase return
       else { m.outQ += q; }
     });
@@ -7936,7 +7942,7 @@ function stockCalc_(){   // stock position of every item, worked out from the sa
   Object.keys(mv).forEach(k=>{ if(seen.has(k)) return; const m = mv[k]; const avg = m.inQ > 0 ? m.inV / m.inQ : 0; rows.push({ item:null, name:m.name, group:'', unit:'', open:0, inQ:m.inQ, outQ:m.outQ, close:m.inQ - m.outQ, avg, value:(m.inQ - m.outQ) * avg, listed:false }); });
   return rows.sort((a, b)=>(a.group + a.name).localeCompare(b.group + b.name));
 }
-function stockClosingValue_(){ return stockCalc_().reduce((t, r)=>t + r.value, 0); }
+function stockClosingValue_(upto){ return stockCalc_(upto).reduce((t, r)=>t + r.value, 0); }
 
 function renderStock(main){
   dataPull_().then(ch=>{ if(ch && currentTab === 'stock') render(); }).catch(()=>{});
@@ -7952,7 +7958,7 @@ function renderStock(main){
         <td><b>${escapeHtml(r.name)}</b>${r.listed ? '' : ` <a href="#" onclick="stockForm_(null,null,'${escapeHtml(r.name).replace(/'/g, '&#39;')}');return false;" style="font-size:12px;">＋ create</a>`}</td>
         <td>${escapeHtml(r.group)}</td><td>${r.open}</td><td>${r.inQ}</td><td>${r.outQ}</td><td><b>${r.close}</b> ${escapeHtml(r.unit)}</td><td>${inr_(r.avg)}</td><td>${inr_(r.value)}</td></tr>`).join('') || '<tr><td colspan="8" style="padding:14px;">No stock yet. Create items, then make purchase and sale bills.</td></tr>') +
       `<tr style="font-weight:700;border-top:2px solid #d7e3ee;"><td colspan="7">Closing stock value</td><td>${inr_(tot)}</td></tr></table></div>
-      <p class="subtle" style="font-size:12px;">Stock is worked out automatically: Purchase adds, Sale subtracts, Credit note adds back. Cancelled bills are left out.</p>`;
+      <p class="subtle" style="font-size:12px;">Stock is worked out automatically: Purchase adds, Sale subtracts, Credit note (sales return) adds back, Debit note (purchase return) subtracts. Cancelled bills are left out.</p>`;
   } else if(stockView === 'items'){
     const list = stockItems.filter(i=>!q || (i.name + ' ' + (i.group || '')).toLowerCase().includes(q));
     body = `<button class="btn-pill" onclick="stockForm_()">＋ New stock item</button>` + (list.map(i=>`<div class="cust-card" style="margin-top:8px;">
@@ -7960,13 +7966,36 @@ function renderStock(main){
       <div style="font-size:13px;color:#5b6472;">Purchase ${inr_(i.purchaseRate || 0)} · +${Number(i.markupPct || 0)}% · Sale <b>${inr_(i.saleRate || 0)}</b> · GST ${Number(i.gst || 0)}% · HSN ${escapeHtml(i.hsn || '-')} · ${escapeHtml(i.unit || '')}</div>
       <div class="action-row"><button class="action-btn" onclick="stockForm_('${i.id}')">Edit</button><button class="action-btn del" onclick="stockDel_('${i.id}')">Delete</button></div></div>`).join('') || '<p>No items yet.</p>');
   } else {
-    body = `<div style="display:flex;gap:6px;margin-bottom:10px;"><input id="sgName" placeholder="New stock group name" style="flex:1;padding:10px;border:1px solid #d7e3ee;border-radius:8px;"><button class="btn-pill" onclick="stockAddGroup_()">＋ Add</button></div>` +
+    body = `<div style="display:flex;gap:6px;margin-bottom:10px;"><button class="btn-pill" onclick="stockGroupForm_()">＋ New stock group</button></div>` +
       (stockGroups.map(g=>`<div class="cust-card" style="margin-top:8px;"><div class="cust-head"><span class="name">${escapeHtml(g.name)}</span><span class="set-pill approved">${stockItems.filter(i=>i.group === g.name).length} items</span></div>
-        <div class="action-row"><button class="action-btn" onclick="stockRenameGroup_('${g.id}')">Rename</button><button class="action-btn del" onclick="stockDelGroup_('${g.id}')">Delete</button></div></div>`).join('') || '<p>No groups yet. Groups help you sort items, like Tiles, Taps, Paint.</p>');
+        <div style="font-size:13px;color:#5b6472;">HSN ${escapeHtml(g.hsn || '-')} · GST ${g.gst === undefined || g.gst === '' ? '-' : g.gst + '%'}</div><div class="action-row"><button class="action-btn" onclick="stockGroupForm_('${g.id}')">Edit</button><button class="action-btn del" onclick="stockDelGroup_('${g.id}')">Delete</button></div></div>`).join('') || '<p>No groups yet. Groups help you sort items, like Tiles, Taps, Paint.</p>');
   }
   main.innerHTML = `<div style="padding:12px;max-width:980px;margin:0 auto;"><h2 style="margin:0 0 8px;">Stock Summary</h2>
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">${seg('summary', '📦 Summary')}${seg('items', '🏷️ Items')}${seg('groups', '🗂️ Groups')}</div>
     <input placeholder="Search" value="${escapeHtml(stockQuery)}" oninput="stockQuery=this.value;clearTimeout(window._sq);window._sq=setTimeout(render,250)" style="width:100%;padding:10px;border:1px solid #d7e3ee;border-radius:8px;margin-bottom:10px;">${body}</div>`;
+}
+function stockGroupForm_(id){
+  const g = id ? stockGroups.find(x=>x.id === id) : null;
+  const ov = document.createElement('div'); ov.id = 'sgOv';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:10000;display:flex;align-items:center;justify-content:center;padding:12px;';
+  const inp = 'style="width:100%;padding:10px;border:1px solid #d7e3ee;border-radius:8px;"';
+  ov.innerHTML = `<div style="background:#fff;border-radius:14px;max-width:420px;width:100%;padding:16px;"><h3 style="margin:0 0 10px;color:#0288D1;">${g ? 'Edit' : 'New'} stock group</h3>
+    <label style="font-size:13px;font-weight:600;">Group name *</label><input id="sgN" value="${escapeHtml(g ? g.name : '')}" ${inp}>
+    <div style="display:flex;gap:8px;margin-top:8px;"><div style="flex:1;"><label style="font-size:13px;font-weight:600;">HSN code</label><input id="sgH" value="${escapeHtml(g ? (g.hsn || '') : '')}" inputmode="numeric" ${inp}></div>
+    <div style="flex:1;"><label style="font-size:13px;font-weight:600;">GST rate %</label><select id="sgG" ${inp}><option value="">— not set —</option>${GST_RATES.map(r=>`<option value="${r}" ${g && g.gst !== undefined && g.gst !== '' && Number(g.gst) === r ? 'selected' : ''}>${r}%</option>`).join('')}</select></div></div>
+    <div class="subtle" style="font-size:12px;margin-top:6px;">When you pick this group in a stock item, the HSN and GST are filled in automatically.</div><div id="sgMsg"></div>
+    <div style="display:flex;gap:8px;margin-top:10px;"><button class="primary" style="flex:1;" onclick="stockGroupSave_('${id || ''}')">💾 Save</button><button class="secondary" style="flex:1;" onclick="document.getElementById('sgOv').remove()">Cancel</button></div></div>`;
+  document.body.appendChild(ov);
+}
+function stockGroupSave_(id){
+  const n = document.getElementById('sgN').value.trim(), h = document.getElementById('sgH').value.trim(), gv = document.getElementById('sgG').value, msg = document.getElementById('sgMsg');
+  if(!n){ msg.innerHTML = '<div class="msg err">Please enter the group name.</div>'; return; }
+  if(stockGroups.some(x=>x.id !== id && x.name.toLowerCase() === n.toLowerCase())){ msg.innerHTML = '<div class="msg err">This group already exists.</div>'; return; }
+  let g = id ? stockGroups.find(x=>x.id === id) : null;
+  if(g){ if(g.name !== n) stockItems.forEach(i=>{ if(i.group === g.name) i.group = n; }); g.name = n; }
+  else { g = { id:uid(), name:n }; stockGroups.push(g); }
+  g.hsn = h; g.gst = gv === '' ? '' : Number(gv);
+  stockSave_(); document.getElementById('sgOv').remove(); render();
 }
 function stockAddGroup_(){
   const el = document.getElementById('sgName'), n = el ? el.value.trim() : ''; if(!n) return;
@@ -8003,21 +8032,30 @@ function stockForm_(id, afterSave, presetName){
     <h3 style="margin:0 0 10px;color:#0288D1;">${ex ? 'Edit' : 'New'} stock item</h3>
     ${fld('Item name *', `<input id="sfName" value="${escapeHtml(d.name)}" ${inp}>`)}
     ${fld('Stock group', `<select id="sfGroup" ${inp}><option value="">— none —</option>${gs}<option value="__new">＋ New group…</option></select>`)}
-    <div style="display:flex;gap:8px;"><div style="flex:1;">${fld('Unit', unitSelectHtml_('sfUnit', d.unit, 'width:100%;padding:10px;border:1px solid #d7e3ee;border-radius:8px;', ''))}</div>
+    <div style="display:flex;gap:8px;"><div style="flex:1;">${fld('Unit', unitSelectHtml_('sfUnit', d.unit, 'width:100%;padding:10px;border:1px solid #d7e3ee;border-radius:8px;', 'stockAltRefresh_()'))}</div>
       <div style="flex:1;">${fld('HSN', `<input id="sfHsn" value="${escapeHtml(d.hsn || '')}" inputmode="numeric" ${inp}>`)}</div></div>
     <div style="display:flex;gap:8px;"><div style="flex:1;">${fld('GST %', `<select id="sfGst" ${inp}>${GST_RATES.map(r=>`<option value="${r}" ${Number(d.gst) === r ? 'selected' : ''}>${r}%</option>`).join('')}</select>`)}</div>
       <div style="flex:1;">${fld('Opening qty', `<input id="sfOpen" type="number" step="any" value="${d.openQty === undefined ? '' : d.openQty}" ${inp}>`)}</div></div>
+    <div style="background:#fbf7ec;border-radius:10px;padding:10px;margin:6px 0 8px;"><label style="font-size:13px;font-weight:600;">Alternate unit (optional)</label>
+      <div style="display:flex;gap:6px;align-items:center;margin-top:4px;flex-wrap:wrap;">1 <select id="sfAlt" onchange="stockAltRefresh_()" style="padding:9px;border:1px solid #d7e3ee;border-radius:8px;"><option value="">— none —</option>${unitsEnabled_().map(u=>`<option value="${u}" ${d.altUnit === u ? 'selected' : ''}>${escapeHtml(unitUi_(u))}</option>`).join('')}</select> =
+      <input id="sfConv" type="number" step="any" min="0" value="${d.altConv || ''}" placeholder="e.g. 3" style="width:90px;padding:9px;border:1px solid #d7e3ee;border-radius:8px;"> <span id="sfAltBase">${escapeHtml(unitUi_(d.unit))}</span></div>
+      <div class="subtle" style="font-size:12px;margin-top:4px;">Example: 1 Box = 3 Pcs. In a bill, 6 Pcs also shows as 2 Box.</div></div>
     <div style="background:#f4f8fb;border-radius:10px;padding:10px;margin:6px 0 8px;">
       <div style="display:flex;gap:8px;">
         <div style="flex:1;">${fld('Purchase rate ₹', `<input id="sfPur" type="number" step="any" value="${d.purchaseRate === undefined ? '' : d.purchaseRate}" oninput="stockRate_('pur')" ${inp}>`)}</div>
         <div style="flex:1;">${fld('Add % (+)', `<input id="sfPct" type="number" step="any" value="${d.markupPct === undefined ? '' : d.markupPct}" oninput="stockRate_('pct')" ${inp}>`)}</div>
         <div style="flex:1;">${fld('Sale rate ₹', `<input id="sfSale" type="number" step="any" value="${d.saleRate === undefined ? '' : d.saleRate}" oninput="stockRate_('sale')" ${inp}>`)}</div>
       </div>
-      <div class="subtle" style="font-size:12px;">Type the purchase rate and the % to add, and the sale rate is filled in. Or type the sale rate directly.</div>
+      <div style="display:flex;gap:8px;margin-top:6px;"><div style="flex:1;">${fld('Sale discount % (optional)', `<input id="sfDisc" type="number" step="any" min="0" value="${d.disc === undefined ? '' : d.disc}" ${inp}>`)}</div><div style="flex:1;"></div></div>
+      <div class="subtle" style="font-size:12px;">Type the purchase rate and the % to add, and the sale rate is filled in. Or type the sale rate directly. The discount is filled in automatically in every sale bill.</div>
     </div>
     <div id="sfMsg"></div>
     <div style="display:flex;gap:8px;"><button class="primary" style="flex:1;" onclick="stockSaveItem_()">💾 Save</button><button class="secondary" style="flex:1;" onclick="document.getElementById('stockOv').remove()">Cancel</button></div></div>`;
   document.body.appendChild(ov);
+  document.getElementById('sfGroup').addEventListener('change', function(){
+    const g = stockGroups.find(x=>x.name === this.value);       // group chosen: take its HSN and GST
+    if(g){ if(g.hsn) document.getElementById('sfHsn').value = g.hsn; if(g.gst !== undefined && g.gst !== '') document.getElementById('sfGst').value = g.gst; }
+  });
   document.getElementById('sfGroup').onchange = function(){
     if(this.value !== '__new') return;
     const n = (prompt('New group name') || '').trim(); this.value = '';
@@ -8028,6 +8066,7 @@ function stockForm_(id, afterSave, presetName){
     this.value = g.name;
   };
 }
+function stockAltRefresh_(){ const u = document.getElementById('sfUnit'), b = document.getElementById('sfAltBase'); if(u && b){ const o = u.options[u.selectedIndex]; b.textContent = o ? o.text : ''; } }
 function stockRate_(from){
   const pur = document.getElementById('sfPur'), pct = document.getElementById('sfPct'), sale = document.getElementById('sfSale');
   const P = parseFloat(pur.value), C = parseFloat(pct.value), S = parseFloat(sale.value);
@@ -8041,6 +8080,9 @@ function stockSaveItem_(){
   const v = id=>document.getElementById(id).value;
   d.name = v('sfName').trim(); d.group = v('sfGroup') === '__new' ? '' : v('sfGroup'); d.unit = v('sfUnit'); d.hsn = v('sfHsn').trim(); d.gst = Number(v('sfGst'));
   d.openQty = v('sfOpen') === '' ? 0 : Number(v('sfOpen'));
+  d.disc = v('sfDisc') === '' ? '' : Number(v('sfDisc')); d.altUnit = v('sfAlt'); d.altConv = v('sfConv') === '' ? 0 : Number(v('sfConv'));
+  if(d.altUnit && !(d.altConv > 0)) return err('Please enter how many ' + v('sfUnit') + ' make one alternate unit.');
+  if(d.altUnit === d.unit) return err('Alternate unit must be different from the unit.');
   d.purchaseRate = v('sfPur') === '' ? 0 : Number(v('sfPur')); d.markupPct = v('sfPct') === '' ? 0 : Number(v('sfPct')); d.saleRate = v('sfSale') === '' ? 0 : Number(v('sfSale'));
   if(!d.name) return err('Please enter the item name.');
   if(stockItems.some(x=>x.id !== d.id && x.name.trim().toLowerCase() === d.name.toLowerCase())) return err('An item with this name already exists.');
@@ -8065,6 +8107,7 @@ function acctApplyItem_(i, it){
   const d = acctDraft_, f = firm_(), l = d.lines[i], sale = !isPur_(d.kind);
   l.desc = it.name; l.hsn = it.hsn || l.hsn; l.unit = it.unit || l.unit;
   l.rate = sale ? (it.saleRate || '') : (it.purchaseRate || '');
+  l.disc = sale && it.disc ? it.disc : l.disc;
   if(f.type === 'regular' || isPur_(d.kind)) l.gst = Number(it.gst) || 0;
   acctForm_();
 }
@@ -8082,12 +8125,61 @@ document.addEventListener('keydown', e=>{
 });
 
 /* =====================  VOUCHERS: Payment, Receipt, Journal (with registers)  ===================== */
+let acctLedgers = {}, acctOpening = {};
+try{ acctLedgers = JSON.parse(localStorage.getItem('ssa_acctLedgers') || '{}') || {}; acctOpening = JSON.parse(localStorage.getItem('ssa_acctOpening') || '{}') || {}; }catch(e){ acctLedgers = {}; acctOpening = {}; }
+function finSaveSettings_(){ try{ localStorage.setItem('ssa_acctLedgers', JSON.stringify(acctLedgers)); localStorage.setItem('ssa_acctOpening', JSON.stringify(acctOpening)); storageSet('acctLedgers', JSON.stringify(acctLedgers)); storageSet('acctOpening', JSON.stringify(acctOpening)); }catch(e){} }
 let acctVouchers = [];
 try{ acctVouchers = JSON.parse(localStorage.getItem('ssa_acctVouchers') || '[]') || []; }catch(e){ acctVouchers = []; }
 const VCH_LABEL_ = { payment:'Payment', receipt:'Receipt', journal:'Journal' };
 const VCH_MODES_ = ['Cash', 'Bank transfer', 'UPI', 'Cheque', 'Card', 'Other'];
 const COMMON_LEDGERS_ = ['Cash', 'Bank', 'Sales', 'Purchase', 'Capital', 'Drawings', 'Rent', 'Salary', 'Electricity', 'Telephone', 'Transport', 'Interest paid', 'Interest received', 'Discount allowed', 'Discount received', 'Office expenses', 'Repairs', 'Loan', 'Fixed assets'];
 let vchView = 'payment', vchMonth = '', vchQuery = '', vchDraft_ = null;
+const VCH_GROUPS_ = [['party', 'Party (customer / supplier)'], ['iexp', 'Expense'], ['dexp', 'Direct expense'], ['iinc', 'Income'], ['fixed', 'Fixed asset'], ['loan', 'Loan'], ['capital', 'Capital introduced'], ['drawings', 'Drawings (owner)']];
+const DEFAULT_LEDGER_GROUPS_ = { 'cash':'cash', 'bank':'bank', 'sales':'sales', 'purchase':'purchase', 'capital':'capital', 'drawings':'drawings', 'rent':'iexp', 'salary':'iexp', 'electricity':'iexp', 'telephone':'iexp', 'transport':'dexp', 'interest paid':'iexp', 'interest received':'iinc', 'discount allowed':'iexp', 'discount received':'iinc', 'office expenses':'iexp', 'repairs':'iexp', 'loan':'loan', 'fixed assets':'fixed' };
+function r2_(x){ return Math.round((Number(x) || 0) * 100) / 100; }
+function ledgerGroupOf_(name){        // which group a ledger name belongs to ('' = not known yet)
+  const k = String(name || '').trim().toLowerCase(); if(!k) return '';
+  if(acctParties.some(p=>p.name.trim().toLowerCase() === k)) return 'party';
+  return acctLedgers[k] || DEFAULT_LEDGER_GROUPS_[k] || '';
+}
+function vchBillsFor_(d){          // unpaid bills of the party in this voucher
+  const name = String(d.party || '').trim().toLowerCase(); if(!name || d.kind === 'journal') return [];
+  const want = d.kind === 'receipt' ? 'sale' : 'purchase', paid = {};
+  acctVouchers.forEach(v=>{ if(v.status === 'cancelled' || v.id === d.id) return; (v.alloc || []).forEach(a=>{ paid[a.invId] = (paid[a.invId] || 0) + Number(a.amount || 0); }); });
+  return acctInvoices.filter(i=>i.kind === want && i.status !== 'cancelled' && String(i.partyName || '').trim().toLowerCase() === name)
+    .map(i=>({ inv:i, pending:r2_(i.total - (paid[i.id] || 0)) })).filter(x=>x.pending > 0.005).sort((a, b)=>a.inv.date < b.inv.date ? -1 : a.inv.date > b.inv.date ? 1 : 0);
+}
+function vchBillsHtml_(d){
+  if(d.kind === 'journal') return '';
+  const unknown = String(d.party || '').trim() && !ledgerGroupOf_(d.party);
+  let html = '';
+  if(unknown) html += `<div class="tv-field"><label>Account type</label><select onchange="vchDraft_.grp=this.value">${VCH_GROUPS_.map(g=>`<option value="${g[0]}" ${((d.grp || 'party') === g[0]) ? 'selected' : ''}>${g[1]}</option>`).join('')}</select><span class="subtle" style="font-size:12px;">New name - choose what kind of account it is.</span></div>`;
+  const bills = vchBillsFor_(d);
+  if(bills.length){
+    d.alloc = d.alloc || {};
+    const sum = Object.values(d.alloc).reduce((t, x)=>t + (Number(x) || 0), 0);
+    html += `<div class="tv-det" style="margin:8px 0;"><b>${d.kind === 'receipt' ? 'Pending bills to receive' : 'Pending bills to pay'}</b> <button class="btn-pill ghost" style="margin-left:8px;" onclick="vchAutoAlloc_()">Auto settle (oldest first)</button>
+      <div style="overflow-x:auto;"><table class="acct-tbl" style="margin-top:6px;"><thead><tr><th>Bill no.</th><th>Date</th><th class="r">Bill amount</th><th class="r">Pending</th><th class="r">Settle now ₹</th></tr></thead><tbody>` +
+      bills.map(b=>`<tr><td>${escapeHtml(b.inv.no)}</td><td>${dmy_(b.inv.date)}</td><td class="r">${inr_(b.inv.total)}</td><td class="r"><b>${inr_(b.pending)}</b></td>
+        <td class="r"><input type="number" step="any" min="0" value="${d.alloc[b.inv.id] || ''}" style="width:110px;text-align:right;" oninput="vchAlloc_('${b.inv.id}',this.value)"></td></tr>`).join('') +
+      `</tbody></table></div><div id="vchAllocSum" style="font-weight:700;margin-top:4px;">Settled: ${inr_(sum)}</div></div>`;
+  } else if(String(d.party || '').trim() && ledgerGroupOf_(d.party) === 'party'){
+    html += `<div class="subtle" style="font-size:13px;margin:6px 0;">No pending ${d.kind === 'receipt' ? 'sale' : 'purchase'} bills for this party.</div>`;
+  }
+  return `<div id="vchBills">${html}</div>`;
+}
+function vchAlloc_(invId, val){
+  const d = vchDraft_; d.alloc = d.alloc || {};
+  if(val === '' || !(Number(val) > 0)) delete d.alloc[invId]; else d.alloc[invId] = Number(val);
+  const el = document.getElementById('vchAllocSum'); if(el) el.textContent = 'Settled: ' + inr_(Object.values(d.alloc).reduce((t, x)=>t + (Number(x) || 0), 0));
+}
+function vchAutoAlloc_(){
+  const d = vchDraft_; let rest = Number(d.amount) || 0; d.alloc = {};
+  if(!(rest > 0)){ alert('Please type the amount first, then tap Auto settle.'); return; }
+  vchBillsFor_(d).forEach(b=>{ if(rest <= 0) return; const x = Math.min(rest, b.pending); d.alloc[b.inv.id] = r2_(x); rest = r2_(rest - x); });
+  vchForm_();
+}
+
 function vchSave_(){
   try{ localStorage.setItem('ssa_acctVouchers', JSON.stringify(acctVouchers)); storageSet('acctVouchers', JSON.stringify(acctVouchers)); return true; }
   catch(e){ alert('Could not save.'); return false; }
@@ -8100,16 +8192,18 @@ function renderVouchers(main){
     .sort((a, b)=>a.date < b.date ? 1 : a.date > b.date ? -1 : String(b.no) < String(a.no) ? -1 : 1);
   const total = list.filter(v=>v.status !== 'cancelled').reduce((t, v)=>t + vchAmount_(v), 0);
   const seg = (k, l)=>`<button class="btn-pill ${vchView === k ? '' : 'ghost'}" onclick="vchView='${k}';render()">${l}</button>`;
+  if(vchView === 'out'){ main.innerHTML = `<div class="card"><h2 style="margin:0 0 8px;">💰 ${BT_('Vouchers','वाउचर')}</h2><div style="display:flex;gap:8px;flex-wrap:wrap;">${seg('payment', '💸 Payment')}${seg('receipt', '💵 Receipt')}${seg('journal', '📒 Journal')}${seg('out', '⏳ Outstanding')}</div>${outstandingHtml_()}</div>`; return; }
   const who = vchView === 'payment' ? 'Paid to' : vchView === 'receipt' ? 'Received from' : 'Entry';
   const rows = list.map(v=>{
     const cx = v.status === 'cancelled';
-    const mid = v.kind === 'journal' ? (v.lines || []).map(l=>(Number(l.dr) ? 'Dr ' : 'Cr ') + escapeHtml(l.ledger)).join('<br>') : escapeHtml(v.party || '') + (v.against ? `<br><small>Against ${escapeHtml(v.against)}</small>` : '');
+    const bills = (v.alloc || []).map(a=>a.no).join(', ') || v.against || '';
+    const mid = v.kind === 'journal' ? (v.lines || []).map(l=>(Number(l.dr) ? 'Dr ' : 'Cr ') + escapeHtml(l.ledger)).join('<br>') : escapeHtml(v.party || '') + (bills ? `<br><small>Against ${escapeHtml(bills)}</small>` : '');
     return `<tr class="${cx ? 'cx' : ''}"><td>${escapeHtml(v.no)}${cx ? ' <span style="color:#c0392b;font-weight:700;font-size:11px;">CANCELLED</span>' : ''}</td><td>${dmy_(v.date)}</td><td>${mid}</td>
       <td>${v.kind === 'journal' ? '' : escapeHtml(v.mode || '') + (v.ref ? `<br><small>${escapeHtml(v.ref)}</small>` : '')}</td><td>${escapeHtml(v.narration || '')}</td><td class="r"><b>${inr_(vchAmount_(v))}</b></td>
       <td class="act">${cx ? '' : `<button title="Edit" onclick="vchOpen_('${v.kind}','${v.id}')">✏️</button>`}${!cx && canCurrentUserDelete() ? `<button title="Cancel" onclick="vchCancel_('${v.id}')">✖</button>` : ''}${cx && canCurrentUserDelete() ? `<button title="Delete permanently" onclick="vchDelete_('${v.id}')">🗑️</button>` : ''}</td></tr>`;
   }).join('');
   main.innerHTML = `<div class="card"><h2 style="margin:0 0 8px;">💰 ${BT_('Vouchers','वाउचर')}</h2>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;">${seg('payment', '💸 Payment')}${seg('receipt', '💵 Receipt')}${seg('journal', '📒 Journal')}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">${seg('payment', '💸 Payment')}${seg('receipt', '💵 Receipt')}${seg('journal', '📒 Journal')}${seg('out', '⏳ Outstanding')}</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;">
       <button class="primary" style="width:auto;padding:10px 16px;" onclick="vchOpen_('${vchView}')">＋ New ${VCH_LABEL_[vchView]}</button>
       <input type="month" value="${vchMonth}" onchange="vchMonth=this.value;render()" style="max-width:170px;">
@@ -8121,6 +8215,7 @@ function vchOpen_(kind, id){
   const old = id ? acctVouchers.find(x=>x.id === id) : null;
   vchDraft_ = old ? JSON.parse(JSON.stringify(old)) : { id:uid(), kind, no:'', date:todayIso_(), party:'', mode:'Cash', ref:'', amount:'', against:'', narration:'', status:'active', lines:[{ ledger:'', dr:'', cr:'' }, { ledger:'', dr:'', cr:'' }] };
   if(!old) vchDraft_.no = nextInvoiceNo_(acctVouchers, kind, vchDraft_.date);
+  vchDraft_.alloc = {}; if(old) (old.alloc || []).forEach(a=>{ vchDraft_.alloc[a.invId] = a.amount; });
   const ex = document.getElementById('vchOv'); if(ex) ex.remove();
   const ov = document.createElement('div'); ov.id = 'vchOv';
   if(tvOn_()){ ov.className = 'tv'; ov.style.zIndex = 9400; }
@@ -8137,7 +8232,7 @@ function vchFormTally_(){
     const dr = d.lines.reduce((t, l)=>t + (Number(l.dr) || 0), 0), cr = d.lines.reduce((t, l)=>t + (Number(l.cr) || 0), 0), diff = Math.round((dr - cr) * 100) / 100;
     body = `<table class="tv-tbl" id="tvJ" onkeydown="tvEnter_(event)"><thead><tr><th style="width:40px;">Dr/Cr</th><th>Particulars (Ledger / Party)</th><th style="width:150px;text-align:right;">Debit</th><th style="width:150px;text-align:right;">Credit</th><th></th></tr></thead><tbody>` +
       d.lines.map((l, i)=>`<tr><td style="text-align:center;font-weight:700;">${Number(l.cr) > 0 && !(Number(l.dr) > 0) ? 'Cr' : 'Dr'}</td>
-        <td><input data-r="${i}" data-c="ledger" list="vchLedgerList" value="${escapeHtml(l.ledger)}" oninput="vchDraft_.lines[${i}].ledger=this.value"></td>
+        <td><input data-r="${i}" data-c="ledger" list="vchLedgerList" value="${escapeHtml(l.ledger)}" oninput="vchDraft_.lines[${i}].ledger=this.value" onchange="vchDraft_.lines[${i}].ledger=this.value;tvFocusNext_={r:${i},c:'dr'};vchForm_()">${(l.ledger && !ledgerGroupOf_(l.ledger)) ? `<select style="margin-top:2px;font-size:12px;" onchange="vchDraft_.lines[${i}].grp=this.value"><option value="">Account type?</option>${VCH_GROUPS_.concat([['asset','Other asset'],['liab','Other liability']]).map(g=>`<option value="${g[0]}" ${l.grp === g[0] ? 'selected' : ''}>${g[1]}</option>`).join('')}</select>` : ''}</td>
         <td><input data-r="${i}" data-c="dr" type="number" step="any" value="${l.dr}" style="text-align:right;" oninput="vchDraft_.lines[${i}].dr=this.value;if(this.value)vchDraft_.lines[${i}].cr='';vchTot_()"></td>
         <td><input data-r="${i}" data-c="cr" type="number" step="any" value="${l.cr}" style="text-align:right;" oninput="vchDraft_.lines[${i}].cr=this.value;if(this.value)vchDraft_.lines[${i}].dr='';vchTot_()"></td>
         <td style="width:30px;text-align:center;">${d.lines.length > 2 ? `<button class="x" onclick="vchDraft_.lines.splice(${i},1);vchForm_()">✕</button>` : ''}</td></tr>`).join('') +
@@ -8145,8 +8240,9 @@ function vchFormTally_(){
        <div id="vchTot" style="margin-top:8px;font-weight:700;">Debit ${inr_(dr)} · Credit ${inr_(cr)} ${diff ? `<span style="color:#c0392b;">· Difference ${inr_(Math.abs(diff))}</span>` : '<span style="color:#1e8449;">· Balanced ✓</span>'}</div>`;
   } else {
     const nx = "if(event.key==='Enter'){event.preventDefault();const a=[...document.querySelectorAll('.tv-form input,.tv-form select,.tv-form textarea')];const j=a.indexOf(this);if(a[j+1])a[j+1].focus();}";
-    body = fld(d.kind === 'payment' ? 'Paid to (Account)' : 'Received from (Account)', `<input data-tvstart="1" list="vchLedgerList" style="flex:1;max-width:460px;font-size:16px;font-weight:700;" value="${escapeHtml(d.party)}" oninput="vchDraft_.party=this.value" onkeydown="${nx}">`) +
-      fld('Amount ₹', `<input type="number" step="any" style="width:170px;" value="${d.amount}" oninput="vchDraft_.amount=this.value" onkeydown="${nx}">`) +
+    body = fld(d.kind === 'payment' ? 'Paid to (Account)' : 'Received from (Account)', `<input data-tvstart="1" list="vchLedgerList" style="flex:1;max-width:460px;font-size:16px;font-weight:700;" value="${escapeHtml(d.party)}" oninput="vchDraft_.party=this.value" onchange="vchDraft_.party=this.value;vchDraft_.alloc={};tvFocusNext_={r:'a',c:'amt'};vchForm_()" onkeydown="${nx}">`) +
+      vchBillsHtml_(d) +
+      fld('Amount ₹', `<input data-r="a" data-c="amt" type="number" step="any" style="width:170px;" value="${d.amount}" oninput="vchDraft_.amount=this.value" onkeydown="${nx}">`) +
       fld('Mode', `<select onchange="vchDraft_.mode=this.value">${VCH_MODES_.map(m=>`<option ${d.mode === m ? 'selected' : ''}>${m}</option>`).join('')}</select>`) +
       fld('Cheque / UTR / reference', `<input value="${escapeHtml(d.ref || '')}" oninput="vchDraft_.ref=this.value" onkeydown="${nx}">`) +
       fld('Against bill no.', `<input value="${escapeHtml(d.against || '')}" oninput="vchDraft_.against=this.value" onkeydown="${nx}">`);
@@ -8168,14 +8264,15 @@ function vchForm_(){
   if(d.kind === 'journal'){
     const dr = d.lines.reduce((t, l)=>t + (Number(l.dr) || 0), 0), cr = d.lines.reduce((t, l)=>t + (Number(l.cr) || 0), 0), diff = Math.round((dr - cr) * 100) / 100;
     body = `<div style="margin-top:10px;"><b>Entries</b></div>` + d.lines.map((l, i)=>`<div style="display:flex;gap:6px;margin-top:6px;align-items:center;">
-        <input list="vchLedgerList" placeholder="Ledger / party" value="${escapeHtml(l.ledger)}" oninput="vchDraft_.lines[${i}].ledger=this.value" style="flex:2;padding:9px;border:1px solid #d7e3ee;border-radius:8px;">
+        <div style="flex:2;"><input list="vchLedgerList" placeholder="Ledger / party" value="${escapeHtml(l.ledger)}" oninput="vchDraft_.lines[${i}].ledger=this.value" onchange="vchDraft_.lines[${i}].ledger=this.value;vchForm_()" style="width:100%;padding:9px;border:1px solid #d7e3ee;border-radius:8px;">${(l.ledger && !ledgerGroupOf_(l.ledger)) ? `<select style="margin-top:2px;font-size:12px;" onchange="vchDraft_.lines[${i}].grp=this.value"><option value="">Account type?</option>${VCH_GROUPS_.concat([['asset','Other asset'],['liab','Other liability']]).map(g=>`<option value="${g[0]}" ${l.grp === g[0] ? 'selected' : ''}>${g[1]}</option>`).join('')}</select>` : ''}</div>
         <input type="number" step="any" placeholder="Debit" value="${l.dr}" oninput="vchDraft_.lines[${i}].dr=this.value;if(this.value)vchDraft_.lines[${i}].cr='';vchTot_()" style="flex:1;min-width:0;padding:9px;border:1px solid #d7e3ee;border-radius:8px;">
         <input type="number" step="any" placeholder="Credit" value="${l.cr}" oninput="vchDraft_.lines[${i}].cr=this.value;if(this.value)vchDraft_.lines[${i}].dr='';vchTot_()" style="flex:1;min-width:0;padding:9px;border:1px solid #d7e3ee;border-radius:8px;">
         ${d.lines.length > 2 ? `<button class="btn-pill ghost" onclick="vchDraft_.lines.splice(${i},1);vchForm_()">✕</button>` : ''}</div>`).join('') +
       `<button class="btn-pill ghost" style="margin-top:8px;" onclick="vchDraft_.lines.push({ledger:'',dr:'',cr:''});vchForm_()">＋ Add line</button>
        <div id="vchTot" style="margin-top:8px;font-weight:700;">Debit ${inr_(dr)} · Credit ${inr_(cr)} ${diff ? `<span style="color:#c0392b;">· Difference ${inr_(Math.abs(diff))}</span>` : '<span style="color:#1e8449;">· Balanced ✓</span>'}</div>`;
   } else {
-    body = `${fld(d.kind === 'payment' ? 'Paid to' : 'Received from', `<input list="vchLedgerList" value="${escapeHtml(d.party)}" oninput="vchDraft_.party=this.value" ${inp}>`, true)}
+    body = `${fld(d.kind === 'payment' ? 'Paid to' : 'Received from', `<input list="vchLedgerList" value="${escapeHtml(d.party)}" oninput="vchDraft_.party=this.value" onchange="vchDraft_.party=this.value;vchDraft_.alloc={};vchForm_()" ${inp}>`, true)}
+      <div style="grid-column:1/-1">${vchBillsHtml_(d)}</div>
       ${fld('Amount ₹', `<input type="number" step="any" value="${d.amount}" oninput="vchDraft_.amount=this.value" ${inp}>`)}
       ${fld('Mode', `<select onchange="vchDraft_.mode=this.value" ${inp}>${VCH_MODES_.map(m=>`<option ${d.mode === m ? 'selected' : ''}>${m}</option>`).join('')}</select>`)}
       ${fld('Cheque / UTR / reference', `<input value="${escapeHtml(d.ref || '')}" oninput="vchDraft_.ref=this.value" ${inp}>`)}
@@ -8208,12 +8305,31 @@ function vchSaveDraft_(){
     if(ls.some(l=>!String(l.ledger || '').trim() || (!(Number(l.dr) > 0) && !(Number(l.cr) > 0)))) return err('Every line needs a ledger and an amount.');
     const dr = ls.reduce((t, l)=>t + (Number(l.dr) || 0), 0), cr = ls.reduce((t, l)=>t + (Number(l.cr) || 0), 0);
     if(Math.round((dr - cr) * 100) !== 0) return err('Debit and credit must be equal.');
+    for(const l of ls){
+      if(ledgerGroupOf_(l.ledger)) continue;
+      if(!l.grp) return err('Choose the account type for "' + l.ledger.trim() + '".');
+      if(l.grp === 'party') acctParties.push({ id:uid(), name:l.ledger.trim(), gstin:'', state:'', addr:'' }); else acctLedgers[l.ledger.trim().toLowerCase()] = l.grp;
+    }
+    finSaveSettings_();
     d.lines = ls.map(l=>({ ledger:l.ledger.trim(), dr:Number(l.dr) || 0, cr:Number(l.cr) || 0 }));
   } else {
     if(!String(d.party || '').trim()) return err(d.kind === 'payment' ? 'Please enter who was paid.' : 'Please enter who paid you.');
+    const am = d.alloc || {}, asum = r2_(Object.values(am).reduce((t, x)=>t + (Number(x) || 0), 0));
+    if(!(Number(d.amount) > 0) && asum > 0) d.amount = asum;
     if(!(Number(d.amount) > 0)) return err('Please enter the amount.');
     d.amount = Number(d.amount); d.party = d.party.trim();
-    if(!acctParties.some(p=>p.name.toLowerCase() === d.party.toLowerCase()) && !COMMON_LEDGERS_.some(n=>n.toLowerCase() === d.party.toLowerCase())) acctParties.push({ id:uid(), name:d.party, gstin:'', state:'', addr:'' });
+    if(asum > d.amount + 0.005) return err('Settled bills (' + inr_(asum) + ') are more than the amount (' + inr_(d.amount) + ').');
+    const pend = vchBillsFor_(d), arr = [];
+    for(const invId of Object.keys(am)){
+      const b = pend.find(x=>x.inv.id === invId), a = Number(am[invId]) || 0; if(!(a > 0)) continue;
+      if(!b || a > b.pending + 0.005) return err('Bill ' + (b ? b.inv.no : '') + ': settled amount is more than the pending amount.');
+      arr.push({ invId, no:b.inv.no, amount:r2_(a) });
+    }
+    d.alloc = arr;
+    if(!ledgerGroupOf_(d.party)){
+      const g = d.grp || 'party';
+      if(g === 'party') acctParties.push({ id:uid(), name:d.party, gstin:'', state:'', addr:'' }); else { acctLedgers[d.party.toLowerCase()] = g; finSaveSettings_(); }
+    }
   }
   const i = acctVouchers.findIndex(x=>x.id === d.id);
   if(i >= 0) acctVouchers[i] = d; else acctVouchers.push(d);
@@ -8231,6 +8347,183 @@ function vchDelete_(id){
   const v = acctVouchers.find(x=>x.id === id); if(!v || v.status !== 'cancelled' || !canCurrentUserDelete()) return;
   if(!confirm('Delete cancelled voucher ' + v.no + ' permanently? This cannot be undone.')) return;
   acctVouchers = acctVouchers.filter(x=>x.id !== id); vchSave_(); render();
+}
+
+/* =====================  FINANCIAL REPORTS: Trial Balance, Profit & Loss, Balance Sheet  ===================== */
+let finView = 'pl', finFrom = '', finTo = '';
+function fyStart_(){ const d = new Date(), y = d.getMonth() >= 3 ? d.getFullYear() : d.getFullYear() - 1; return y + '-04-01'; }
+function prevDay_(ds){ const d = new Date(ds + 'T00:00:00'); d.setDate(d.getDate() - 1); return d.toISOString().slice(0, 10); }
+function openingStockBase_(){ return r2_(stockItems.reduce((t, i)=>t + (Number(i.openQty) || 0) * (Number(i.openRate) || Number(i.purchaseRate) || 0), 0)); }
+function finOpening_(){      // opening position; capital is the balancing figure, so the books always start balanced
+  const o = acctOpening || {};
+  const cash = Number(o.cash) || 0, bank = Number(o.bank) || 0, fixed = Number(o.fixed) || 0, loans = Number(o.loans) || 0, stock = openingStockBase_();
+  let pdr = 0, pcr = 0; acctParties.forEach(p=>{ const v = Number(p.open) || 0; if(v > 0) pdr += v; else pcr -= v; });
+  return { cash, bank, fixed, loans, stock, pdr, pcr, capital:r2_(cash + bank + fixed + stock + pdr - loans - pcr) };
+}
+function finEntries_(){      // every sale / purchase / voucher turned into plain debit-credit lines
+  const f = firm_(), E = [], O = finOpening_();
+  const push = (date, name, grp, dr, cr)=>{ dr = r2_(dr); cr = r2_(cr); if(dr || cr) E.push({ date, name, grp, dr, cr }); };
+  const START = '0000-00-00';
+  push(START, 'Cash', 'cash', O.cash, 0); push(START, 'Bank', 'bank', O.bank, 0); push(START, 'Fixed assets', 'fixed', O.fixed, 0);
+  push(START, 'Opening stock', 'ostock', O.stock, 0); push(START, 'Loans', 'loan', 0, O.loans); push(START, 'Capital', 'capital', 0, O.capital);
+  acctParties.forEach(p=>{ const v = Number(p.open) || 0; if(v > 0) push(START, p.name, 'party', v, 0); else if(v < 0) push(START, p.name, 'party', 0, -v); });
+  const claimOk = f.type === 'regular';
+  acctInvoices.forEach(inv=>{
+    if(!inv || inv.status === 'cancelled') return;
+    const d = inv.date, party = (inv.partyName || 'Cash'), taxable = Number(inv.taxable) || 0, total = Number(inv.total) || 0;
+    const tax = r2_((Number(inv.cgst) || 0) + (Number(inv.sgst) || 0) + (Number(inv.igst) || 0)), ro = r2_(total - taxable - tax);
+    const pg = ledgerGroupOf_(party) === 'cash' || party.trim().toLowerCase() === 'cash' ? 'cash' : 'party';
+    if(inv.kind === 'sale'){
+      push(d, party, pg, total, 0); push(d, 'Sales', 'sales', 0, taxable); push(d, 'Output GST', 'gstout', 0, tax);
+      if(ro > 0) push(d, 'Round off', 'round', 0, ro); else if(ro < 0) push(d, 'Round off', 'round', -ro, 0);
+    } else if(inv.kind === 'credit_note'){
+      push(d, party, pg, 0, total); push(d, 'Sales', 'sales', taxable, 0); push(d, 'Output GST', 'gstout', tax, 0);
+      if(ro > 0) push(d, 'Round off', 'round', ro, 0); else if(ro < 0) push(d, 'Round off', 'round', 0, -ro);
+    } else if(inv.kind === 'purchase' || inv.kind === 'debit_note'){
+      const s = inv.kind === 'purchase' ? 1 : -1, rcm = !!inv.reverseCharge, claim = claimOk && inv.itcEligible !== false;
+      const partyAmt = rcm ? taxable + ro : total;       // under reverse charge the supplier is paid only the taxable value
+      const buy = taxable + (claim ? 0 : tax);
+      const side = (name, grp, amt, debitWhenPurchase)=>{ if(!amt) return; const dr = (s > 0) === debitWhenPurchase; push(d, name, grp, dr ? amt : 0, dr ? 0 : amt); };
+      side(party, pg, partyAmt, false); side('Purchase', 'purchase', buy, true);
+      if(claim) side('Input GST', 'gstin', tax, true);
+      if(rcm) side('GST payable (reverse charge)', 'rcm', tax, false);
+      if(!rcm){ const rr = ro; if(rr > 0) side('Round off', 'round', rr, true); else if(rr < 0) side('Round off', 'round', -rr, false); }
+      else if(ro){ if(ro > 0) side('Round off', 'round', 0, true); }
+    }
+  });
+  acctVouchers.forEach(v=>{
+    if(!v || v.status === 'cancelled') return;
+    const d = v.date;
+    if(v.kind === 'journal'){
+      (v.lines || []).forEach(l=>{ const g = ledgerGroupOf_(l.ledger) || l.grp || 'iexp'; push(d, l.ledger, g, Number(l.dr) || 0, Number(l.cr) || 0); });
+      return;
+    }
+    const amt = Number(v.amount) || 0, mode = /^cash$/i.test(v.mode || '') ? ['Cash', 'cash'] : ['Bank', 'bank'];
+    const g = ledgerGroupOf_(v.party) || (v.kind === 'payment' ? 'iexp' : 'iinc');
+    if(v.kind === 'receipt'){ push(d, mode[0], mode[1], amt, 0); push(d, v.party, g, 0, amt); }
+    else { push(d, mode[0], mode[1], 0, amt); push(d, v.party, g, amt, 0); }
+  });
+  return E;
+}
+function finCompute_(from, to){
+  const E = finEntries_(), cum = {}, per = {};
+  const add = (m, e)=>{ const k = e.grp + '|' + e.name.trim().toLowerCase(); const x = m[k] || (m[k] = { name:e.name, grp:e.grp, dr:0, cr:0 }); x.dr += e.dr; x.cr += e.cr; };
+  E.forEach(e=>{ if(!to || e.date <= to) add(cum, e); if((!from || e.date >= from) && (!to || e.date <= to)) add(per, e); });
+  const sumG = (m, g, side)=>Object.values(m).filter(x=>x.grp === g).reduce((t, x)=>t + (side === 'dr' ? x.dr - x.cr : x.cr - x.dr), 0);
+  const listG = (m, g, side)=>Object.values(m).filter(x=>x.grp === g).map(x=>({ name:x.name, amt:r2_(side === 'dr' ? x.dr - x.cr : x.cr - x.dr) })).filter(x=>Math.abs(x.amt) > 0.004);
+  const O = finOpening_();
+  // ---- Profit & Loss for the period
+  const stockOpen = r2_(stockClosingValue_(from ? prevDay_(from) : '0000-00-00')), stockClose = r2_(stockClosingValue_(to));
+  const pl = {
+    sales:r2_(sumG(per, 'sales', 'cr')), dinc:listG(per, 'dinc', 'cr'), purchase:r2_(sumG(per, 'purchase', 'dr')), dexp:listG(per, 'dexp', 'dr'),
+    iinc:listG(per, 'iinc', 'cr').concat(listG(per, 'round', 'cr').filter(x=>x.amt > 0)), iexp:listG(per, 'iexp', 'dr').concat(listG(per, 'round', 'cr').filter(x=>x.amt < 0).map(x=>({ name:x.name, amt:-x.amt }))),
+    stockOpen, stockClose
+  };
+  const t = a=>a.reduce((s, x)=>s + x.amt, 0);
+  pl.gp = r2_(pl.sales + t(pl.dinc) + stockClose - (stockOpen + pl.purchase + t(pl.dexp)));
+  pl.net = r2_(pl.gp + t(pl.iinc) - t(pl.iexp));
+  // ---- cumulative position up to 'to' (for the Balance Sheet)
+  const salesC = sumG(cum, 'sales', 'cr'), purC = sumG(cum, 'purchase', 'dr'), dincC = sumG(cum, 'dinc', 'cr'), dexpC = sumG(cum, 'dexp', 'dr'), iincC = sumG(cum, 'iinc', 'cr'), iexpC = sumG(cum, 'iexp', 'dr'), roundC = sumG(cum, 'round', 'cr');
+  const profitCum = r2_(salesC + dincC + iincC + roundC + stockClose - (O.stock + purC + dexpC + iexpC));
+  const capitalAcc = r2_(sumG(cum, 'capital', 'cr')), drawings = r2_(sumG(cum, 'drawings', 'dr'));
+  const parties = Object.values(cum).filter(x=>x.grp === 'party').map(x=>({ name:x.name, bal:r2_(x.dr - x.cr) })).filter(x=>Math.abs(x.bal) > 0.004);
+  const debtors = parties.filter(x=>x.bal > 0), creditors = parties.filter(x=>x.bal < 0).map(x=>({ name:x.name, bal:-x.bal }));
+  const cash = r2_(sumG(cum, 'cash', 'dr')), bank = r2_(sumG(cum, 'bank', 'dr')), fixed = r2_(sumG(cum, 'fixed', 'dr'));
+  const loans = r2_(sumG(cum, 'loan', 'cr') + sumG(cum, 'liab', 'cr')), otherAssets = r2_(sumG(cum, 'asset', 'dr'));
+  const gst = r2_(sumG(cum, 'gstout', 'cr') + sumG(cum, 'rcm', 'cr') - sumG(cum, 'gstin', 'dr'));
+  const bs = { capitalAcc, drawings, profitCum, loans, creditors, gstPayable:gst > 0 ? gst : 0, gstCredit:gst < 0 ? -gst : 0, fixed, otherAssets, stockClose, debtors, cash, bank };
+  bs.liabTotal = r2_(capitalAcc - drawings + profitCum + loans + creditors.reduce((s, x)=>s + x.bal, 0) + bs.gstPayable);
+  bs.assetTotal = r2_(fixed + otherAssets + stockClose + debtors.reduce((s, x)=>s + x.bal, 0) + cash + bank + bs.gstCredit);
+  bs.diff = r2_(bs.assetTotal - bs.liabTotal);
+  // ---- Trial balance (before closing stock)
+  const tb = Object.values(cum).map(x=>({ name:x.name, grp:x.grp, net:r2_(x.dr - x.cr) })).filter(x=>Math.abs(x.net) > 0.004);
+  const tbDr = r2_(tb.filter(x=>x.net > 0).reduce((s, x)=>s + x.net, 0)), tbCr = r2_(tb.filter(x=>x.net < 0).reduce((s, x)=>s - x.net, 0));
+  return { pl, bs, tb, tbDr, tbCr, O };
+}
+const FIN_GROUP_LABEL_ = { cash:'Cash-in-hand', bank:'Bank accounts', party:'Sundry parties', sales:'Sales accounts', purchase:'Purchase accounts', gstin:'Duties & taxes', gstout:'Duties & taxes', rcm:'Duties & taxes', dexp:'Direct expenses', iexp:'Indirect expenses', dinc:'Direct incomes', iinc:'Indirect incomes', round:'Round off', fixed:'Fixed assets', asset:'Other assets', loan:'Loans', liab:'Liabilities', capital:'Capital account', drawings:'Drawings', ostock:'Stock-in-hand' };
+function finRow_(label, amt, bold){ return `<tr style="${bold ? 'font-weight:700;border-top:1px solid #cdd;' : ''}"><td>${escapeHtml(label)}</td><td class="r">${inr_(amt)}</td></tr>`; }
+function renderFin(main){
+  dataPull_().then(ch=>{ if(ch && currentTab === 'fin') render(); }).catch(()=>{});
+  if(!finFrom) finFrom = fyStart_(); if(!finTo) finTo = todayIso_();
+  const seg = (k, l)=>`<button class="btn-pill ${finView === k ? '' : 'ghost'}" onclick="finView='${k}';render()">${l}</button>`;
+  const head = `<h2 style="margin:0 0 8px;">📊 ${BT_('Financial Reports','वित्तीय रिपोर्ट')}</h2><div style="display:flex;gap:8px;flex-wrap:wrap;">${seg('pl', 'Profit & Loss')}${seg('bs', 'Balance Sheet')}${seg('tb', 'Trial Balance')}${seg('open', 'Opening Balances')}</div>`;
+  if(finView === 'open'){ main.innerHTML = `<div class="card">${head}${finOpeningHtml_()}</div>`; return; }
+  const R = finCompute_(finView === 'pl' ? finFrom : '', finTo), isPL = finView === 'pl';
+  const dates = `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0;">${isPL ? `<label>From <input type="date" value="${finFrom}" onchange="finFrom=this.value;render()"></label>` : ''}<label>${isPL ? 'To' : 'As on'} <input type="date" value="${finTo}" onchange="finTo=this.value;render()"></label><button class="btn-pill ghost" onclick="window.print()">🖨️ Print</button></div>`;
+  let body = '';
+  if(finView === 'pl'){
+    const p = R.pl, ln = (a)=>a.map(x=>finRow_(x.name, x.amt)).join('');
+    body = `<table class="acct-tbl"><tbody>
+      <tr><td colspan="2"><b>Trading account</b></td></tr>
+      ${finRow_('Sales (net of returns)', p.sales)}${ln(p.dinc)}${finRow_('Closing stock', p.stockClose)}
+      ${finRow_('Opening stock', -p.stockOpen)}${finRow_('Purchases (net of returns)', -p.purchase)}${p.dexp.map(x=>finRow_(x.name, -x.amt)).join('')}
+      ${finRow_(p.gp >= 0 ? 'Gross profit' : 'Gross loss', p.gp, true)}
+      <tr><td colspan="2"><b>Profit & Loss account</b></td></tr>
+      ${ln(p.iinc)}${p.iexp.map(x=>finRow_(x.name, -x.amt)).join('')}
+      ${finRow_(p.net >= 0 ? 'NET PROFIT' : 'NET LOSS', p.net, true)}</tbody></table>
+      <div class="subtle" style="font-size:12px;margin-top:6px;">Closing stock is valued at average cost. Sales and purchases are shown without GST.</div>`;
+  } else if(finView === 'bs'){
+    const b = R.bs, parts = a=>a.map(x=>finRow_(x.name, x.bal)).join('');
+    body = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;">
+      <table class="acct-tbl"><thead><tr><th colspan="2">Liabilities</th></tr></thead><tbody>
+        ${finRow_('Capital account', b.capitalAcc)}${b.drawings ? finRow_('Less: Drawings', -b.drawings) : ''}${finRow_(b.profitCum >= 0 ? 'Add: Net profit (till date)' : 'Less: Net loss (till date)', b.profitCum)}
+        ${b.loans ? finRow_('Loans / liabilities', b.loans) : ''}${parts(b.creditors)}${b.gstPayable ? finRow_('GST payable', b.gstPayable) : ''}${finRow_('Total', b.liabTotal, true)}</tbody></table>
+      <table class="acct-tbl"><thead><tr><th colspan="2">Assets</th></tr></thead><tbody>
+        ${b.fixed ? finRow_('Fixed assets', b.fixed) : ''}${b.otherAssets ? finRow_('Other assets', b.otherAssets) : ''}${finRow_('Closing stock', b.stockClose)}${parts(b.debtors)}
+        ${b.gstCredit ? finRow_('GST input credit', b.gstCredit) : ''}${finRow_('Cash-in-hand', b.cash)}${finRow_('Bank accounts', b.bank)}${finRow_('Total', b.assetTotal, true)}</tbody></table></div>
+      <div style="margin-top:8px;font-weight:700;${Math.abs(b.diff) < 0.01 ? 'color:#1e8449;' : 'color:#c0392b;'}">${Math.abs(b.diff) < 0.01 ? '✓ Balance sheet is balanced' : 'Difference ' + inr_(Math.abs(b.diff)) + ' - please check the entries'}</div>`;
+  } else {
+    const rows = R.tb.slice().sort((a, b)=>(FIN_GROUP_LABEL_[a.grp] || '').localeCompare(FIN_GROUP_LABEL_[b.grp] || '') || a.name.localeCompare(b.name));
+    body = `<table class="acct-tbl"><thead><tr><th>Ledger</th><th>Group</th><th class="r">Debit</th><th class="r">Credit</th></tr></thead><tbody>` +
+      rows.map(x=>`<tr><td>${escapeHtml(x.name)}</td><td>${escapeHtml(FIN_GROUP_LABEL_[x.grp] || '')}</td><td class="r">${x.net > 0 ? inr_(x.net) : ''}</td><td class="r">${x.net < 0 ? inr_(-x.net) : ''}</td></tr>`).join('') +
+      `</tbody><tfoot><tr><td colspan="2"><b>Total</b></td><td class="r"><b>${inr_(R.tbDr)}</b></td><td class="r"><b>${inr_(R.tbCr)}</b></td></tr></tfoot></table>
+      <div style="margin-top:8px;font-weight:700;${Math.abs(R.tbDr - R.tbCr) < 0.01 ? 'color:#1e8449;' : 'color:#c0392b;'}">${Math.abs(R.tbDr - R.tbCr) < 0.01 ? '✓ Trial balance tallies' : 'Difference ' + inr_(Math.abs(R.tbDr - R.tbCr))}</div>
+      <div class="subtle" style="font-size:12px;">Stock appears as opening stock here; closing stock comes into the Profit & Loss and Balance Sheet.</div>`;
+  }
+  main.innerHTML = `<div class="card">${head}${dates}<div style="overflow-x:auto;">${body}</div></div>`;
+}
+function finOpeningHtml_(){
+  const O = finOpening_(), o = acctOpening || {};
+  const inp = (id, v)=>`<input id="${id}" type="number" step="any" value="${v || ''}" style="width:160px;text-align:right;padding:8px;border:1px solid #d7e3ee;border-radius:8px;">`;
+  return `<p class="subtle" style="font-size:13px;">Enter your balances on the day you start using BahiAi. Stock is taken from your stock items (opening qty × rate). Capital is worked out automatically.</p>
+    <table class="acct-tbl"><tbody>
+      <tr><td>Cash in hand</td><td class="r">${inp('opCash', o.cash)}</td></tr><tr><td>Bank balance</td><td class="r">${inp('opBank', o.bank)}</td></tr>
+      <tr><td>Fixed assets (furniture, vehicle ...)</td><td class="r">${inp('opFixed', o.fixed)}</td></tr><tr><td>Loans / other liabilities</td><td class="r">${inp('opLoans', o.loans)}</td></tr>
+      <tr><td>Opening stock (from stock items)</td><td class="r">${inr_(O.stock)}</td></tr><tr style="font-weight:700;"><td>Capital (automatic)</td><td class="r">${inr_(O.capital)}</td></tr></tbody></table>
+    <h3 style="margin:14px 0 6px;">Party opening balances</h3><div class="subtle" style="font-size:12px;">Type a plus amount if the party owes you, and a minus amount if you owe the party.</div>
+    <table class="acct-tbl"><tbody>${acctParties.map((p, i)=>`<tr><td>${escapeHtml(p.name)}</td><td class="r"><input id="opP${i}" type="number" step="any" value="${p.open || ''}" style="width:160px;text-align:right;padding:8px;border:1px solid #d7e3ee;border-radius:8px;"></td></tr>`).join('') || '<tr><td>No parties yet.</td></tr>'}</tbody></table>
+    <button class="primary" style="margin-top:10px;width:auto;padding:10px 18px;" onclick="finSaveOpening_()">💾 Save opening balances</button>`;
+}
+function finSaveOpening_(){
+  const v = id=>{ const e = document.getElementById(id); return e && e.value !== '' ? Number(e.value) : 0; };
+  acctOpening = { cash:v('opCash'), bank:v('opBank'), fixed:v('opFixed'), loans:v('opLoans') };
+  acctParties.forEach((p, i)=>{ p.open = v('opP' + i); });
+  finSaveSettings_(); acctSave_(); alert('Opening balances saved.'); render();
+}
+/* ---- bill-wise outstanding (shown in Vouchers) ---- */
+function outstandingHtml_(){
+  const paid = {}, adv = {};
+  acctVouchers.forEach(v=>{ if(v.status === 'cancelled' || v.kind === 'journal') return; const al = (v.alloc || []).reduce((t, a)=>{ paid[a.invId] = (paid[a.invId] || 0) + Number(a.amount || 0); return t + Number(a.amount || 0); }, 0);
+    const rest = r2_((Number(v.amount) || 0) - al); if(rest > 0.005){ const k = v.kind + '|' + String(v.party || '').trim().toLowerCase(); adv[k] = (adv[k] || 0) + rest; } });
+  const group = (kind)=>{
+    const m = {};
+    acctInvoices.filter(i=>i.kind === kind && i.status !== 'cancelled').forEach(i=>{ const pend = r2_(i.total - (paid[i.id] || 0)); if(pend > 0.005){ const k = String(i.partyName || 'Cash').trim().toLowerCase(); (m[k] = m[k] || { name:i.partyName || 'Cash', bills:[] }).bills.push({ i, pend }); } });
+    return Object.values(m).sort((a, b)=>a.name.localeCompare(b.name));
+  };
+  const block = (title, list, vk)=>{
+    const total = list.reduce((t, g)=>t + g.bills.reduce((s, b)=>s + b.pend, 0), 0);
+    return `<h3 style="margin:14px 0 6px;">${title} <span style="float:right;">${inr_(total)}</span></h3>` + (list.map(g=>{
+      const a = adv[vk + '|' + g.name.trim().toLowerCase()] || 0, sum = g.bills.reduce((s, b)=>s + b.pend, 0);
+      return `<div class="cust-card" style="margin-top:6px;"><div class="cust-head"><span class="name">${escapeHtml(g.name)}</span><span class="set-pill pending">${inr_(sum)}</span></div>
+        <table class="acct-tbl"><tbody>${g.bills.sort((x, y)=>x.i.date < y.i.date ? -1 : 1).map(b=>`<tr><td>${escapeHtml(b.i.no)}</td><td>${dmy_(b.i.date)}</td><td class="r">${inr_(b.i.total)}</td><td class="r"><b>${inr_(b.pend)}</b></td></tr>`).join('')}</tbody></table>${a ? `<div class="subtle" style="font-size:12px;">Advance / on-account not yet settled against bills: ${inr_(a)}</div>` : ''}</div>`;
+    }).join('') || '<div class="subtle">Nothing pending.</div>');
+  };
+  return block('To receive (customers)', group('sale'), 'receipt') + block('To pay (suppliers)', group('purchase'), 'payment');
+}
+function renderGstTab(main){
+  const f = firm_();
+  if(!f.ok){ renderAcct(main); return; }
+  main.innerHTML = `<div class="card"><h2>📑 ${BT_('GST Reports','GST रिपोर्ट')}</h2>${acctReportsHtml_(f)}</div>`;
 }
 let acctInvoices = [], acctParties = [];
 try{ acctInvoices = JSON.parse(localStorage.getItem('ssa_acctInvoices') || '[]') || []; acctParties = JSON.parse(localStorage.getItem('ssa_acctParties') || '[]') || []; }catch(e){ acctInvoices = []; acctParties = []; }
@@ -8347,6 +8640,13 @@ document.addEventListener('keydown', e=>{
   if(e.key === 'Escape'){ e.preventDefault(); tvQuit_(); return; }
   if((e.ctrlKey && e.key === 'Enter') || (e.altKey && String(e.key).toLowerCase() === 'a')){ e.preventDefault(); tvAccept_(); }
 });
+
+function altText_(l){     // "2 Box" when the item has an alternate unit and the line is in its main unit
+  const it = stockItems.find(x=>x.name.trim().toLowerCase() === String(l.desc || '').trim().toLowerCase());
+  if(!it || !it.altUnit || !(Number(it.altConv) > 0) || (l.unit && it.unit && l.unit !== it.unit)) return '';
+  const q = (Number(l.qty) || 0) / Number(it.altConv); if(!q) return '';
+  return (Math.round(q * 100) / 100) + ' ' + unitUi_(it.altUnit);
+}
 function acctRowTally_(l, i, taxCol){
   const c = col=>`data-r="${i}" data-c="${col}"`;
   const unit = unitSelectHtml_('', l.unit || 'pcs', '', `acctLine_(${i},'unit',this.value)`).replace('<select', `<select ${c('unit')}`);
@@ -8358,6 +8658,7 @@ function acctRowTally_(l, i, taxCol){
     <td style="width:104px;"><input ${c('rate')} type="number" step="any" value="${l.rate}" oninput="acctLine_(${i},'rate',this.value)"></td>
     <td style="width:84px;">${unit}</td>
     <td style="width:84px;"><input ${c('disc')} type="number" step="any" value="${l.disc}" oninput="acctLine_(${i},'disc',this.value)"></td>
+    <td id="alt_${i}" style="width:90px;text-align:center;color:#7a5b00;font-weight:600;"></td>
     <td class="amt" id="amt_${i}" style="width:120px;"></td>
     <td style="width:30px;text-align:center;">${acctDraft_.lines.length > 1 ? `<button class="x" onclick="acctDelLine_(${i})">✕</button>` : ''}</td></tr>`;
 }
@@ -8382,9 +8683,9 @@ function acctFormTally_(){
       <label style="width:auto;">${BT_('State','राज्य')}</label><select onchange="acctDraft_.partyState=this.value;acctCalc_()">${acctStateOpts_(d.partyState)}</select>
       ${sale ? `<label style="width:auto;">${BT_('Place of supply','सप्लाई का स्थान')}</label><select onchange="acctDraft_.pos=this.value;acctCalc_()">${acctStateOpts_(d.pos || d.partyState || f.state)}</select>` : ''}</div>
     <details class="tv-det"><summary>${BT_('More details (address, ship to, vehicle, order ref ...)','और विवरण (पता, डिलीवरी, गाड़ी, ऑर्डर ...)')}</summary>${more}</details>
-    <table class="tv-tbl" id="tvTbl" onkeydown="tvEnter_(event)"><thead><tr><th>SL</th><th>Name of Item</th><th>HSN/SAC</th>${taxCol ? '<th>GST %</th>' : ''}<th>Quantity</th><th>Rate</th><th>per</th><th>Disc %</th><th style="text-align:right;">Amount</th><th></th></tr></thead>
+    <table class="tv-tbl" id="tvTbl" onkeydown="tvEnter_(event)"><thead><tr><th>SL</th><th>Name of Item</th><th>HSN/SAC</th>${taxCol ? '<th>GST %</th>' : ''}<th>Quantity</th><th>Rate</th><th>per</th><th>Disc %</th><th>Alt. unit</th><th style="text-align:right;">Amount</th><th></th></tr></thead>
       <tbody>${d.lines.map((l, i)=>acctRowTally_(l, i, taxCol)).join('')}</tbody>
-      <tfoot><tr><td colspan="${taxCol ? 4 : 3}" style="text-align:right;font-weight:700;">Total</td><td id="tvQty" style="font-weight:700;padding:6px;"></td><td colspan="3"></td><td class="amt" id="tvSum"></td><td></td></tr></tfoot></table>
+      <tfoot><tr><td colspan="${taxCol ? 4 : 3}" style="text-align:right;font-weight:700;">Total</td><td id="tvQty" style="font-weight:700;padding:6px;"></td><td colspan="4"></td><td class="amt" id="tvSum"></td><td></td></tr></tfoot></table>
     <div style="margin-top:6px;"><button class="btn-pill ghost" onclick="tvFocusNext_={r:acctDraft_.lines.length,c:'desc'};acctAddLine_()">＋ ${BT_('Add item','आइटम जोड़ें')}</button> <button class="btn-pill ghost" onclick="acctNewItem_()">＋ ${BT_('New stock item','नया स्टॉक आइटम')} (Alt+C)</button></div>
     ${fld(BT_('Narration','नैरेशन'), `<input style="flex:1;max-width:620px;" value="${escapeHtml(d.note || '')}" oninput="acctDraft_.note=this.value">`)}
     <div id="acctTot" class="acct-tot"></div><div id="acctMsg"></div>`;
@@ -8476,7 +8777,7 @@ function acctCalc_(){
   const d = acctDraft_, f = firm_(); calcInvoice_(d, f);
   if(document.getElementById('tvTbl')){
     let q = 0, sum = 0;
-    d.lines.forEach((l, i)=>{ const a = (Number(l.qty) || 0) * (Number(l.rate) || 0) * (1 - (Number(l.disc) || 0) / 100); q += Number(l.qty) || 0; sum += a; const el = document.getElementById('amt_' + i); if(el) el.textContent = a ? inr_(a) : ''; });
+    d.lines.forEach((l, i)=>{ const a = (Number(l.qty) || 0) * (Number(l.rate) || 0) * (1 - (Number(l.disc) || 0) / 100); q += Number(l.qty) || 0; sum += a; const el = document.getElementById('amt_' + i); if(el) el.textContent = a ? inr_(a) : ''; const ea = document.getElementById('alt_' + i); if(ea) ea.textContent = altText_(l); });
     const eq = document.getElementById('tvQty'), es = document.getElementById('tvSum'); if(eq) eq.textContent = q || ''; if(es) es.textContent = sum ? inr_(sum) : '';
   }
   const el = document.getElementById('acctTot'); if(!el) return;
@@ -8551,7 +8852,7 @@ function acctPdfBlob_(inv){
   const startY = Math.max(ly, ry) + 2;
   const tax = f.type === 'regular' && inv.kind !== 'purchase';
   const head = [['#', 'Description', 'HSN', 'Qty', 'Rate', 'Disc %', 'Taxable'].concat(tax ? ['GST %'] : [])];
-  const body = inv.lines.map((l, k)=>[k + 1, l.desc, l.hsn || '', (l.qty) + ' ' + unitEn_(l.unit || 'pcs'), inr_(l.rate), l.disc ? l.disc : '', inr_(l._tv)].concat(tax ? [l._rate + '%'] : []));
+  const body = inv.lines.map((l, k)=>[k + 1, l.desc, l.hsn || '', (l.qty) + ' ' + unitEn_(l.unit || 'pcs') + (altText_(l) ? ' (' + altText_(l) + ')' : ''), inr_(l.rate), l.disc ? l.disc : '', inr_(l._tv)].concat(tax ? [l._rate + '%'] : []));
   doc.autoTable({ startY, head, body, theme:'grid', styles:{ fontSize:8.5, cellPadding:1.6 }, headStyles:{ fillColor:[23, 60, 107] }, columnStyles:{ 0:{ cellWidth:8 }, 4:{ halign:'right' }, 6:{ halign:'right' } }, margin:{ left:M, right:M } });
   let ty = doc.lastAutoTable.finalY + 5; const right = W - M, line = (a, b, bold)=>{ doc.setFont('helvetica', bold ? 'bold' : 'normal'); doc.text(a, right - 70, ty); doc.text(b, right, ty, { align:'right' }); ty += 5; };
   doc.setFontSize(9.5); line('Taxable value', inr_(inv.taxable));
