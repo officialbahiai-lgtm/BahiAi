@@ -611,7 +611,14 @@
   <button class="navbtn" data-child="1" data-tab="catDispatched" style="display:none;"><span class="ic">🚚</span>Cat. Dispatched</button>
   <button class="navbtn" data-tab="customers"><span class="ic">👤</span>Customers</button>
   <button class="navbtn" data-tab="deletedOrders"><span class="ic">🗑️</span>Deleted</button>
-  <button class="navbtn" data-tab="acct"><span class="ic">🧾</span>Sale/Purchase</button>
+  <button class="navbtn" data-tab="acct" data-acct="newsale"><span class="ic">🧾</span>New Sale</button>
+  <button class="navbtn" data-tab="acct" data-acct="newpur"><span class="ic">🛒</span>New Purchase</button>
+  <button class="navbtn" data-tab="acct" data-acct="salereg"><span class="ic">📒</span>Sale Register</button>
+  <button class="navbtn" data-tab="acct" data-acct="purreg"><span class="ic">📚</span>Purchase Register</button>
+  <button class="navbtn" data-tab="acct" data-acct="cnreg"><span class="ic">↩️</span>Credit Note Register</button>
+  <button class="navbtn" data-tab="acct" data-acct="dnreg"><span class="ic">↪️</span>Debit Note Register</button>
+  <button class="navbtn" data-tab="acct" data-acct="ledger"><span class="ic">📖</span>Ledgers</button>
+  <button class="navbtn" data-tab="acct" data-acct="tally"><span class="ic">🔄</span>Tally Export/Import</button>
   <button class="navbtn" data-tab="stock"><span class="ic">📦</span>Stock Summary</button>
   <button class="navbtn" data-tab="vouchers"><span class="ic">💰</span>Vouchers</button>
   <button class="navbtn" data-tab="gst"><span class="ic">📑</span>GST Reports</button>
@@ -2272,7 +2279,10 @@ document.getElementById('bottomNav').addEventListener('click', (e)=>{
   document.querySelectorAll('.navbtn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   currentTab = btn.dataset.tab;
+  const av = btn.dataset.acct;
+  if(av) acctView = (av === 'salereg' || av === 'newsale') ? 'sales' : (av === 'purreg' || av === 'newpur') ? 'purchases' : av === 'cnreg' ? 'cnotes' : av === 'dnreg' ? 'dnotes' : av === 'ledger' ? 'ledger' : 'tally';
   render();
+  if((av === 'newsale' || av === 'newpur') && firm_().ok) acctOpen_(av === 'newsale' ? 'sale' : 'purchase');
   // Mobile browsers can throttle/pause the 20s background timer whenever the
   // screen dims or the tab drops out of focus for even a moment, so the data
   // can go stale without any visible sign. Tapping a tab is a sure sign the
@@ -2580,7 +2590,7 @@ function render(){
   if(!pushTried_ && !isCustomerUser_()){ pushTried_ = true; registerPush_(); }
   document.body.classList.remove('nologin');
   main.className = (currentTab==='dashboard' || currentTab==='catalog' || currentTab==='custCatalog') ? 'wide' : '';
-  document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active', !b.dataset.child && (b.dataset.tab===currentTab || (b.dataset.tab==='orderHub' && groupOf_(currentTab)==='order') || (b.dataset.tab==='catHub' && groupOf_(currentTab)==='cat'))));
+  document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active', !b.dataset.child && ((b.dataset.tab===currentTab && acctNavOn_(b)) || (b.dataset.tab==='orderHub' && groupOf_(currentTab)==='order') || (b.dataset.tab==='catHub' && groupOf_(currentTab)==='cat'))));
   const actBtn = document.querySelector('.navbtn.active'), pt = document.getElementById('pageTitle');
   if(pt) pt.textContent = actBtn && actBtn.lastChild ? actBtn.lastChild.textContent.trim() : '';
   if(planInfo_().mode === 'expired' && !isPlatformAdmin_()){ renderPaywall_(main); return; }
@@ -8052,6 +8062,7 @@ function stockForm_(id, afterSave, presetName){
     <div id="sfMsg"></div>
     <div style="display:flex;gap:8px;"><button class="primary" style="flex:1;" onclick="stockSaveItem_()">💾 Save</button><button class="secondary" style="flex:1;" onclick="document.getElementById('stockOv').remove()">Cancel</button></div></div>`;
   document.body.appendChild(ov);
+  setTimeout(()=>{ const n = document.getElementById('sfName'); if(n){ n.focus(); n.select(); } }, 40);
   document.getElementById('sfGroup').addEventListener('change', function(){
     const g = stockGroups.find(x=>x.name === this.value);       // group chosen: take its HSN and GST
     if(g){ if(g.hsn) document.getElementById('sfHsn').value = g.hsn; if(g.gst !== undefined && g.gst !== '') document.getElementById('sfGst').value = g.gst; }
@@ -8116,12 +8127,12 @@ function acctNewItem_(){
   if(i < 0){ acctAddLine_(); i = d.lines.length - 1; }
   stockForm_(null, it=>{ acctApplyItem_(i, it); });
 }
-// Computer shortcut: Alt + C inside a sale / purchase bill opens "New stock item" (like Tally)
+// Alt + C (like Tally): on the party box it creates a ledger, anywhere else in a bill it creates a stock item
 document.addEventListener('keydown', e=>{
   if(!e.altKey || e.ctrlKey || e.metaKey || String(e.key).toLowerCase() !== 'c') return;
-  if(!document.getElementById('acctOv') || document.getElementById('stockOv') || !acctDraft_) return;
-  e.preventDefault(); acctNewItem_();
-  setTimeout(()=>{ const n = document.getElementById('sfName'); if(n){ n.focus(); n.select(); } }, 50);
+  if(document.getElementById('lgOv') || document.getElementById('stockOv')) return;
+  if(!document.getElementById('acctOv') && !document.getElementById('vchOv')) return;
+  e.preventDefault(); tvCreate_();
 });
 
 /* =====================  VOUCHERS: Payment, Receipt, Journal (with registers)  ===================== */
@@ -8427,7 +8438,11 @@ function finCompute_(from, to){
   const profitCum = r2_(salesC + dincC + iincC + roundC + stockClose - (O.stock + purC + dexpC + iexpC));
   const capitalAcc = r2_(sumG(cum, 'capital', 'cr')), drawings = r2_(sumG(cum, 'drawings', 'dr'));
   const parties = Object.values(cum).filter(x=>x.grp === 'party').map(x=>({ name:x.name, bal:r2_(x.dr - x.cr) })).filter(x=>Math.abs(x.bal) > 0.004);
-  const debtors = parties.filter(x=>x.bal > 0), creditors = parties.filter(x=>x.bal < 0).map(x=>({ name:x.name, bal:-x.bal }));
+  const pmeta = {}; acctParties.forEach(p=>{ pmeta[p.name.trim().toLowerCase()] = p; });
+  const debtors = [], creditors = [];
+  parties.forEach(x=>{ const g = (pmeta[x.name.trim().toLowerCase()] || {}).group || '';
+    if(g === 'Sundry Creditors') creditors.push({ name:x.name, bal:-x.bal }); else if(g === 'Sundry Debtors') debtors.push(x);
+    else if(x.bal > 0) debtors.push(x); else creditors.push({ name:x.name, bal:-x.bal }); });
   const cash = r2_(sumG(cum, 'cash', 'dr')), bank = r2_(sumG(cum, 'bank', 'dr')), fixed = r2_(sumG(cum, 'fixed', 'dr'));
   const loans = r2_(sumG(cum, 'loan', 'cr') + sumG(cum, 'liab', 'cr')), otherAssets = r2_(sumG(cum, 'asset', 'dr'));
   const gst = r2_(sumG(cum, 'gstout', 'cr') + sumG(cum, 'rcm', 'cr') - sumG(cum, 'gstin', 'dr'));
@@ -8556,16 +8571,19 @@ function renderAcct(main){
   const typeTxt = { regular:'Regular (GSTR-1 / GSTR-3B)', composition:'Composition (CMP-08 / GSTR-4)', unregistered:'Unregistered (no GST return)' }[f.type];
   const seg = (k, l)=>`<button class="btn-pill ${acctView === k ? '' : 'ghost'}" onclick="acctView='${k}';render()">${l}</button>`;
   let body = '';
-  if(acctView === 'reports') body = acctReportsHtml_(f);
+  if(acctView === 'ledger') body = acctLedgerHtml_();
+  else if(acctView === 'tally') body = tallyPanelHtml_(f);
+  else if(acctView === 'reports') body = acctReportsHtml_(f);
   else{
-    const sales = acctView === 'sales', q = acctQuery.toLowerCase();
-    const list = acctInvoices.filter(i=>(sales ? !isPur_(i.kind) : isPur_(i.kind)) && (!acctMonth || i.date.slice(0, 7) === acctMonth) && (!q || (i.no + ' ' + (i.partyName || '') + ' ' + (i.partyGstin || '')).toLowerCase().includes(q)))
+    const cnV = acctView === 'cnotes', dnV = acctView === 'dnotes', notes = cnV || dnV, sales = acctView === 'sales' || notes, q = acctQuery.toLowerCase();
+    const list = acctInvoices.filter(i=>(notes ? i.kind === (cnV ? 'credit_note' : 'debit_note') : sales ? i.kind === 'sale' : i.kind === 'purchase') && (!acctMonth || i.date.slice(0, 7) === acctMonth) && (!q || (i.no + ' ' + (i.partyName || '') + ' ' + (i.partyGstin || '')).toLowerCase().includes(q)))
       .sort((a, b)=>a.date < b.date ? 1 : a.date > b.date ? -1 : String(b.no) < String(a.no) ? -1 : 1);
-    const live = list.filter(i=>i.status !== 'cancelled'), sg = i=>isNeg_(i.kind) ? -1 : 1;
+    const live = list.filter(i=>i.status !== 'cancelled'), sg = i=>1;
+    const cnT = live.filter(i=>i.kind === 'credit_note').reduce((t, i)=>t + i.total, 0), dnT = live.filter(i=>i.kind === 'debit_note').reduce((t, i)=>t + i.total, 0);
     const tot = live.reduce((o, i)=>{ o.t += sg(i) * i.taxable; o.x += sg(i) * (i.cgst + i.sgst + i.igst); o.g += sg(i) * i.total; return o; }, { t:0, x:0, g:0 });
     body = `<div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;">
-        ${sales ? `<button class="primary" style="width:auto;padding:10px 16px;" onclick="acctOpen_('sale')">＋ ${BT_('New Sale','नई बिक्री')}</button><button class="btn-pill alt" onclick="acctOpen_('credit_note')">↩ ${BT_('Credit Note','क्रेडिट नोट')}</button>` : `<button class="primary" style="width:auto;padding:10px 16px;" onclick="acctOpen_('purchase')">＋ ${BT_('New Purchase','नई खरीद')}</button><button class="btn-pill alt" onclick="acctOpen_('debit_note')">↩ ${BT_('Debit Note (Purchase Return)','डेबिट नोट (परचेज रिटर्न)')}</button>`}
-        ${sales && isOwnerUser_() ? `<button class="btn-pill ghost" onclick="acctNumSettings_()">⚙ ${BT_('Invoice numbering','इनवॉइस नंबरिंग')}</button>` : ''}<input type="month" value="${acctMonth}" onchange="acctMonth=this.value;render()" style="max-width:170px;">
+        ${notes ? `<button class="primary" style="width:auto;padding:10px 16px;" onclick="acctOpen_('${cnV ? 'credit_note' : 'debit_note'}')">＋ ${cnV ? BT_('New Credit Note','नया क्रेडिट नोट') : BT_('New Debit Note','नया डेबिट नोट')}</button>` : sales ? `<button class="primary" style="width:auto;padding:10px 16px;" onclick="acctOpen_('sale')">＋ ${BT_('New Sale','नई बिक्री')}</button><button class="btn-pill alt" onclick="acctOpen_('credit_note')">↩ ${BT_('Credit Note','क्रेडिट नोट')}</button>` : `<button class="primary" style="width:auto;padding:10px 16px;" onclick="acctOpen_('purchase')">＋ ${BT_('New Purchase','नई खरीद')}</button><button class="btn-pill alt" onclick="acctOpen_('debit_note')">↩ ${BT_('Debit Note (Purchase Return)','डेबिट नोट (परचेज रिटर्न)')}</button>`}
+        ${sales && !notes && isOwnerUser_() ? `<button class="btn-pill ghost" onclick="acctNumSettings_()">⚙ ${BT_('Invoice numbering','इनवॉइस नंबरिंग')}</button>` : ''}<input type="month" value="${acctMonth}" onchange="acctMonth=this.value;render()" style="max-width:170px;">
         <input placeholder="${BT_('Search no. / party','नंबर / पार्टी खोजें')}" value="${escapeHtml(acctQuery)}" onchange="acctQuery=this.value;render()" style="flex:1;min-width:140px;">
       </div>
       ${list.length ? `<div style="overflow-x:auto;"><table class="acct-tbl"><thead><tr><th>${BT_('No.','नं.')}</th><th>${BT_('Date','तारीख')}</th><th>${BT_('Party','पार्टी')}</th><th class="r">${BT_('Taxable','टैक्सेबल')}</th><th class="r">GST</th><th class="r">${BT_('Total','कुल')}</th><th></th></tr></thead><tbody>
@@ -8574,8 +8592,8 @@ function renderAcct(main){
         </tbody><tfoot><tr><td colspan="3"><b>${BT_('Total','कुल')}</b></td><td class="r"><b>${inr_(tot.t)}</b></td><td class="r"><b>${inr_(tot.x)}</b></td><td class="r"><b>${inr_(tot.g)}</b></td><td></td></tr></tfoot></table></div>`
       : `<div class="empty">${BT_('Nothing here yet','अभी कुछ नहीं है')}</div>`}`;
   }
-  main.innerHTML = `<div class="card"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;"><h2 style="margin:0;">🧾 ${BT_('Sale / Purchase','सेल / परचेज')}</h2><span class="subtle">${escapeHtml(typeTxt)}${f.gstin ? ' · ' + escapeHtml(f.gstin) : ''}</span></div>
-    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">${seg('sales', BT_('Sales','बिक्री'))}${seg('purchases', BT_('Purchases','खरीद'))}${seg('reports', BT_('GST / Reports','GST / रिपोर्ट'))}</div>
+  main.innerHTML = `<div class="card"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;"><h2 style="margin:0;">🧾 ${acctView === 'purchases' ? BT_('Purchase Register','परचेज रजिस्टर') : acctView === 'reports' ? BT_('GST / Reports','GST / रिपोर्ट') : acctView === 'tally' ? 'Tally Export / Import' : acctView === 'cnotes' ? BT_('Credit Note Register','क्रेडिट नोट रजिस्टर') : acctView === 'dnotes' ? BT_('Debit Note Register','डेबिट नोट रजिस्टर') : acctView === 'ledger' ? BT_('Party Ledger','पार्टी लेजर') : BT_('Sale Register','सेल रजिस्टर')}</h2><span class="subtle">${escapeHtml(typeTxt)}${f.gstin ? ' · ' + escapeHtml(f.gstin) : ''}</span></div>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">${seg('sales', BT_('Sale Register','सेल रजिस्टर'))}${seg('purchases', BT_('Purchase Register','परचेज रजिस्टर'))}${seg('reports', BT_('GST / Reports','GST / रिपोर्ट'))}${seg('cnotes', BT_('Credit Note Register','क्रेडिट नोट रजिस्टर'))}${seg('dnotes', BT_('Debit Note Register','डेबिट नोट रजिस्टर'))}${seg('ledger', BT_('Ledgers','लेजर'))}${seg('tally', BT_('Tally Export/Import','Tally Export/Import'))}</div>
     <datalist id="acctPartyList">${acctParties.map(p=>`<option value="${escapeHtml(p.name)}">`).join('')}</datalist>${body}</div>`;
 }
 
@@ -8583,6 +8601,82 @@ function renderAcct(main){
 
 /* =====================  TALLY-STYLE FULL-SCREEN VOUCHER WINDOW (computer)  ===================== */
 let tvFocusNext_ = null; const tvAsked_ = new Set();
+
+/* =====================  LEDGER CREATION (Tally style)  ===================== */
+const LEDGER_UNDER_ = [['Sundry Debtors', 'party'], ['Sundry Creditors', 'party'], ['Bank Accounts', 'bank'], ['Cash-in-hand', 'cash'], ['Sales Accounts', 'sales'], ['Purchase Accounts', 'purchase'], ['Direct Expenses', 'dexp'], ['Indirect Expenses', 'iexp'], ['Direct Incomes', 'dinc'], ['Indirect Incomes', 'iinc'], ['Fixed Assets', 'fixed'], ['Current Assets (other)', 'asset'], ['Loans (Liability)', 'loan'], ['Current Liabilities (other)', 'liab'], ['Capital Account', 'capital'], ['Drawings', 'drawings']];
+let lgDraft_ = null, lgAfter_ = null;
+function ledgerForm_(o){
+  o = o || {}; lgAfter_ = o.after || null;
+  const f = firm_();
+  lgDraft_ = { name:o.name || '', under:o.under || (o.kind && isPur_(o.kind) ? 'Sundry Creditors' : 'Sundry Debtors'), addr:'', state:(f && f.state) || '', country:'India', pincode:'', whatsapp:'', gstin:'', reg:'unregistered', pan:'', open:'' };
+  const ex = document.getElementById('lgOv'); if(ex) ex.remove();
+  const ov = document.createElement('div'); ov.id = 'lgOv'; ov.className = 'tv'; ov.style.zIndex = 10020;
+  document.body.appendChild(ov); lgRender_('lgName');
+}
+function lgRender_(focusId){
+  const d = lgDraft_, ov = document.getElementById('lgOv'); if(!ov) return;
+  const isParty = (LEDGER_UNDER_.find(x=>x[0] === d.under) || [])[1] === 'party';
+  const f = (l, h)=>`<div class="tv-field"><label>${l}</label>${h}</div>`;
+  const gOk = !d.gstin ? '' : (d.gstin.length === 15 ? (gstinValid_(d.gstin) ? '<span style="color:#1a7f37">✔ valid</span>' : '<span style="color:#c0392b">✖ not valid</span>') : '');
+  const left = f('Name', `<input id="lgName" style="flex:1;min-width:240px;font-weight:700;font-size:16px;" value="${escapeHtml(d.name)}" oninput="lgDraft_.name=this.value">`) +
+    f('Under', `<select id="lgUnder" onchange="lgDraft_.under=this.value;lgRender_('lgUnder')">${LEDGER_UNDER_.map(x=>`<option ${d.under === x[0] ? 'selected' : ''}>${x[0]}</option>`).join('')}</select>`) +
+    (isParty ? f('Maintain balances bill-by-bill', '<b>Yes</b>') + f('Opening balance (+ owes us / − we owe)', `<input type="number" step="any" style="width:170px;" value="${d.open}" oninput="lgDraft_.open=this.value">`) : f('Opening balance', '<span class="subtle">Set later in Financial Reports, Opening Balances</span>'));
+  const right = isParty ? `<h4 style="margin:0 0 6px;">Mailing details</h4>` +
+    f('Address', `<textarea rows="3" style="flex:1;min-width:240px;" oninput="lgDraft_.addr=this.value">${escapeHtml(d.addr)}</textarea>`) +
+    f('State', `<select id="lgState" onchange="lgDraft_.state=this.value">${acctStateOpts_(d.state)}</select>`) +
+    f('Country', `<input value="${escapeHtml(d.country)}" oninput="lgDraft_.country=this.value">`) +
+    f('Pincode', `<input inputmode="numeric" maxlength="6" style="width:110px;" value="${escapeHtml(d.pincode)}" oninput="lgDraft_.pincode=this.value">`) +
+    f('WhatsApp mobile no.', `<span>+91</span><input inputmode="numeric" maxlength="10" style="width:150px;" value="${escapeHtml(d.whatsapp)}" oninput="lgDraft_.whatsapp=this.value.replace(/\\D/g,'')">`) +
+    `<h4 style="margin:12px 0 6px;">Tax registration details</h4>` +
+    f('GSTIN / UIN', `<input id="lgGstin" maxlength="15" style="text-transform:uppercase;width:190px;" value="${escapeHtml(d.gstin)}" oninput="lgGstin_(this.value)"> ${gOk}`) +
+    f('Registration type', `<select onchange="lgDraft_.reg=this.value"><option value="regular" ${d.reg === 'regular' ? 'selected' : ''}>Regular</option><option value="composition" ${d.reg === 'composition' ? 'selected' : ''}>Composition</option><option value="unregistered" ${d.reg === 'unregistered' ? 'selected' : ''}>Unregistered / Consumer</option></select>`) +
+    f('PAN / IT no.', `<input value="${escapeHtml(d.pan)}" maxlength="10" style="text-transform:uppercase;width:150px;" oninput="lgDraft_.pan=this.value.toUpperCase()">`) +
+    `<div class="subtle" style="font-size:12px;">GSTIN gives the State and PAN automatically. The name and address of the party are not fetched from the GST portal; please type them (this needs a paid GST lookup service).</div>` : '';
+  ov.innerHTML = `<div class="tv-top"><span>Ledger Creation</span><b>${escapeHtml(firm_().name || 'BahiAi')} (Running)</b><button class="tv-x" onclick="lgQuit_()">✕</button></div>
+    <div class="tv-main"><div class="tv-form" style="display:flex;gap:30px;flex-wrap:wrap;align-items:flex-start;"><div style="flex:1;min-width:300px;">${left}</div><div style="flex:1;min-width:320px;">${right}</div></div></div>
+    <div id="lgMsg" style="padding:0 18px;"></div>
+    <div class="tv-bottom"><button onclick="lgQuit_()"><u>Q</u>: Quit</button><button class="ok" onclick="lgSave_()"><u>A</u>: Accept</button></div>`;
+  if(focusId){ const e = document.getElementById(focusId); if(e){ e.focus(); try{ if(e.select && focusId === 'lgName') e.select(); else if(e.setSelectionRange) e.setSelectionRange(e.value.length, e.value.length); }catch(x){} } }
+}
+function lgGstin_(v){
+  v = String(v || '').toUpperCase().replace(/[^0-9A-Z]/g, ''); const d = lgDraft_; d.gstin = v;
+  if(v.length === 15 && gstinValid_(v)){ d.state = v.slice(0, 2); d.pan = v.slice(2, 12); if(d.reg === 'unregistered') d.reg = 'regular'; lgRender_('lgGstin'); }
+  else if(v.length === 0){ d.reg = 'unregistered'; d.pan = ''; lgRender_('lgGstin'); }
+  else if(v.length === 15) lgRender_('lgGstin');
+}
+function lgQuit_(){ const d = lgDraft_; if(d && d.name.trim() && !confirm('Quit without creating this ledger?')) return; const o = document.getElementById('lgOv'); if(o) o.remove(); lgAfter_ = null; }
+function lgSave_(){
+  const d = lgDraft_, msg = document.getElementById('lgMsg'), err = m=>{ msg.innerHTML = `<div class="msg err">${m}</div>`; };
+  const name = d.name.trim(), low = name.toLowerCase(), u = LEDGER_UNDER_.find(x=>x[0] === d.under), isParty = u[1] === 'party';
+  if(!name) return err('Please enter the ledger name.');
+  if(acctParties.some(p=>p.name.trim().toLowerCase() === low) || acctLedgers[low] || DEFAULT_LEDGER_GROUPS_[low]) return err('A ledger with this name already exists.');
+  let obj;
+  if(isParty){
+    if(d.gstin && !gstinValid_(d.gstin)) return err('GSTIN is not valid. Check it or clear it.');
+    if(d.reg !== 'unregistered' && !d.gstin) return err('Regular and Composition parties need a GSTIN. Choose Unregistered if there is none.');
+    if(d.whatsapp && d.whatsapp.length !== 10) return err('WhatsApp number must be 10 digits.');
+    obj = { id:uid(), name, gstin:d.gstin, state:d.state, addr:d.addr.trim(), pincode:d.pincode, country:d.country, whatsapp:d.whatsapp, reg:d.reg, pan:d.pan, group:d.under, open:Number(d.open) || 0 };
+    acctParties.push(obj); acctSave_();
+  } else { obj = { name, grp:u[1] }; acctLedgers[low] = u[1]; finSaveSettings_(); }
+  const cb = lgAfter_; lgAfter_ = null; document.getElementById('lgOv').remove();
+  if(cb) cb(obj); else render();
+}
+function tvCreateLedger_(){
+  if(document.getElementById('acctOv') && acctDraft_) ledgerForm_({ name:acctDraft_.partyName || '', kind:acctDraft_.kind, after:p=>{ acctDraft_.partyName = p.name; acctPickParty_(p.name); } });
+  else if(document.getElementById('vchOv') && vchDraft_) ledgerForm_({ name:vchDraft_.party || '', kind:vchDraft_.kind === 'payment' ? 'purchase' : 'sale', after:p=>{ vchDraft_.party = p.name; vchDraft_.alloc = {}; vchForm_(); } });
+  else ledgerForm_({});
+}
+function tvCreate_(){
+  const a = document.activeElement, onParty = a && a.hasAttribute && a.hasAttribute('data-tvstart');
+  if(document.getElementById('acctOv')){ if(onParty) tvCreateLedger_(); else acctNewItem_(); }
+  else if(document.getElementById('vchOv')) tvCreateLedger_();
+}
+function tvCreateMissingItem_(){
+  const d = acctDraft_, i = d.lines.findIndex(l=>{ const x = String(l.desc || '').trim(); return x && !stockItems.some(s=>s.name.trim().toLowerCase() === x.toLowerCase()); });
+  if(i < 0) return;
+  stockForm_(null, it=>{ tvFocusNext_ = { r:i, c:'qty' }; acctApplyItem_(i, it); }, String(d.lines[i].desc).trim());
+}
+
 function tvOn_(){ return window.innerWidth >= 900; }
 function tvApplyFocus_(){
   const f = tvFocusNext_; tvFocusNext_ = null; if(!f) return;
@@ -8595,8 +8689,8 @@ function tvKeysHtml_(cur){
   return k('F4', 'Contra', '', 'contra', true) + k('F5', 'Payment', "tvSwitch_('payment')", 'payment') + k('F6', 'Receipt', "tvSwitch_('receipt')", 'receipt') + k('F7', 'Journal', "tvSwitch_('journal')", 'journal') +
     k('F8', 'Sales', "tvSwitch_('sale')", 'sale') + k('F9', 'Purchase', "tvSwitch_('purchase')", 'purchase') +
     k('Ctrl+F8', 'Credit Note', "tvSwitch_('credit_note')", 'credit_note') + k('Ctrl+F9', 'Debit Note', "tvSwitch_('debit_note')", 'debit_note') +
-    (['sale', 'purchase', 'credit_note', 'debit_note'].includes(cur) ? k('Alt+C', 'New stock item', 'acctNewItem_()', 'x') : '') +
-    '<div class="hint">Enter = next box<br>Ctrl+Enter or Alt+A = Accept<br>Esc = Quit</div>';
+    (['sale', 'purchase', 'credit_note', 'debit_note'].includes(cur) ? k('Alt+C', 'New ledger', 'tvCreateLedger_()', 'x') + k('Alt+C', 'New stock item', 'acctNewItem_()', 'x') : k('Alt+C', 'New ledger', 'tvCreateLedger_()', 'x')) +
+    '<div class="hint">Enter = next box<br>Alt+C = create (ledger on the party box, item elsewhere)<br>Ctrl+Enter or Alt+A = Accept<br>Esc = Quit</div>';
 }
 function tvWindow_(o){
   const f = firm_();
@@ -8630,6 +8724,11 @@ function tvEnter_(e){
   else { tvFocusNext_ = { r:vchDraft_.lines.length, c:'ledger' }; vchDraft_.lines.push({ ledger:'', dr:'', cr:'' }); vchForm_(); }
 }
 document.addEventListener('keydown', e=>{
+  if(document.getElementById('lgOv')){
+    if(e.key === 'Escape'){ e.preventDefault(); lgQuit_(); }
+    else if((e.ctrlKey && e.key === 'Enter') || (e.altKey && String(e.key).toLowerCase() === 'a')){ e.preventDefault(); lgSave_(); }
+    return;
+  }
   const a = document.getElementById('acctOv'), v = document.getElementById('vchOv');
   if(!((a && a.classList.contains('tv')) || (v && v.classList.contains('tv')))) return;
   const so = document.getElementById('stockOv');
@@ -8770,8 +8869,16 @@ function acctGstin_(v){
   else if(v.length === 15) acctForm_();
 }
 function acctPickParty_(name){
-  acctDraft_.partyName = name; const p = acctParties.find(x=>x.name.toLowerCase() === String(name).toLowerCase());
-  if(p){ tvFocusNext_ = { r:0, c:'desc' }; acctDraft_.partyGstin = p.gstin || ''; acctDraft_.partyState = p.state || acctDraft_.partyState; acctDraft_.partyAddr = p.addr || acctDraft_.partyAddr || ''; acctForm_(); }
+  acctDraft_.partyName = name; const low = String(name).trim().toLowerCase(), p = acctParties.find(x=>x.name.trim().toLowerCase() === low);
+  if(p){
+    tvFocusNext_ = { r:0, c:'desc' }; acctDraft_.partyGstin = p.gstin || ''; acctDraft_.partyState = p.state || acctDraft_.partyState;
+    acctDraft_.partyAddr = [p.addr, p.pincode].filter(Boolean).join(' - ') || acctDraft_.partyAddr || '';
+    if(isPur_(acctDraft_.kind) && (p.reg === 'composition' || p.reg === 'unregistered')) acctDraft_.itcEligible = false;   // no ITC from these suppliers
+    acctForm_();
+  } else if(low && low !== 'cash' && !tvAsked_.has('P|' + low)){      // new party: it must be created first, like Tally
+    tvAsked_.add('P|' + low);
+    ledgerForm_({ name:String(name).trim(), kind:acctDraft_.kind, after:q=>{ acctPickParty_(q.name); } });
+  }
 }
 function acctCalc_(){
   const d = acctDraft_, f = firm_(); calcInvoice_(d, f);
@@ -8795,6 +8902,11 @@ function acctSaveInvoice_(){
   if(!isPur_(d.kind) && !(d.pos || d.partyState || f.state)) return err(BT_('Please choose the place of supply.', 'सप्लाई का स्थान चुनें।'));
   if(!d.lines.length || d.lines.some(l=>!(Number(l.qty) > 0) || l.rate === '' || !(Number(l.rate) >= 0))) return err(BT_('Every item needs quantity and rate.', 'हर आइटम में मात्रा और रेट चाहिए।'));
   if(acctInvoices.some(x=>x.id !== d.id && x.kind === d.kind && x.no === d.no && (d.kind !== 'purchase' || (x.partyGstin || '') === (d.partyGstin || '')))) return err(BT_('This number is already used.', 'यह नंबर पहले से इस्तेमाल हो चुका है।'));
+  const pnm = d.partyName.trim();
+  if(pnm && pnm.toLowerCase() !== 'cash' && !acctParties.some(p=>p.name.trim().toLowerCase() === pnm.toLowerCase())) return err('Ledger "' + escapeHtml(pnm) + '" is not created yet. <a href="#" onclick="tvCreateLedger_();return false;"><b>Create it now (Alt+C)</b></a>');
+  if(d.lines.some(l=>!String(l.desc || '').trim())) return err('Every line needs an item. Choose or create the item.');
+  const missItem = d.lines.map(l=>String(l.desc).trim()).find(x=>!stockItems.some(i=>i.name.trim().toLowerCase() === x.toLowerCase()));
+  if(missItem) return err('Item "' + escapeHtml(missItem) + '" is not created yet. <a href="#" onclick="tvCreateMissingItem_();return false;"><b>Create it now (Alt+C)</b></a>');
   if(!d.partyName.trim()) d.partyName = isPur_(d.kind) ? '' : 'Cash';
   if(!isPur_(d.kind) && !d.pos) d.pos = d.partyState || f.state;
   if(f.type === 'composition' && d.kind === 'sale' && d.pos && d.pos !== f.state && !confirm(BT_('A composition dealer cannot make inter-state sales. Save anyway?', 'Composition डीलर इंटर-स्टेट बिक्री नहीं कर सकता। फिर भी सेव करें?'))) return;
@@ -8913,6 +9025,288 @@ function acctXlsx_(sheets, filename){
   sheets.forEach(s=>{ const rows = s[1].length ? s[1] : [['(no data)']], ws = XLSX.utils.aoa_to_sheet(rows); const w = []; rows.forEach(r=>(r || []).forEach((c, k)=>{ w[k] = Math.min(42, Math.max(w[k] || 8, String(c == null ? '' : c).length + 2)); })); ws['!cols'] = w.map(x=>({ wch:x })); XLSX.utils.book_append_sheet(wb, ws, s[0].slice(0, 31)); });
   XLSX.writeFile(wb, filename);
 }
+/* =====================  SIDEBAR: Sale / Purchase options  ===================== */
+/* =====================  PARTY LEDGER (customer / supplier)  ===================== */
+let acctLedgerMode = 'customer', acctLedgerSel = '', acctLedgerQ = '', acctLedgerFrom = '', acctLedgerTo = '';
+const lcL_ = s=>String(s || '').trim().toLowerCase();
+function acctLedgerEntries_(name){
+  const k = lcL_(name), E = [];
+  acctInvoices.forEach(i=>{
+    if(i.status === 'cancelled' || lcL_(i.partyName) !== k) return;
+    const tax = r2_((Number(i.cgst) || 0) + (Number(i.sgst) || 0) + (Number(i.igst) || 0)), tot = Number(i.total) || 0, amt = i.reverseCharge ? r2_(tot - tax) : tot, dr = i.kind === 'sale' || i.kind === 'debit_note';
+    E.push({ date:i.date, type:KIND_LABEL_[i.kind], no:i.no, note:i.note || '', dr:dr ? amt : 0, cr:dr ? 0 : amt });
+  });
+  acctVouchers.forEach(v=>{
+    if(v.status === 'cancelled') return;
+    if(v.kind === 'journal'){ (v.lines || []).forEach(l=>{ if(lcL_(l.ledger) === k) E.push({ date:v.date, type:'Journal', no:v.no, note:v.narration || '', dr:Number(l.dr) || 0, cr:Number(l.cr) || 0 }); }); }
+    else if(lcL_(v.party) === k){ const a = Number(v.amount) || 0; E.push({ date:v.date, type:VCH_LABEL_[v.kind] || v.kind, no:v.no, note:[v.mode, (v.alloc || []).map(x=>x.no).join(', '), v.narration].filter(Boolean).join(' · '), dr:v.kind === 'payment' ? a : 0, cr:v.kind === 'receipt' ? a : 0 }); }
+  });
+  return E.sort((a, b)=>a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
+}
+function acctLedgerCalc_(p, from, to){
+  const all = acctLedgerEntries_(p.name); let open = Number(p.open) || 0;
+  all.forEach(e=>{ if(from && e.date < from) open += e.dr - e.cr; });
+  let bal = open, dr = 0, cr = 0;
+  const rows = all.filter(e=>(!from || e.date >= from) && (!to || e.date <= to)).map(e=>{ bal = r2_(bal + e.dr - e.cr); dr += e.dr; cr += e.cr; return Object.assign({}, e, { bal }); });
+  return { open:r2_(open), rows, dr:r2_(dr), cr:r2_(cr), closing:r2_(bal) };
+}
+const balTxt_ = x=>inr_(Math.abs(x)) + (x >= 0 ? ' Dr' : ' Cr');
+function acctLedgerPick_(enc){ acctLedgerSel = decodeURIComponent(enc); acctLedgerQ = ''; render(); }
+function acctLedgerSearch_(v){
+  v = String(v || '').trim(); const p = acctParties.find(x=>lcL_(x.name) === lcL_(v));
+  if(p){ acctLedgerSel = p.name; acctLedgerQ = ''; } else { acctLedgerSel = ''; acctLedgerQ = v; }
+  render();
+}
+function acctLedgerXls_(){
+  const p = acctParties.find(x=>lcL_(x.name) === lcL_(acctLedgerSel)); if(!p) return;
+  const R = acctLedgerCalc_(p, acctLedgerFrom, acctLedgerTo);
+  const rows = [['Ledger: ' + p.name], ['GSTIN', p.gstin || '-'], [], ['Date', 'Type', 'No.', 'Particulars', 'Debit', 'Credit', 'Balance'], ['', 'Opening balance', '', '', '', '', balTxt_(R.open)]]
+    .concat(R.rows.map(e=>[dmy_(e.date), e.type, e.no, e.note, e.dr || '', e.cr || '', balTxt_(e.bal)])).concat([['', 'Total', '', '', R.dr, R.cr, ''], ['', 'Closing balance', '', '', '', '', balTxt_(R.closing)]]);
+  acctXlsx_([['Ledger', rows]], 'Ledger-' + p.name.replace(/[^A-Za-z0-9]+/g, '_') + '.xlsx');
+}
+function acctLedgerHtml_(){
+  const mode = acctLedgerMode, q = lcL_(acctLedgerQ);
+  const mb = (k, l)=>`<button class="btn-pill ${mode === k ? '' : 'ghost'}" onclick="acctLedgerMode='${k}';acctLedgerSel='';acctLedgerQ='';render()">${l}</button>`;
+  let html = `<div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;">${mb('customer', '👤 ' + BT_('Receiver (Customer) Ledger', 'रिसीवर (कस्टमर) लेजर'))}${mb('supplier', '🏭 ' + BT_('Supplier Ledger', 'सप्लायर लेजर'))}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;"><input list="acctPartyList" id="alSearch" placeholder="${BT_('Type party name to search its ledger', 'पार्टी का नाम लिखकर लेजर खोजें')}" value="${escapeHtml(acctLedgerSel || acctLedgerQ)}" onchange="acctLedgerSearch_(this.value)" style="flex:1;min-width:180px;"><button class="btn-pill" onclick="acctLedgerSearch_(document.getElementById('alSearch').value)">🔍 ${BT_('Search', 'खोजें')}</button></div>`;
+  const p = acctLedgerSel ? acctParties.find(x=>lcL_(x.name) === lcL_(acctLedgerSel)) : null;
+  if(p){
+    const R = acctLedgerCalc_(p, acctLedgerFrom, acctLedgerTo);
+    return html + `<div style="margin-top:12px;"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;"><div><b style="font-size:17px;">${escapeHtml(p.name)}</b>${p.gstin ? `<br><small>${escapeHtml(p.gstin)}</small>` : ''}</div><div><b>${BT_('Closing', 'क्लोज़िंग')}: ${balTxt_(R.closing)}</b></div></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0;"><label>${BT_('From', 'से')} <input type="date" value="${acctLedgerFrom}" onchange="acctLedgerFrom=this.value;render()"></label><label>${BT_('To', 'तक')} <input type="date" value="${acctLedgerTo}" onchange="acctLedgerTo=this.value;render()"></label><button class="btn-pill ghost" onclick="acctLedgerSel='';render()">← ${BT_('All parties', 'सभी पार्टी')}</button><button class="btn-pill alt" onclick="acctLedgerXls_()">📥 Excel</button><button class="btn-pill ghost" onclick="window.print()">🖨️ Print</button></div>
+      <div style="overflow-x:auto;"><table class="acct-tbl"><thead><tr><th>${BT_('Date', 'तारीख')}</th><th>${BT_('Type', 'प्रकार')}</th><th>${BT_('No.', 'नं.')}</th><th>${BT_('Particulars', 'विवरण')}</th><th class="r">${BT_('Debit', 'डेबिट')}</th><th class="r">${BT_('Credit', 'क्रेडिट')}</th><th class="r">${BT_('Balance', 'बैलेंस')}</th></tr></thead><tbody>
+      <tr><td></td><td colspan="5"><i>${BT_('Opening balance', 'ओपनिंग बैलेंस')}</i></td><td class="r">${balTxt_(R.open)}</td></tr>
+      ${R.rows.map(e=>`<tr><td>${dmy_(e.date)}</td><td>${escapeHtml(e.type)}</td><td>${escapeHtml(e.no)}</td><td>${escapeHtml(e.note)}</td><td class="r">${e.dr ? inr_(e.dr) : ''}</td><td class="r">${e.cr ? inr_(e.cr) : ''}</td><td class="r">${balTxt_(e.bal)}</td></tr>`).join('') || `<tr><td colspan="7" style="padding:14px;">${BT_('No entries yet.', 'अभी कोई एंट्री नहीं।')}</td></tr>`}
+      </tbody><tfoot><tr><td colspan="4"><b>${BT_('Total', 'कुल')}</b></td><td class="r"><b>${inr_(R.dr)}</b></td><td class="r"><b>${inr_(R.cr)}</b></td><td class="r"><b>${balTxt_(R.closing)}</b></td></tr></tfoot></table></div>
+      <div class="subtle" style="font-size:12px;margin-top:6px;">${BT_('Shows Sale, Purchase, Credit Note, Debit Note, Payment, Receipt and Journal entries. Cancelled entries are left out. Dr = party owes you, Cr = you owe the party.', 'सेल, परचेज, क्रेडिट नोट, डेबिट नोट, पेमेंट, रसीद और जर्नल एंट्री दिखती हैं। रद्द एंट्री शामिल नहीं। Dr = पार्टी से लेना, Cr = पार्टी को देना।')}</div></div>`;
+  }
+  const cls = pp=>{
+    const k = lcL_(pp.name); let c = false, s = false;
+    acctInvoices.forEach(i=>{ if(lcL_(i.partyName) === k){ if(isPur_(i.kind) && i.kind === 'purchase' || i.kind === 'debit_note') s = true; else c = true; } });
+    acctVouchers.forEach(v=>{ if(lcL_(v.party) === k){ if(v.kind === 'payment') s = true; else if(v.kind === 'receipt') c = true; } });
+    if(!c && !s){ if((Number(pp.open) || 0) < 0) s = true; else c = true; }
+    return { c, s };
+  };
+  const pool = acctParties.filter(pp=>q ? lcL_(pp.name).includes(q) || lcL_(pp.gstin).includes(q) : (mode === 'customer' ? cls(pp).c : cls(pp).s)).sort((a, b)=>a.name.localeCompare(b.name));
+  return html + `<div class="subtle" style="margin:10px 0 4px;">${q ? BT_('Search results', 'खोज के नतीजे') : (mode === 'customer' ? BT_('Customers', 'कस्टमर') : BT_('Suppliers', 'सप्लायर'))} (${pool.length}) — ${BT_('tap a name to open its ledger', 'लेजर खोलने के लिए नाम दबाएं')}</div>
+    ${pool.length ? `<div style="overflow-x:auto;"><table class="acct-tbl"><thead><tr><th>${BT_('Party', 'पार्टी')}</th><th class="r">${BT_('Balance', 'बैलेंस')}</th></tr></thead><tbody>${pool.map(pp=>{ const R = acctLedgerCalc_(pp, '', ''); return `<tr style="cursor:pointer;" onclick="acctLedgerPick_('${encodeURIComponent(pp.name).replace(/'/g, '%27')}')"><td><b>${escapeHtml(pp.name)}</b>${pp.gstin ? `<br><small>${escapeHtml(pp.gstin)}</small>` : ''}</td><td class="r">${balTxt_(R.closing)}</td></tr>`; }).join('')}</tbody></table></div>` : `<div class="empty">${BT_('No party found', 'कोई पार्टी नहीं मिली')}</div>`}`;
+}
+
+function acctNavOn_(b){   // which of the Sale/Purchase sidebar buttons is highlighted
+  const a = b.dataset.acct; if(!a) return true;
+  try{ return (a === 'salereg' && (acctView === 'sales' || acctView === 'reports')) || (a === 'purreg' && acctView === 'purchases') || (a === 'cnreg' && acctView === 'cnotes') || (a === 'dnreg' && acctView === 'dnotes') || (a === 'ledger' && acctView === 'ledger') || (a === 'tally' && acctView === 'tally'); }catch(e){ return false; }
+}
+
+/* =====================  TALLY EXPORT / IMPORT (XML)  =====================
+   Export: Masters (ledgers, stock items, units, groups) and Transactions (Sales, Purchase,
+   Credit / Debit Note, Payment, Receipt, Journal) in Tally's own XML import format.
+   Import: reads a Tally XML (Masters / Day Book / Vouchers export) and adds what is new.  */
+const TE_ = s=>String(s == null ? '' : s).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const tAmt_ = n=>(Math.round((Number(n) || 0) * 100) / 100).toFixed(2);
+const tMsg_ = x=>'<TALLYMESSAGE xmlns:UDF="TallyUDF">' + x + '</TALLYMESSAGE>';
+const tStateName_ = c=>GST_STATES[c] || '';
+const tStateCode_ = n=>{ n = String(n || '').trim().toLowerCase(); return n ? (Object.keys(GST_STATES).find(c=>GST_STATES[c].toLowerCase() === n) || '') : ''; };
+const tIso_ = s=>{ s = String(s || '').trim(); return /^\d{8}$/.test(s) ? s.slice(0, 4) + '-' + s.slice(4, 6) + '-' + s.slice(6, 8) : ''; };
+const t8_ = iso=>String(iso || '').replace(/-/g, '');
+const tParent_ = code=>(LEDGER_UNDER_.find(x=>x[1] === code) || ['Indirect Expenses'])[0];
+function tNice_(k){ const c = COMMON_LEDGERS_.find(x=>x.toLowerCase() === String(k).toLowerCase()); return c || String(k).replace(/\b[a-z]/g, m=>m.toUpperCase()); }
+function tEnvelope_(report, msgs){
+  const co = (document.getElementById('tyCo') || {}).value || firm_().name;
+  return '<?xml version="1.0" encoding="UTF-8"?>\n<ENVELOPE>\n<HEADER><TALLYREQUEST>Import Data</TALLYREQUEST></HEADER>\n<BODY><IMPORTDATA>\n<REQUESTDESC><REPORTNAME>' + report + '</REPORTNAME><STATICVARIABLES><SVCURRENTCOMPANY>' + TE_(co) + '</SVCURRENTCOMPANY></STATICVARIABLES></REQUESTDESC>\n<REQUESTDATA>\n' + msgs.join('\n') + '\n</REQUESTDATA>\n</IMPORTDATA></BODY>\n</ENVELOPE>';
+}
+function tDownload_(xml, name){
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([xml], { type:'application/xml;charset=utf-8' })); a.download = name;
+  document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 800);
+}
+const tLedger_ = (name, parent, extra)=>tMsg_(`<LEDGER NAME="${TE_(name)}" ACTION="Create"><NAME.LIST><NAME>${TE_(name)}</NAME></NAME.LIST><PARENT>${TE_(parent)}</PARENT>${extra || ''}</LEDGER>`);
+function tGstXml_(rate){
+  rate = Number(rate) || 0; const rd = (h, v)=>`<RATEDETAILS.LIST><GSTRATEDUTYHEAD>${h}</GSTRATEDUTYHEAD><GSTRATEVALUATIONTYPE>Based on Value</GSTRATEVALUATIONTYPE><GSTRATE>${v}</GSTRATE></RATEDETAILS.LIST>`;
+  return `<GSTDETAILS.LIST><APPLICABLEFROM>20170401</APPLICABLEFROM><CALCULATIONTYPE>On Value</CALCULATIONTYPE><TAXABILITY>${rate > 0 ? 'Taxable' : 'Exempt'}</TAXABILITY><SRCOFGSTDETAILS>Specify Details Here</SRCOFGSTDETAILS><STATEWISEDETAILS.LIST><STATENAME>&#4; Any</STATENAME>${rd('CGST', rate / 2)}${rd('SGST/UTGST', rate / 2)}${rd('IGST', rate)}${rd('Cess', 0)}</STATEWISEDETAILS.LIST></GSTDETAILS.LIST>`;
+}
+function tMasters_(){
+  const M = [], seen = new Set(), once = (n, p, x)=>{ const k = n.toLowerCase(); if(seen.has(k)) return; seen.add(k); M.push(tLedger_(n, p, x)); };
+  [...new Set(stockItems.map(i=>i.unit).filter(Boolean))].forEach(u=>M.push(tMsg_(`<UNIT NAME="${TE_(u)}" ACTION="Create"><NAME>${TE_(u)}</NAME><ISSIMPLEUNIT>Yes</ISSIMPLEUNIT></UNIT>`)));
+  stockGroups.forEach(g=>M.push(tMsg_(`<STOCKGROUP NAME="${TE_(g.name)}" ACTION="Create"><NAME.LIST><NAME>${TE_(g.name)}</NAME></NAME.LIST></STOCKGROUP>`)));
+  stockItems.forEach(i=>{
+    const q = Number(i.openQty) || 0, r = Number(i.openRate) || Number(i.purchaseRate) || 0, u = i.unit || 'Nos';
+    M.push(tMsg_(`<STOCKITEM NAME="${TE_(i.name)}" ACTION="Create"><NAME.LIST><NAME>${TE_(i.name)}</NAME></NAME.LIST>${i.group ? `<PARENT>${TE_(i.group)}</PARENT>` : ''}<BASEUNITS>${TE_(u)}</BASEUNITS><GSTAPPLICABLE>&#4; Applicable</GSTAPPLICABLE><GSTTYPEOFSUPPLY>Goods</GSTTYPEOFSUPPLY>${i.hsn ? `<HSNDETAILS.LIST><APPLICABLEFROM>20170401</APPLICABLEFROM><SRCOFHSNDETAILS>Specify Details Here</SRCOFHSNDETAILS><HSNCODE>${TE_(i.hsn)}</HSNCODE></HSNDETAILS.LIST>` : ''}${tGstXml_(i.gst)}${q > 0 ? `<OPENINGBALANCE>${q} ${TE_(u)}</OPENINGBALANCE><OPENINGVALUE>-${tAmt_(q * r)}</OPENINGVALUE><OPENINGRATE>${tAmt_(r)}/${TE_(u)}</OPENINGRATE>` : ''}</STOCKITEM>`));
+  });
+  once('Sales', 'Sales Accounts'); once('Purchase', 'Purchase Accounts'); once('Round Off', 'Indirect Expenses'); once('Cash', 'Cash-in-Hand'); once('Bank', 'Bank Accounts');
+  [['CGST', 'Central Tax'], ['SGST', 'State Tax'], ['IGST', 'Integrated Tax']].forEach(([h, d])=>['Output ', 'Input '].forEach(p=>once(p + h, 'Duties & Taxes', `<TAXTYPE>GST</TAXTYPE><GSTDUTYHEAD>${d}</GSTDUTYHEAD>`)));
+  acctParties.forEach(p=>{
+    const k = String(p.name).toLowerCase(), o = Number(p.open) || 0, buys = acctInvoices.some(i=>isPur_(i.kind) && String(i.partyName).toLowerCase() === k), sells = acctInvoices.some(i=>!isPur_(i.kind) && String(i.partyName).toLowerCase() === k);
+    once(p.name, (buys && !sells) || (!buys && !sells && o < 0) ? 'Sundry Creditors' : 'Sundry Debtors',
+      `<ISBILLWISEON>Yes</ISBILLWISEON><COUNTRYOFRESIDENCE>India</COUNTRYOFRESIDENCE>${p.addr ? `<ADDRESS.LIST><ADDRESS>${TE_(p.addr)}</ADDRESS></ADDRESS.LIST>` : ''}${p.state ? `<LEDSTATENAME>${TE_(tStateName_(p.state))}</LEDSTATENAME>` : ''}<GSTREGISTRATIONTYPE>${p.gstin ? 'Regular' : 'Unregistered'}</GSTREGISTRATIONTYPE>${p.gstin ? `<PARTYGSTIN>${TE_(p.gstin)}</PARTYGSTIN>` : ''}${o ? `<OPENINGBALANCE>${tAmt_(-o)}</OPENINGBALANCE>` : ''}`);
+  });
+  Object.keys(acctLedgers).forEach(k=>{ if(acctLedgers[k] !== 'party') once(tNice_(k), tParent_(acctLedgers[k])); });
+  const refs = new Set(); acctVouchers.forEach(v=>{ if(v.kind === 'journal') (v.lines || []).forEach(l=>l.ledger && refs.add(l.ledger)); else if(v.party) refs.add(v.party); });
+  refs.forEach(n=>{ if(!seen.has(n.toLowerCase())) once(n, tParent_(ledgerGroupOf_(n) || 'iexp')); });
+  return M;
+}
+const tEnt_ = (name, isDebit, amt, x)=>`<ALLLEDGERENTRIES.LIST><LEDGERNAME>${TE_(name)}</LEDGERNAME><ISDEEMEDPOSITIVE>${isDebit ? 'Yes' : 'No'}</ISDEEMEDPOSITIVE>${x && x.party ? '<ISPARTYLEDGER>Yes</ISPARTYLEDGER>' : ''}<AMOUNT>${tAmt_(isDebit ? -amt : amt)}</AMOUNT>${(x && x.bills) || ''}</ALLLEDGERENTRIES.LIST>`;
+const tBill_ = (ref, type, amt)=>`<BILLALLOCATIONS.LIST><NAME>${TE_(ref)}</NAME><BILLTYPE>${type}</BILLTYPE><AMOUNT>${tAmt_(amt)}</AMOUNT></BILLALLOCATIONS.LIST>`;
+function tInvoice_(inv){
+  const sale = !isPur_(inv.kind), pDr = inv.kind === 'sale' || inv.kind === 'debit_note', np = !pDr;
+  const vt = { sale:'Sales', purchase:'Purchase', credit_note:'Credit Note', debit_note:'Debit Note' }[inv.kind], goods = sale ? 'Sales' : 'Purchase';
+  const party = inv.partyName || 'Cash', total = Number(inv.total) || 0, cg = Number(inv.cgst) || 0, sg = Number(inv.sgst) || 0, ig = Number(inv.igst) || 0;
+  const tax = r2_(cg + sg + ig), ro = r2_(total - (Number(inv.taxable) || 0) - tax), rcm = !!inv.reverseCharge, pAmt = rcm ? r2_(total - tax) : total;
+  let x = tEnt_(party, pDr, pAmt, { party:true, bills:party.toLowerCase() === 'cash' ? '' : tBill_(inv.no, 'New Ref', pDr ? -pAmt : pAmt) });
+  (inv.lines || []).forEach(l=>{
+    const g = (Number(l.qty) || 0) * (Number(l.rate) || 0), tv = r2_(g - g * ((Number(l.disc) || 0) / 100)), u = TE_(l.unit || 'Nos'), a = tAmt_(np ? -tv : tv), fl = np ? 'Yes' : 'No';
+    x += `<ALLINVENTORYENTRIES.LIST><STOCKITEMNAME>${TE_(l.desc)}</STOCKITEMNAME><ISDEEMEDPOSITIVE>${fl}</ISDEEMEDPOSITIVE><RATE>${tAmt_(l.rate)}/${u}</RATE>${Number(l.disc) ? `<DISCOUNT>${Number(l.disc)}</DISCOUNT>` : ''}<AMOUNT>${a}</AMOUNT><ACTUALQTY> ${l.qty} ${u}</ACTUALQTY><BILLEDQTY> ${l.qty} ${u}</BILLEDQTY><ACCOUNTINGALLOCATIONS.LIST><LEDGERNAME>${goods}</LEDGERNAME><ISDEEMEDPOSITIVE>${fl}</ISDEEMEDPOSITIVE><AMOUNT>${a}</AMOUNT></ACCOUNTINGALLOCATIONS.LIST></ALLINVENTORYENTRIES.LIST>`;
+  });
+  [['CGST', cg], ['SGST', sg], ['IGST', ig]].forEach(([h, v])=>{ if(v > 0){ x += tEnt_((sale ? 'Output ' : 'Input ') + h, np, v); if(rcm) x += tEnt_('Output ' + h, pDr, v); } });
+  if(ro) x += tEnt_('Round Off', ro > 0 ? np : pDr, Math.abs(ro));
+  return tMsg_(`<VOUCHER VCHTYPE="${vt}" ACTION="Create" OBJVIEW="Invoice Voucher View"><DATE>${t8_(inv.date)}</DATE><VOUCHERTYPENAME>${vt}</VOUCHERTYPENAME><VOUCHERNUMBER>${TE_(inv.no)}</VOUCHERNUMBER>${inv.kind === 'purchase' ? `<REFERENCE>${TE_(inv.no)}</REFERENCE>` : ''}<PARTYLEDGERNAME>${TE_(party)}</PARTYLEDGERNAME><PARTYNAME>${TE_(party)}</PARTYNAME>${inv.partyGstin ? `<PARTYGSTIN>${TE_(inv.partyGstin)}</PARTYGSTIN>` : ''}<PLACEOFSUPPLY>${TE_(tStateName_(sale ? inv.pos : inv.partyState))}</PLACEOFSUPPLY><ISINVOICE>Yes</ISINVOICE><PERSISTEDVIEW>Invoice Voucher View</PERSISTEDVIEW>${inv.note ? `<NARRATION>${TE_(inv.note)}</NARRATION>` : ''}${x}</VOUCHER>`);
+}
+function tVoucher_(v){
+  const vt = { payment:'Payment', receipt:'Receipt', journal:'Journal' }[v.kind];
+  let x = '';
+  if(v.kind === 'journal') (v.lines || []).forEach(l=>{ if(Number(l.dr) > 0) x += tEnt_(l.ledger, true, Number(l.dr)); if(Number(l.cr) > 0) x += tEnt_(l.ledger, false, Number(l.cr)); });
+  else {
+    const amt = Number(v.amount) || 0, rec = v.kind === 'receipt', cb = /^cash$/i.test(v.mode || '') ? 'Cash' : 'Bank';
+    x = tEnt_(v.party, !rec, amt, { bills:(v.alloc || []).map(a=>tBill_(a.no, 'Agst Ref', rec ? a.amount : -a.amount)).join('') }) + tEnt_(cb, rec, amt);
+  }
+  return tMsg_(`<VOUCHER VCHTYPE="${vt}" ACTION="Create" OBJVIEW="Accounting Voucher View"><DATE>${t8_(v.date)}</DATE><VOUCHERTYPENAME>${vt}</VOUCHERTYPENAME><VOUCHERNUMBER>${TE_(v.no)}</VOUCHERNUMBER>${v.narration ? `<NARRATION>${TE_(v.narration)}</NARRATION>` : ''}${x}</VOUCHER>`);
+}
+function tallyExport_(what){
+  let msgs, report, name;
+  if(what === 'masters'){ msgs = tMasters_(); report = 'All Masters'; name = 'Tally-Masters.xml'; }
+  else {
+    const per = acctPeriod_(); if(!per) return;
+    const by = (a, b)=>a.date < b.date ? -1 : a.date > b.date ? 1 : String(a.no) < String(b.no) ? -1 : 1, ok = x=>x.status !== 'cancelled' && inPeriod_(x, per.from, per.to);
+    msgs = acctInvoices.filter(ok).sort(by).map(tInvoice_).concat(acctVouchers.filter(ok).sort(by).map(tVoucher_));
+    report = 'Vouchers'; name = 'Tally-Transactions-' + per.from + '_to_' + per.to + '.xml';
+  }
+  if(!msgs.length) return alert(BT_('Nothing to export.', 'एक्सपोर्ट करने के लिए कुछ नहीं है।'));
+  tDownload_(tEnvelope_(report, msgs), name);
+  const m = document.getElementById('tyMsg'); if(m) m.innerHTML = `<div class="msg info">✅ ${escapeHtml(name)} — ${msgs.length} ${BT_('records', 'रिकॉर्ड')}</div>`;
+}
+function tallyPanelHtml_(f){
+  const fy = fyOf_(todayIso_()), b = (fn, l)=>`<button class="btn-pill alt" style="width:100%;margin-top:8px;text-align:left;" onclick="${fn}">${l}</button>`;
+  return `<div style="margin-top:10px;"><b>📤 ${BT_('Export to Tally', 'Tally के लिए Export')}</b>
+    <div class="subtle" style="margin:4px 0;">${BT_('Tally company name (as it is in Tally)', 'Tally में कंपनी का नाम (जैसा Tally में है)')}</div>
+    <input id="tyCo" value="${escapeHtml(f.name)}" style="width:100%;">
+    <div class="subtle" style="margin:8px 0 4px;">${BT_('Period for transactions', 'ट्रांज़ेक्शन की अवधि')}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;"><input type="date" id="rpFrom" value="${fy.start}"><input type="date" id="rpTo" value="${todayIso_()}"></div>
+    ${b("tallyExport_('masters')", '📒 ' + BT_('Masters — ledgers, stock items, units, groups (XML)', 'Masters — लेजर, स्टॉक आइटम, यूनिट, ग्रुप (XML)'))}
+    ${b("tallyExport_('vouchers')", '🧾 ' + BT_('Transactions — Sales, Purchase, Credit/Debit Note, Payment, Receipt, Journal (XML)', 'Transactions — सेल, परचेज, क्रेडिट/डेबिट नोट, पेमेंट, रसीद, जर्नल (XML)'))}
+    <div class="subtle" style="margin-top:6px;">${BT_('In Tally: Import → Data, first the Masters file, then the Transactions file.', 'Tally में: Import → Data, पहले Masters फाइल, फिर Transactions फाइल।')}</div></div>
+    <div style="margin-top:16px;"><b>📥 ${BT_('Import from Tally', 'Tally से Import')}</b>
+    <div class="subtle" style="margin:4px 0;">${BT_('In Tally export Masters or Day Book / Vouchers as XML, then choose that file here. New records are added; existing ones are not changed. Import Masters first.', 'Tally से Masters या Day Book / Vouchers XML में export करें और वह फाइल यहां चुनें। नए रिकॉर्ड जुड़ेंगे; मौजूदा नहीं बदलेंगे। पहले Masters import करें।')}</div>
+    ${b("document.getElementById('tyFile').click()", '📥 ' + BT_('Choose Tally XML file', 'Tally XML फाइल चुनें'))}
+    <input type="file" id="tyFile" accept=".xml,text/xml,application/xml" style="display:none" onchange="tallyImport_(this.files[0]);this.value=''"></div>
+    <div id="tyMsg" style="margin-top:12px;"></div>
+    <div class="subtle" style="margin-top:12px;">⚠️ ${BT_('Please test with a sample / backup company in Tally first and check the totals.', 'पहले Tally की सैंपल / बैकअप कंपनी में टेस्ट करें और टोटल मिलाएं।')}</div>`;
+}
+async function tallyImport_(file){
+  if(!file) return;
+  const say = h=>{ const m = document.getElementById('tyMsg'); if(m) m.innerHTML = h; };
+  let doc;
+  try{
+    const buf = await file.arrayBuffer(), u = new Uint8Array(buf);
+    let enc = 'utf-8'; if(u[0] === 0xFF && u[1] === 0xFE) enc = 'utf-16le'; else if(u[0] === 0xFE && u[1] === 0xFF) enc = 'utf-16be'; else if(u.length > 3 && u[1] === 0 && u[3] === 0) enc = 'utf-16le';
+    const txt = new TextDecoder(enc).decode(buf).replace(/^\uFEFF/, '').replace(/&#(\d+);/g, (m, n)=>(+n < 32 && ![9, 10, 13].includes(+n)) ? '' : m).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '');
+    doc = new DOMParser().parseFromString(txt, 'text/xml');
+    if(doc.getElementsByTagName('parsererror').length) throw new Error('xml');
+  }catch(e){ return say('<div class="msg err">' + BT_('This is not a valid Tally XML file.', 'यह सही Tally XML फाइल नहीं है।') + '</div>'); }
+  const f = firm_(), lc = s=>String(s || '').trim().toLowerCase(), num = s=>{ const n = parseFloat(String(s || '').replace(/,/g, '')); return isNaN(n) ? 0 : n; };
+  const kids = (el, tags)=>Array.from(el.children).filter(c=>tags.includes(c.tagName));
+  const q = (el, t)=>{ const c = Array.from(el.children).find(x=>x.tagName === t); return c ? (c.textContent || '').trim() : ''; };
+  const nameOf = el=>{ let n = el.getAttribute('NAME'); if(!n){ const c = el.getElementsByTagName('NAME')[0]; n = c ? c.textContent : ''; } return String(n || '').trim(); };
+  const G_ = [[/debtor|creditor/, 'party'], [/cash/, 'cash'], [/bank od|bank occ|secured|unsecured|loans \(liab/, 'loan'], [/bank/, 'bank'], [/sales/, 'sales'], [/purchase/, 'purchase'], [/indirect exp|expenses \(indirect/, 'iexp'], [/direct exp|expenses \(direct/, 'dexp'], [/indirect inc|income \(indirect/, 'iinc'], [/direct inc|income \(direct/, 'dinc'], [/fixed asset/, 'fixed'], [/duties/, 'tax'], [/current liab|provision|suspense/, 'liab'], [/capital|reserve/, 'capital'], [/asset|investment|deposit|stock-in-hand/, 'asset'], [/loan/, 'loan']];
+  const gcode = p=>{ const g = G_.find(x=>x[0].test(lc(p))); return g ? g[1] : ''; };
+  const parties = [], ledgers = {}, items = [], groups = [], invs = [], vchs = [], parents = {}, st = { dup:0, skip:0 };
+  const allP = ()=>acctParties.concat(parties), findP = n=>allP().find(p=>lc(p.name) === lc(n)), findI = n=>stockItems.concat(items).find(i=>lc(i.name) === lc(n));
+  const addGroup = n=>{ if(n && !/^primary$/i.test(n) && !stockGroups.concat(groups).some(g=>lc(g.name) === lc(n))) groups.push({ id:uid(), name:n }); };
+
+  // ---- masters ----
+  Array.from(doc.getElementsByTagName('LEDGER')).forEach(el=>{
+    const n = nameOf(el); if(!n) return; const g = gcode(q(el, 'PARENT')); parents[lc(n)] = g;
+    if(g === 'party'){
+      if(findP(n)){ st.dup++; return; }
+      parties.push({ id:uid(), name:n, gstin:(q(el, 'PARTYGSTIN') || q(el, 'GSTIN')).toUpperCase(), state:tStateCode_(q(el, 'LEDSTATENAME')), addr:Array.from(el.getElementsByTagName('ADDRESS')).map(a=>(a.textContent || '').trim()).filter(Boolean).join(', '), open:r2_(-num(q(el, 'OPENINGBALANCE'))) });
+    } else if(g !== 'tax'){
+      if(ledgerGroupOf_(n) || ledgers[lc(n)]){ st.dup++; return; } ledgers[lc(n)] = g || 'iexp';
+    }
+  });
+  Array.from(doc.getElementsByTagName('STOCKGROUP')).forEach(el=>addGroup(nameOf(el)));
+  Array.from(doc.getElementsByTagName('STOCKITEM')).forEach(el=>{
+    const n = nameOf(el); if(!n) return; if(findI(n)){ st.dup++; return; }
+    const ob = q(el, 'OPENINGBALANCE'), qty = num(ob), val = Math.abs(num(q(el, 'OPENINGVALUE'))), rate = num(q(el, 'OPENINGRATE')) || (qty ? val / qty : 0);
+    const unit = q(el, 'BASEUNITS') || (ob.match(/[A-Za-z][\w.]*$/) || [''])[0] || unitDefault_(), par = q(el, 'PARENT'), grp = /^primary$/i.test(par) ? '' : par, hs = el.getElementsByTagName('HSNCODE')[0];
+    let gst = 0; Array.from(el.getElementsByTagName('RATEDETAILS.LIST')).forEach(r=>{ if(/IGST/i.test(q(r, 'GSTRATEDUTYHEAD'))) gst = num(q(r, 'GSTRATE')); });
+    addGroup(grp);
+    items.push({ id:uid(), name:n, group:grp, unit, hsn:hs ? (hs.textContent || '').trim() : '', gst, openQty:qty > 0 ? qty : '', openRate:rate || '', purchaseRate:r2_(rate), markupPct:0, saleRate:0 });
+  });
+
+  // ---- vouchers ----
+  const std = [0, 0.25, 1, 1.5, 3, 5, 12, 18, 28], near = p=>std.reduce((a, b)=>Math.abs(b - p) < Math.abs(a - p) ? b : a);
+  const allInv = ()=>acctInvoices.concat(invs), allV = ()=>acctVouchers.concat(vchs);
+  const other = ()=>Object.keys(GST_STATES).find(c=>c !== f.state && c === '97') || Object.keys(GST_STATES).find(c=>c !== f.state) || '';
+  const isCB = n=>{ const g = parents[lc(n)] || ledgerGroupOf_(n); return g === 'cash' || g === 'bank' || /^(cash|bank)\b/i.test(n); };
+  const known = n=>ledgerGroupOf_(n) || ledgers[lc(n)] || findP(n);
+  Array.from(doc.getElementsByTagName('VOUCHER')).forEach(el=>{
+    const vt = lc(el.getAttribute('VCHTYPE') || q(el, 'VOUCHERTYPENAME')), date = tIso_(q(el, 'DATE'));
+    let kind = /credit note/.test(vt) ? 'credit_note' : /debit note/.test(vt) ? 'debit_note' : /order|quotation|challan|delivery|receipt note|memo|stock|rejection/.test(vt) ? '' : /^sale/.test(vt) ? 'sale' : /^purchase/.test(vt) ? 'purchase' : /^receipt/.test(vt) ? 'receipt' : /^payment/.test(vt) ? 'payment' : /^(journal|contra)/.test(vt) ? 'journal' : '';
+    if(!kind || !date || q(el, 'ISOPTIONAL') === 'Yes'){ st.skip++; return; }
+    const status = q(el, 'ISCANCELLED') === 'Yes' ? 'cancelled' : 'active', no = q(el, 'VOUCHERNUMBER'), now = new Date().toISOString();
+    const ents = kids(el, ['ALLLEDGERENTRIES.LIST', 'LEDGERENTRIES.LIST']).map(e=>({ name:q(e, 'LEDGERNAME'), amt:num(q(e, 'AMOUNT')), party:q(e, 'ISPARTYLEDGER') === 'Yes' })).filter(e=>e.name);
+    if(kind === 'sale' || kind === 'purchase' || kind === 'credit_note' || kind === 'debit_note'){
+      const sale = !isPur_(kind), pName = q(el, 'PARTYLEDGERNAME') || (ents.find(e=>e.party) || {}).name || '', tx = { cg:0, sg:0, ig:0 };
+      let gTot = 0, gName = '', gMax = 0;
+      ents.forEach(e=>{
+        const a = Math.abs(e.amt); if(lc(e.name) === lc(pName)) return;
+        if(parents[lc(e.name)] === 'tax' || /\b(cgst|sgst|utgst|igst)\b/i.test(e.name)){ if(/igst/i.test(e.name)) tx.ig += a; else if(/cgst/i.test(e.name)) tx.cg += a; else tx.sg += a; }
+        else if(!/round/i.test(e.name)){ gTot += a; if(a > gMax){ gMax = a; gName = e.name; } }
+      });
+      const lines = [];
+      kids(el, ['ALLINVENTORYENTRIES.LIST', 'INVENTORYENTRIES.LIST']).forEach(ie=>{
+        const nm = q(ie, 'STOCKITEMNAME'); if(!nm) return;
+        const qs = q(ie, 'BILLEDQTY') || q(ie, 'ACTUALQTY'), qty = Math.abs(num(qs)) || 1, disc = num(q(ie, 'DISCOUNT')), amount = Math.abs(num(q(ie, 'AMOUNT')));
+        const unit = ((qs.match(/[A-Za-z][A-Za-z.\/]*\s*$/) || [''])[0] || '').trim() || q(ie, 'RATE').split('/')[1] || unitDefault_();
+        let rate = num(q(ie, 'RATE')); if(!rate) rate = r2_(amount / ((qty * (1 - disc / 100)) || 1));
+        lines.push({ desc:nm, hsn:'', qty, unit, rate, disc, gst:0 });
+      });
+      const synthetic = !lines.length; if(synthetic) lines.push({ desc:gName || (sale ? 'Sales' : 'Purchase'), hsn:'', qty:1, unit:unitDefault_(), rate:r2_(gTot), disc:0, gst:0 });
+      const val = l=>l.qty * l.rate * (1 - l.disc / 100), taxable = lines.reduce((t, l)=>t + val(l), 0), taxAmt = tx.cg + tx.sg + tx.ig, pct = taxable > 0 ? near(taxAmt / taxable * 100) : 0;
+      const byItem = lines.reduce((t, l)=>t + val(l) * (Number((findI(l.desc) || {}).gst) || 0) / 100, 0), useItem = !synthetic && lines.every(l=>findI(l.desc)) && Math.abs(byItem - taxAmt) < 1;
+      lines.forEach(l=>{ const it = findI(l.desc); l.gst = useItem ? (Number(it.gst) || 0) : pct; l.hsn = it && it.hsn || ''; });
+      const pm = findP(pName) || {}, ps = tStateCode_(q(el, 'PLACEOFSUPPLY')) || pm.state || '', pst = tx.ig > 0 ? (ps && ps !== f.state ? ps : other()) : f.state;
+      const inv = { id:uid(), kind, no, date, partyName:pName || (sale ? 'Cash' : ''), partyGstin:(q(el, 'PARTYGSTIN') || pm.gstin || '').toUpperCase(), partyState:pst, pos:sale ? pst : '', reverseCharge:false, itcEligible:true, refNo:'', refDate:'', note:q(el, 'NARRATION'), status, partyAddr:pm.addr || '', shipTo:'', vehicleNo:'', dispatchThrough:'', orderNo:'', orderDate:'', otherRef:'', lines, createdAt:now, createdBy:'Tally import' };
+      if(!inv.no) inv.no = nextInvoiceNo_(allInv(), kind, date);
+      if(allInv().some(x=>x.kind === kind && x.no === inv.no && (kind !== 'purchase' || lc(x.partyName) === lc(inv.partyName)))){ st.dup++; return; }
+      calcInvoice_(inv, f);
+      if(!synthetic) lines.forEach(l=>{ if(!findI(l.desc)) items.push({ id:uid(), name:l.desc, group:'', unit:l.unit, hsn:'', gst:l.gst, openQty:'', purchaseRate:sale ? 0 : l.rate, markupPct:0, saleRate:sale ? l.rate : 0 }); });
+      if(inv.partyName && lc(inv.partyName) !== 'cash' && !findP(inv.partyName)) parties.push({ id:uid(), name:inv.partyName, gstin:inv.partyGstin, state:inv.partyState, addr:'', open:0 });
+      invs.push(inv); return;
+    }
+    // payment / receipt / journal / contra
+    if(ents.length < 2){ st.skip++; return; }
+    const cb = ents.filter(e=>isCB(e.name)), ot = ents.filter(e=>!isCB(e.name));
+    let v;
+    if((kind === 'payment' || kind === 'receipt') && ents.length === 2 && cb.length === 1 && ot.length === 1 && (kind === 'payment') === (ot[0].amt < 0)){
+      const g = parents[lc(cb[0].name)] || ledgerGroupOf_(cb[0].name);
+      v = { kind, party:ot[0].name, mode:(g === 'cash' || /^cash\b/i.test(cb[0].name)) ? 'Cash' : 'Bank transfer', amount:Math.abs(ot[0].amt), alloc:[], lines:[] };
+    } else v = { kind:'journal', lines:ents.map(e=>({ ledger:e.name, dr:e.amt < 0 ? Math.abs(e.amt) : 0, cr:e.amt > 0 ? e.amt : 0 })) };
+    Object.assign(v, { id:uid(), no:no || nextInvoiceNo_(allV(), v.kind, date), date, ref:q(el, 'REFERENCE'), against:'', narration:q(el, 'NARRATION'), status, createdAt:now, createdBy:'Tally import' });
+    if(allV().some(x=>x.kind === v.kind && x.no === v.no && x.date === date)){ st.dup++; return; }
+    ents.forEach(e=>{ if(!known(e.name)) ledgers[lc(e.name)] = parents[lc(e.name)] || (/cash/i.test(e.name) ? 'cash' : /bank/i.test(e.name) ? 'bank' : v.kind === 'receipt' ? 'iinc' : 'iexp'); });
+    vchs.push(v);
+  });
+
+  // ---- confirm and save ----
+  const nL = Object.keys(ledgers).length, tot = invs.length + vchs.length + parties.length + nL + items.length + groups.length;
+  if(!tot) return say(`<div class="msg info">${BT_('Nothing new found in this file.', 'इस फाइल में कुछ नया नहीं मिला।')} (${BT_('already present', 'पहले से मौजूद')}: ${st.dup}, ${BT_('skipped', 'छोड़े')}: ${st.skip})</div>`);
+  const sum = `${invs.length} ${BT_('sale / purchase / notes', 'सेल / परचेज / नोट')}\n${vchs.length} ${BT_('payment / receipt / journal', 'पेमेंट / रसीद / जर्नल')}\n${parties.length} ${BT_('parties', 'पार्टी')}\n${nL} ${BT_('ledgers', 'लेजर')}\n${items.length} ${BT_('stock items', 'स्टॉक आइटम')}\n${groups.length} ${BT_('stock groups', 'स्टॉक ग्रुप')}\n(${BT_('already present', 'पहले से मौजूद')}: ${st.dup}, ${BT_('skipped', 'छोड़े')}: ${st.skip})`;
+  if(!confirm(BT_('Add these from Tally?', 'Tally से ये जोड़ें?') + '\n\n' + sum)) return;
+  acctParties.push(...parties); Object.assign(acctLedgers, ledgers); stockGroups.push(...groups); stockItems.push(...items); acctInvoices.push(...invs); acctVouchers.push(...vchs);
+  stockSave_(); vchSave_(); finSaveSettings_(); acctSave_();
+  try{ logActivity('Tally Import', file.name + ' · ' + invs.length + ' bills, ' + vchs.length + ' vouchers'); }catch(e){}
+  render();
+  alert(BT_('Imported from Tally:', 'Tally से import हुआ:') + '\n\n' + sum);
+}
+
 function acctFirmHead_(f, title, per){ return [[title], [BT_('Business','बिज़नेस'), f.name], ['GSTIN', f.gstin || '-'], [BT_('Type','प्रकार'), f.type], [BT_('Period','अवधि'), dmy_(per.from) + ' to ' + dmy_(per.to)], [BT_('Prepared on','तैयार'), new Date().toLocaleString()], []]; }
 function acctXlsRegister_(kind){
   const per = acctPeriod_(); if(!per) return; const f = firm_();
