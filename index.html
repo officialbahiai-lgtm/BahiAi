@@ -569,7 +569,7 @@
 .tv-top{background:#173c6b;color:#fff;padding:7px 14px;display:flex;justify-content:space-between;align-items:center}.tv-top b{font-size:15px}.tv-x{background:none;border:none;color:#fff;font-size:18px;cursor:pointer}
 .tv-sub{background:#9cc6e8;padding:4px 14px;display:flex;justify-content:space-between;align-items:center;font-weight:700}.tv-type{background:#2f6fb2;color:#fff;padding:3px 14px;border-radius:2px;letter-spacing:.5px}.tv-sub input{padding:4px 6px;border:1px solid #6f9fc8;border-radius:3px;background:#fffef2;font-weight:700}
 .tv-main{flex:1;display:flex;min-height:0}.tv-form{flex:1;overflow:auto;padding:10px 18px}
-.tv-keys{width:200px;background:#dcebf8;border-left:1px solid #b9d2ea;padding:8px;overflow:auto}.tv-keys button{display:flex;gap:8px;width:100%;margin:4px 0;padding:8px 10px;border:1px solid #b9d2ea;background:#fff;border-radius:4px;font-weight:600;text-align:left;cursor:pointer;font-size:13px}.tv-keys button b{color:#1769aa;min-width:34px}.tv-keys button.cur{background:#fff3d6;border-color:#f5a623}.tv-keys button[disabled]{opacity:.45;cursor:default}.tv-keys .hint{font-size:11px;color:#4b6075;margin-top:10px;line-height:1.5}
+.tv-keys{width:138px;background:#dcebf8;border-left:1px solid #b9d2ea;padding:5px;overflow:auto}.tv-keys button{display:flex;gap:5px;width:100%;margin:3px 0;padding:5px 6px;border:1px solid #b9d2ea;background:#fff;border-radius:3px;font-weight:600;text-align:left;cursor:pointer;font-size:11.5px;line-height:1.2}.tv-keys button b{color:#1769aa;min-width:26px;font-size:10.5px}.tv-keys button.cur{background:#fff3d6;border-color:#f5a623}.tv-keys button[disabled]{opacity:.45;cursor:default}.tv-keys .hint{font-size:10px;color:#4b6075;margin-top:10px;line-height:1.5}
 .tv-bottom{display:flex;gap:6px;padding:6px 10px;background:#eef3f7;border-top:2px solid #b9d2ea;flex-wrap:wrap}.tv-bottom button{padding:8px 18px;border:1px solid #9bb5cc;background:#fff;border-radius:4px;font-weight:700;cursor:pointer}.tv-bottom button.ok{background:#1e8449;color:#fff;border-color:#1e8449}.tv-bottom button.dn{color:#c0392b}
 .tv-field{display:flex;gap:10px;align-items:center;margin:5px 0;flex-wrap:wrap}.tv-field label{width:150px;margin:0;font-size:14px}.tv-field input,.tv-field select,.tv-field textarea{padding:6px 8px;border:1px solid #bcd0e0;border-radius:3px;background:#fffef2;font-size:14px}.tv-inline{display:flex;gap:16px;flex-wrap:wrap;align-items:center}.tv-inline label{margin:0 6px 0 0;font-size:13px;width:auto}
 .tv-det{margin:8px 0;background:#fff;border:1px solid #dce6d0;border-radius:4px;padding:6px 10px}.tv-det summary{cursor:pointer;font-weight:700;color:#173c6b}
@@ -600,9 +600,9 @@
 <div class="bottom-nav" id="bottomNav">
   <div class="side-brand"><img id="sideLogo" alt=""><div><b id="sideBrandName">BahiAi</b><span>Order &amp; Dispatch</span></div></div>
   <button class="navbtn" data-tab="dashboard"><span class="ic">📊</span>Dashboard</button>
-  <button class="navbtn" data-tab="orderHub"><span class="ic">📝</span>Order</button>
+  <button class="navbtn" data-tab="orderHub"><span class="ic">📝</span>Take Order</button>
   <button class="navbtn" data-child="1" data-tab="book" style="display:none;"><span class="ic">📝</span>TakeOrder</button>
-  <button class="navbtn" data-tab="dispatch"><span class="ic">🔎</span>Article</button>
+  <button class="navbtn" data-tab="dispatch"><span class="ic">🔎</span>Search Orders</button>
   <button class="navbtn" data-tab="catHub"><span class="ic">🖼️<i class="navbadge" id="catPendBadge2"></i></span>Catalog Report</button>
   <button class="navbtn" data-child="1" data-tab="catalog" style="display:none;"><span class="ic">🖼️</span>Catalog</button>
   <button class="navbtn" data-child="1" data-tab="dispatchedOrders" style="display:none;"><span class="ic">📦</span>Dispatched</button>
@@ -610,17 +610,15 @@
   <button class="navbtn" data-child="1" data-tab="catPending" style="display:none;"><span class="ic">🛍️<i class="navbadge" id="catPendBadge"></i></span>Cat. Pending</button>
   <button class="navbtn" data-child="1" data-tab="catDispatched" style="display:none;"><span class="ic">🚚</span>Cat. Dispatched</button>
   <button class="navbtn" data-tab="customers"><span class="ic">👤</span>Customers</button>
-  <button class="navbtn" data-tab="deletedOrders"><span class="ic">🗑️</span>Deleted</button>
-  <button class="navbtn" data-tab="acct" data-acct="newsale"><span class="ic">🧾</span>New Sale</button>
-  <button class="navbtn" data-tab="acct" data-acct="newpur"><span class="ic">🛒</span>New Purchase</button>
-  <button class="navbtn" data-tab="acct" data-acct="salereg"><span class="ic">📒</span>Sale Register</button>
-  <button class="navbtn" data-tab="acct" data-acct="purreg"><span class="ic">📚</span>Purchase Register</button>
-  <button class="navbtn" data-tab="acct" data-acct="cnreg"><span class="ic">↩️</span>Credit Note Register</button>
-  <button class="navbtn" data-tab="acct" data-acct="dnreg"><span class="ic">↪️</span>Debit Note Register</button>
+  <button class="navbtn" data-tab="acct" data-acct="newpur"><span class="ic">🛒</span>Purchase Entry</button>
+  <button class="navbtn" data-tab="acct" data-acct="newsale"><span class="ic">🧾</span>Sale Entry</button>
+  <button class="navbtn" data-tab="vouchers" data-vch="rp"><span class="ic">💱</span>Receipt/Payment Entry</button>
+  <button class="navbtn" data-tab="vouchers" data-vch="journal"><span class="ic">📒</span>Journal Entry</button>
+  <button class="navbtn" data-tab="vouchers" data-vch="contra"><span class="ic">🔁</span>Contra Entry</button>
+  <button class="navbtn" data-tab="regHub"><span class="ic">📚</span>Register</button>
   <button class="navbtn" data-tab="acct" data-acct="ledger"><span class="ic">📖</span>Ledgers</button>
   <button class="navbtn" data-tab="acct" data-acct="tally"><span class="ic">🔄</span>Tally Export/Import</button>
   <button class="navbtn" data-tab="stock"><span class="ic">📦</span>Stock Summary</button>
-  <button class="navbtn" data-tab="vouchers"><span class="ic">💰</span>Vouchers</button>
   <button class="navbtn" data-tab="gst"><span class="ic">📑</span>GST Reports</button>
   <button class="navbtn" data-tab="fin"><span class="ic">📊</span>Financial Reports</button>
   <button class="navbtn" data-tab="activity"><span class="ic">📋</span>Activity</button>
@@ -628,6 +626,8 @@
   <button class="navbtn" data-tab="admin" id="adminNavBtn" style="display:none;"><span class="ic">🛡️</span>Admin</button>
   <button class="navbtn" data-tab="custCatalog" style="display:none;"><span class="ic">🖼️</span>Catalog</button>
   <button class="navbtn" data-tab="custOrders" style="display:none;"><span class="ic">📄</span>Saved Orders</button>
+  <button class="navbtn" data-tab="deletedOrders"><span class="ic">🗑️</span>Deleted</button>
+  <button class="navbtn" id="alterCoNavBtn" onclick="openBizProfile()" style="display:none;"><span class="ic">🏢</span>Alter Company</button>
   <button class="navbtn" id="backupNavBtn" onclick="openBackup()" style="display:none;"><span class="ic">💾</span>Backup</button>
   <button class="navbtn" id="helpNavBtn" onclick="openHelp()"><span class="ic">🆘</span>Help</button>
   <div class="side-foot">Version 2.0</div>
@@ -643,6 +643,7 @@ let bookings = [];      // {id, customerName, brand, designNumber, size, qty, st
 let activityLog = [];   // {id, staffName, staffMobile, action, detail, timestamp}
 let loaded = false;
 let currentTab = 'dashboard';
+let navCtx_ = '';   // which sidebar entry opened the page: newsale / newpur / v:rp / v:journal / v:contra / reg
 let currentStaff = null; // {name, mobile} - session only, not persisted across reloads
 
 // in-memory draft for current booking session
@@ -684,7 +685,7 @@ const SIZE_PRESETS = ['20/24','26/30','32/36','18/22','24/28','30/34','9/24','2/
 
 let dispatchQuery = '';
 let dispatchBrandQuery = '';
-let dispatchCustomerQuery = ''; // optional customer-name filter in the Article tab
+let dispatchCustomerQuery = ''; // optional customer-name filter in the Search Orders tab
 let dispatchBrandView = 'summary';  // 'summary' = size-wise totals, 'detail' = per-customer lines
 let dispatchFromDate = ''; // yyyy-mm-dd
 let dispatchToDate = '';   // yyyy-mm-dd
@@ -793,7 +794,7 @@ function canCurrentUserDelete(){
 // the customer Catalog + Saved Orders.
 const RESTRICTABLE_TABS = [
   { key:'book',             label:'TakeOrder' },
-  { key:'dispatch',         label:'Article' },
+  { key:'dispatch',         label:'Search Orders' },
   { key:'dashboard',        label:'Dashboard' },
   { key:'catalog',          label:'Catalog' },
   { key:'catPending',       label:'Cat. Pending' },
@@ -824,6 +825,7 @@ function canAccessTab(tabKey){
   if(!currentStaff) return false;
   if(isCustomerUser_()) return tabKey === 'custCatalog' || tabKey === 'custOrders';
   if(tabKey === 'custCatalog' || tabKey === 'custOrders') return false;
+  if(tabKey === 'regHub') return canAccessTab('acct') || canAccessTab('vouchers');
   if(tabKey === 'orderHub') return ['book','dispatchedOrders','pendingOrders'].some(canAccessTab);
   if(tabKey === 'catHub') return ['catalog','catPending','catDispatched'].some(canAccessTab);
   if(tabKey === 'admin') return !!(currentStaff && isOwnerEmail_(currentStaff.mobile));
@@ -881,7 +883,7 @@ try{ currentLang = localStorage.getItem('ssa_lang') || 'en'; }catch(e){}
 const I18N = {
   en: {
     app_title:'BahiAi',
-    nav_order:'TakeOrder', nav_article:'Article', nav_dispatched:'Dispatched', nav_pending:'Pending',
+    nav_order:'TakeOrder', nav_article:'Search Orders', nav_dispatched:'Dispatched', nav_pending:'Pending',
     nav_customers:'Customers', nav_deleted:'Deleted', nav_activity:'Activity', nav_approvals:'Approvals', nav_admin:'Admin', nav_stock:'Stock Summary', nav_vouchers:'Vouchers', nav_gst:'GST Reports', nav_fin:'Financial Reports', nav_dashboard:'Dashboard', nav_catalog:'Catalog', nav_catpend:'Cat. Pending', nav_catdisp:'Cat. Dispatched', nav_custorders:'Saved Orders',
     pending_sets:'Pending', sets:'Sets', set:'Set', pcs:'Pcs', box:'Box', switch_btn:'Switch',
 
@@ -981,7 +983,7 @@ const I18N = {
   },
   hi: {
     app_title:'BahiAi',
-    nav_order:'ऑर्डर', nav_article:'आर्टिकल', nav_dispatched:'डिस्पैच', nav_pending:'पेंडिंग',
+    nav_order:'ऑर्डर', nav_article:'ऑर्डर खोजें', nav_dispatched:'डिस्पैच', nav_pending:'पेंडिंग',
     nav_customers:'ग्राहक', nav_deleted:'डिलीटेड', nav_activity:'एक्टिविटी', nav_approvals:'अप्रूवल्स', nav_admin:'एडमिन', nav_stock:'स्टॉक', nav_vouchers:'वाउचर', nav_gst:'GST रिपोर्ट', nav_fin:'वित्तीय रिपोर्ट', nav_dashboard:'डैशबोर्ड', nav_catalog:'कैटलॉग', nav_catpend:'कैट. पेंडिंग', nav_catdisp:'कैट. डिस्पैच', nav_custorders:'सेव ऑर्डर',
     pending_sets:'पेंडिंग', sets:'सेट', set:'सेट', pcs:'पीस', box:'बॉक्स', switch_btn:'स्विच',
 
@@ -1105,7 +1107,7 @@ function applyStaticLanguage(){
     pendingOrders:'nav_pending', customers:'nav_customers', deletedOrders:'nav_deleted',
     activity:'nav_activity', approvals:'nav_approvals', admin:'nav_admin', stock:'nav_stock', vouchers:'nav_vouchers', gst:'nav_gst', fin:'nav_fin', dashboard:'nav_dashboard', catalog:'nav_catalog', catPending:'nav_catpend', catDispatched:'nav_catdisp', custCatalog:'nav_catalog', custOrders:'nav_custorders' };
   document.querySelectorAll('.navbtn').forEach(btn=>{
-    const key = navMap[btn.dataset.tab];
+    const key = btn.dataset.vch ? '' : navMap[btn.dataset.tab];   // the entry buttons keep their own names
     if(!key) return;
     const ic = btn.querySelector('.ic');
     btn.innerHTML = '';
@@ -1568,7 +1570,18 @@ async function sbApi_(o){
     if(a === 'get'){
       const { data, error } = await sb.from('app_store').select('value').eq('firm_id', fid).eq('key', o.key).maybeSingle();
       if(error) return { ok:false, code: (error.status === 401 || /JWT/i.test(error.message || '')) ? 'auth' : 'error', error:error.message };
-      return { ok:true, value: data ? data.value : null };
+      let val = data ? data.value : null;
+      if(typeof val === 'string' && val.startsWith('@@chunks:')){
+        const n = parseInt(val.slice(9), 10) || 0, ks = []; for(let i = 0; i < n; i++) ks.push(o.key + '__c' + i);
+        const parts = {};
+        for(let i = 0; i < ks.length; i += 10){
+          const r = await sb.from('app_store').select('key,value').eq('firm_id', fid).in('key', ks.slice(i, i + 10));
+          if(r.error) return { ok:false, code:'error', error:r.error.message };
+          (r.data || []).forEach(x=>{ parts[x.key] = x.value; });
+        }
+        val = ''; for(const k of ks){ if(typeof parts[k] !== 'string') return { ok:false, code:'error', error:'part missing' }; val += parts[k]; }
+      }
+      return { ok:true, value: val };
     }
     if(a === 'placeOrder'){
       const od = Object.assign({}, o.order || {}); od.id = String(od.id || uid()); od.createdAt = od.createdAt || new Date().toISOString();
@@ -1593,7 +1606,17 @@ async function sbApi_(o){
       return { ok:true, order:Object.assign({}, data[0].data, { id:data[0].id }) };
     }
     if(!a && o.key !== undefined){
-      const { error } = await sb.from('app_store').upsert({ firm_id:fid, key:o.key, value:o.value, updated_at:new Date().toISOString() });
+      let outVal = o.value;
+      if(typeof outVal === 'string' && outVal.length > 400000){          // very large data: store in 400 KB parts
+        const parts = []; let p0 = 0;
+        while(p0 < outVal.length){ let p1 = Math.min(outVal.length, p0 + 400000); const cc = outVal.charCodeAt(p1 - 1); if(p1 < outVal.length && cc >= 0xD800 && cc <= 0xDBFF) p1--; parts.push(outVal.slice(p0, p1)); p0 = p1; }
+        for(let i = 0; i < parts.length; i++){
+          const r = await sb.from('app_store').upsert({ firm_id:fid, key:o.key + '__c' + i, value:parts[i], updated_at:new Date().toISOString() });
+          if(r.error) return { ok:false, code: (r.error.status === 401 || /JWT/i.test(r.error.message || '')) ? 'auth' : (r.error.code === '42501' ? 'forbidden' : 'error'), error:r.error.message };
+        }
+        outVal = '@@chunks:' + parts.length;
+      }
+      const { error } = await sb.from('app_store').upsert({ firm_id:fid, key:o.key, value:outVal, updated_at:new Date().toISOString() });
       if(error) return { ok:false, code: (error.status === 401 || /JWT/i.test(error.message || '')) ? 'auth' : (error.code === '42501' ? 'forbidden' : 'error'), error:error.message };
       return { ok:true };
     }
@@ -1767,7 +1790,7 @@ function adminWatch_(){
 
 /* ---------- Menu groups: "Order" and "Catalog Report" ---------- */
 const GROUPS_ = {
-  order: { title:'Order',          tabs:[['book','📝','TakeOrder'], ['dispatchedOrders','📦','Dispatched'], ['pendingOrders','⏳','Pending']] },
+  order: { title:'Take Order',     tabs:[['book','📝','TakeOrder'], ['dispatchedOrders','📦','Dispatched'], ['pendingOrders','⏳','Pending']] },
   cat:   { title:'Catalog Report', tabs:[['catalog','🖼️','Catalog'], ['catPending','🛍️','Cat. Pending'], ['catDispatched','🚚','Cat. Dispatched']] }
 };
 function groupOf_(tab){ return Object.keys(GROUPS_).find(k=>GROUPS_[k].tabs.some(t=>t[0] === tab)) || ''; }
@@ -1784,6 +1807,26 @@ function groupBarPaint_(main){
   main.insertBefore(bar, main.firstChild);
 }
 try{ const jc = (new URLSearchParams(location.search).get('join') || '').trim().toUpperCase(); if(jc) localStorage.setItem('ssa_join', jc); }catch(e){}
+
+/* =====================  REGISTER (one tab with every register)  ===================== */
+const REGS_ = [['sale', '📒', 'Sale Register'], ['purchase', '📚', 'Purchase Register'], ['cn', '↩️', 'Credit Note Register'], ['dn', '↪️', 'Debit Note Register'], ['pay', '💸', 'Payment Register'], ['rcpt', '💵', 'Receipt Register'], ['jv', '📒', 'Journal Register'], ['contra', '🔁', 'Contra Register'], ['out', '⏳', 'Outstanding (bill-wise)']];
+function openReg_(k){
+  navCtx_ = 'reg';
+  if(['sale', 'purchase', 'cn', 'dn'].includes(k)){ currentTab = 'acct'; acctView = { sale:'sales', purchase:'purchases', cn:'cnotes', dn:'dnotes' }[k]; }
+  else { currentTab = 'vouchers'; vchView = { pay:'payment', rcpt:'receipt', jv:'journal', contra:'contra', out:'out' }[k]; }
+  render();
+}
+function renderRegHub(main){
+  main.innerHTML = `<div style="padding:14px;max-width:560px;margin:0 auto;"><h2 style="margin:0 0 12px;">📚 Register</h2>` +
+    REGS_.map(r=>`<button class="btn-pill" style="display:flex;align-items:center;gap:12px;width:100%;margin:0 0 10px;padding:16px;font-size:17px;" onclick="openReg_('${r[0]}')"><span style="font-size:24px;">${r[1]}</span>${r[2]}</button>`).join('') + '</div>';
+}
+function regBarPaint_(main){
+  if(navCtx_ !== 'reg' || (currentTab !== 'acct' && currentTab !== 'vouchers')) return;
+  const cur = currentTab === 'acct' ? { sales:'sale', purchases:'purchase', cnotes:'cn', dnotes:'dn' }[acctView] : { payment:'pay', receipt:'rcpt', journal:'jv', contra:'contra', out:'out' }[vchView];
+  const bar = document.createElement('div'); bar.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;padding:8px 10px 0;';
+  bar.innerHTML = `<button class="btn-pill ghost" onclick="currentTab='regHub';render()">← Register</button>` + REGS_.map(r=>`<button class="btn-pill ${r[0] === cur ? '' : 'ghost'}" onclick="openReg_('${r[0]}')">${r[1]} ${r[2]}</button>`).join('');
+  main.insertBefore(bar, main.firstChild);
+}
 let firmSetup_ = null;
 function renderFirmSetup(main){
   main.innerHTML = `<div class="login-wrap"><div class="login-card">
@@ -1853,6 +1896,81 @@ function pushDone_(j){
   return false;
 }
 
+/* ---------------- BIG DATA STORE ----------------
+   localStorage only holds ~5 MB. A large Tally import (lakhs of vouchers) will not fit, so when
+   a value does not fit it is kept in IndexedDB (and in memory) instead - nothing is lost and
+   nothing throws. Cloud sync reads the same value back through lsGetBig_.               */
+const bigMem_ = {};                 // 'ssa_key' -> string that did not fit in localStorage
+let bigDbP_ = null, bigWarned_ = false;
+function bigDb_(){
+  if(bigDbP_) return bigDbP_;
+  bigDbP_ = new Promise(res=>{
+    try{
+      const r = indexedDB.open('ssa_big', 1);
+      r.onupgradeneeded = ()=>{ try{ r.result.createObjectStore('kv'); }catch(e){} };
+      r.onsuccess = ()=>res(r.result);
+      r.onerror = ()=>res(null);
+      r.onblocked = ()=>res(null);
+    }catch(e){ res(null); }
+  });
+  return bigDbP_;
+}
+async function bigPut_(k, v){
+  const db = await bigDb_();
+  if(!db){
+    if(!bigWarned_){ bigWarned_ = true; try{ alert('This device has no free storage for such a large file. The data stays in memory and syncs online - keep the app open until the sync badge shows Synced, and take a backup.'); }catch(e){} }
+    return false;
+  }
+  return new Promise(res=>{ try{ const tx = db.transaction('kv', 'readwrite'); tx.objectStore('kv').put(v, k); tx.oncomplete = ()=>res(true); tx.onerror = ()=>res(false); tx.onabort = ()=>res(false); }catch(e){ res(false); } });
+}
+async function bigDel_(k){
+  const db = await bigDb_(); if(!db) return;
+  try{ const tx = db.transaction('kv', 'readwrite'); tx.objectStore('kv').delete(k); }catch(e){}
+}
+async function bigGetAll_(){
+  const db = await bigDb_(); if(!db) return {};
+  return new Promise(res=>{
+    const out = {};
+    try{
+      const tx = db.transaction('kv', 'readonly'), cur = tx.objectStore('kv').openCursor();
+      cur.onsuccess = ()=>{ const c = cur.result; if(c){ out[c.key] = c.value; c.continue(); } else res(out); };
+      cur.onerror = ()=>res(out);
+    }catch(e){ res(out); }
+  });
+}
+function lsSetBig_(k, v){            // never throws; falls back to IndexedDB when localStorage is full
+  try{
+    localStorage.setItem(k, v);
+    if(bigMem_[k] !== undefined){ delete bigMem_[k]; bigDel_(k); }
+    return true;
+  }catch(e){
+    bigMem_[k] = v; bigPut_(k, v);
+    try{ localStorage.removeItem(k); }catch(_){}
+    return true;
+  }
+}
+function lsGetBig_(k){
+  if(bigMem_[k] !== undefined) return bigMem_[k];
+  try{ return localStorage.getItem(k); }catch(e){ return null; }
+}
+// At start-up: bring back whatever was parked in IndexedDB and put it into the live lists.
+async function bigHydrate_(){
+  const all = await bigGetAll_(), keys = Object.keys(all);
+  if(!keys.length) return false;
+  const setters = {
+    ssa_acctInvoices:v=>{ acctInvoices = v; }, ssa_acctParties:v=>{ acctParties = v; }, ssa_stockItems:v=>{ stockItems = v; },
+    ssa_stockGroups:v=>{ stockGroups = v; }, ssa_acctVouchers:v=>{ acctVouchers = v; },
+    ssa_acctLedgers:v=>{ acctLedgers = v || {}; }, ssa_acctOpening:v=>{ acctOpening = v || {}; }, ssa_acctNumbering:v=>{ acctNumbering = v || {}; }
+  };
+  let changed = false;
+  keys.forEach(k=>{
+    if(typeof all[k] !== 'string') return;
+    bigMem_[k] = all[k];
+    if(setters[k]){ try{ setters[k](JSON.parse(all[k])); changed = true; }catch(e){ console.error('big hydrate failed', k, e); } }
+  });
+  return changed;
+}
+
 async function storageGet(key){
   if(cloudAvailable && navigator.onLine && authToken_()){
     const data = await apiJson_({ action:'get', key });
@@ -1860,23 +1978,21 @@ async function storageGet(key){
       if(data.value !== null && data.value !== undefined){
         // Cache every successful online read locally too, so the app also works offline.
         // Don't overwrite this device's own not-yet-uploaded changes with older cloud data.
-        if(!isKeyBusy_(key)){ try{ localStorage.setItem('ssa_'+key, data.value); }catch(e){} }
+        if(!isKeyBusy_(key)){ lsSetBig_('ssa_'+key, data.value); }
         return data.value;
       }
       return null;
     }
     // not allowed / server busy / no network: fall back to this device's saved copy
   }
-  try{ return localStorage.getItem('ssa_'+key); }
-  catch(e){ return null; }
+  return lsGetBig_('ssa_'+key);
 }
 const pushInFlight_ = new Set();   // keys currently uploading
 const pushQueued_ = new Set();     // keys changed again while uploading -> upload once more after
 async function storageSet(key, value){
   // Saved on this device instantly. The upload to Google Sheets (slow) then
   // runs IN THE BACKGROUND, so the screen never waits for it.
-  try{ localStorage.setItem('ssa_'+key, value); }
-  catch(e){ console.error('local storage failed', e); }
+  lsSetBig_('ssa_'+key, value);
 
   if(cloudAvailable && navigator.onLine && authToken_()){ pushKeyInBackground_(key); return; }
   markKeyDirty_(key);
@@ -1888,7 +2004,7 @@ function pushKeyInBackground_(key){
   pushInFlight_.add(key);
   (async ()=>{
     try{
-      const value = localStorage.getItem('ssa_'+key);
+      const value = lsGetBig_('ssa_'+key);
       if(value === null){ markKeySynced_(key); return; }
       const j = await apiJson_({ key, value });
       if(pushDone_(j) && !pushQueued_.has(key)) markKeySynced_(key);
@@ -1929,7 +2045,7 @@ async function flushDirtyKeys_(){
     for(const key of [...dirtyKeys]){
       if(pushInFlight_.has(key)) continue;   // already uploading
       try{
-        const value = localStorage.getItem('ssa_'+key);
+        const value = lsGetBig_('ssa_'+key);
         if(value === null){ markKeySynced_(key); continue; }
         const j = await apiJson_({ key, value });
         if(pushDone_(j)) markKeySynced_(key);
@@ -2279,10 +2395,14 @@ document.getElementById('bottomNav').addEventListener('click', (e)=>{
   document.querySelectorAll('.navbtn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   currentTab = btn.dataset.tab;
-  const av = btn.dataset.acct;
-  if(av) acctView = (av === 'salereg' || av === 'newsale') ? 'sales' : (av === 'purreg' || av === 'newpur') ? 'purchases' : av === 'cnreg' ? 'cnotes' : av === 'dnreg' ? 'dnotes' : av === 'ledger' ? 'ledger' : 'tally';
+  const av = btn.dataset.acct, vv = btn.dataset.vch;
+  navCtx_ = vv ? 'v:' + vv : (av === 'newsale' || av === 'newpur') ? av : currentTab === 'regHub' ? 'reg' : '';
+  if(av) acctView = (av === 'newsale') ? 'sales' : (av === 'newpur') ? 'purchases' : av === 'ledger' ? 'ledger' : 'tally';
+  if(vv) vchView = vv === 'rp' ? 'receipt' : vv;
   render();
+  // the entry buttons open the full-screen voucher window straight away (like Tally)
   if((av === 'newsale' || av === 'newpur') && firm_().ok) acctOpen_(av === 'newsale' ? 'sale' : 'purchase');
+  else if(vv === 'rp') vchOpen_('receipt'); else if(vv === 'journal') vchOpen_('journal'); else if(vv === 'contra') vchOpen_('contra');
   // Mobile browsers can throttle/pause the 20s background timer whenever the
   // screen dims or the tab drops out of focus for even a moment, so the data
   // can go stale without any visible sign. Tapping a tab is a sure sign the
@@ -2582,6 +2702,7 @@ function render(){
   if(!canAccessTab(currentTab)) currentTab = firstAllowedTab_();
   const custMode_ = isCustomerUser_();
   try{ const bb = document.getElementById('backupNavBtn'); if(bb) bb.style.display = (custMode_ ? 'none' : 'flex'); }catch(e){}
+  try{ const ab = document.getElementById('alterCoNavBtn'); if(ab) ab.style.display = (!custMode_ && isOwnerUser_()) ? 'flex' : 'none'; }catch(e){}
   ['shareAppBtn','notifyToggleBtn'].forEach(id=>{ const e = document.getElementById(id); if(e) e.style.display = custMode_ ? 'none' : ''; });
   updateCatBadge_();
 
@@ -2590,7 +2711,7 @@ function render(){
   if(!pushTried_ && !isCustomerUser_()){ pushTried_ = true; registerPush_(); }
   document.body.classList.remove('nologin');
   main.className = (currentTab==='dashboard' || currentTab==='catalog' || currentTab==='custCatalog') ? 'wide' : '';
-  document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active', !b.dataset.child && ((b.dataset.tab===currentTab && acctNavOn_(b)) || (b.dataset.tab==='orderHub' && groupOf_(currentTab)==='order') || (b.dataset.tab==='catHub' && groupOf_(currentTab)==='cat'))));
+  document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active', navActive_(b)));
   const actBtn = document.querySelector('.navbtn.active'), pt = document.getElementById('pageTitle');
   if(pt) pt.textContent = actBtn && actBtn.lastChild ? actBtn.lastChild.textContent.trim() : '';
   if(planInfo_().mode === 'expired' && !isPlatformAdmin_()){ renderPaywall_(main); return; }
@@ -2614,10 +2735,12 @@ function render(){
   else if(currentTab==='vouchers') renderVouchers(main);
   else if(currentTab==='gst') renderGstTab(main);
   else if(currentTab==='fin') renderFin(main);
+  else if(currentTab==='regHub') renderRegHub(main);
   else if(currentTab==='orderHub') renderHub_(main, 'order');
   else if(currentTab==='catHub') renderHub_(main, 'cat');
   else renderCustomers(main);
   try{ groupBarPaint_(main); }catch(e){}
+  try{ regBarPaint_(main); }catch(e){}
   try{ planBannerPaint_(main); }catch(e){}
 }
 
@@ -2843,7 +2966,7 @@ function renderApprovals(main){
   `).join('') : '';
 
   main.innerHTML = `
-    <div style="display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-bottom:8px;"><button class="btn-pill alt" onclick="openBizProfile()">🏢 Business Profile</button><button class="btn-pill alt" onclick="openBackup()">💾 Backup</button>${catDateBtn_().replace(' style="margin-left:auto"','')}</div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-bottom:8px;"><button class="btn-pill alt" onclick="openBizProfile()">🏢 Alter Company</button><button class="btn-pill alt" onclick="openBackup()">💾 Backup</button>${catDateBtn_().replace(' style="margin-left:auto"','')}</div>
     <div class="card"><h2>${t('pending_requests')} (${pending.length})</h2></div>
     ${pendingHtml}
     <div class="card" style="margin-top:18px;"><h2>${t('approved_staff')} (${approved.length})</h2></div>
@@ -5077,6 +5200,7 @@ function renderPendingOrders(main){
           ${pendLocBtn_(rows)}
           <button class="action-btn wa" onclick="shareWhatsAppPendingDated('${cname.replace(/'/g,"\\'")}','${dk}')">${t('whatsapp')}</button>
           <button class="action-btn pr" onclick="printPendingOrderDated('${cname.replace(/'/g,"\\'")}','${dk}')">${t('print')}</button>
+          ${canAccessTab('acct') && !isCustomerUser_() ? `<button class="action-btn pr" onclick="pendSaleOpen_('${cname.replace(/'/g,"\\'")}','${dk}')">\U0001F9FE ${BT_('Sale Bill','\u0938\u0947\u0932 \u092C\u093F\u0932')}</button>` : ''}
           <button class="action-btn pr" onclick="startEditPendingGroup('${cname.replace(/'/g,"\\'")}','${dk}')">${t('edit_btn')}</button>
           ${canCurrentUserDelete() ? `<button class="action-btn del" onclick="deletePendingOrderDated('${cname.replace(/'/g,"\\'")}','${dk}')">${t('delete_btn')}</button>` : ''}
         </div>
@@ -6948,7 +7072,7 @@ function renderDashboard(main){
   const lastSync = lastSyncAt_ ? lastSyncAt_.toLocaleString('en-IN', { month:'short', day:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit' }) : '—';
   const trendRows = cur.ord;
   main.innerHTML = `
-    <div class="dash-bar"><span>Last sync: ${lastSync}</span><button class="btn-pill" onclick="dashRefresh_()">⟳ Refresh</button></div>
+    <div class="dash-bar"><span>Last sync: ${lastSync}</span>${isOwnerUser_() ? '<button class="btn-pill alt" onclick="openBizProfile()">🏢 Alter Company</button>' : ''}<button class="btn-pill" onclick="dashRefresh_()">⟳ Refresh</button></div>
     <div class="dash-hero">
       <div class="dash-head"><h2>Business Overview</h2>
         <select class="pill-select" onchange="dashPeriod=this.value;render()">${DASH_PERIODS.map(p=>`<option value="${p[0]}" ${p[0] === dashPeriod ? 'selected' : ''}>${p[1]}</option>`).join('')}</select></div>
@@ -6966,6 +7090,7 @@ function renderDashboard(main){
           ${st('In Quantity', totalsUi_(pending))}${st('Customers', new Set(pending.map(b=>b.customerName)).size)}</div></div>
       </div>
     </div>
+    ${dashAcctHtml_(R, (DASH_PERIODS.find(p=>p[0] === dashPeriod) || [0, ''])[1])}
     <div class="dash-sec">Trending — ${DASH_PERIODS.find(p=>p[0] === dashPeriod)[1]}</div>
     <div class="trend-grid">
       <div class="tcard"><div class="thead">Customers<select class="pill-select sm" onchange="dashTrend=this.value;render()"><option value="qty" ${dashTrend === 'qty' ? 'selected' : ''}>Qty wise</option><option value="lines" ${dashTrend === 'lines' ? 'selected' : ''}>Order wise</option></select></div>${dashTop_(trendRows, b=>b.customerName)}</div>
@@ -7679,7 +7804,7 @@ function nextInvoiceNo_(invoices, kind, date){
     const next = max >= 0 ? Math.max(max + 1, start) : start;
     return prefix + (digits ? String(next).padStart(digits, '0') : String(next));
   }
-  const fy = fyOf_(date).label, prefix = (kind === 'credit_note' ? 'CN/' : kind === 'debit_note' ? 'DN/' : kind === 'payment' ? 'PAY/' : kind === 'receipt' ? 'RCT/' : kind === 'journal' ? 'JV/' : kind === 'purchase' ? 'PUR/' : 'INV/') + fy + '/';
+  const fy = fyOf_(date).label, prefix = (kind === 'credit_note' ? 'CN/' : kind === 'debit_note' ? 'DN/' : kind === 'payment' ? 'PAY/' : kind === 'receipt' ? 'RCT/' : kind === 'journal' ? 'JV/' : kind === 'contra' ? 'CNT/' : kind === 'purchase' ? 'PUR/' : 'INV/') + fy + '/';
   let max = 0;
   invoices.forEach(i=>{ if(i.kind === kind && String(i.no || '').startsWith(prefix)){ const n = parseInt(String(i.no).slice(prefix.length), 10); if(n > max) max = n; } });
   return prefix + String(max + 1).padStart(4, '0');
@@ -7919,7 +8044,7 @@ async function dataPull_(){
   const defs = [['acctInvoices', v=>{ acctInvoices = v; }], ['acctParties', v=>{ acctParties = v; }], ['stockItems', v=>{ stockItems = v; }], ['stockGroups', v=>{ stockGroups = v; }], ['acctNumbering', v=>{ acctNumbering = v; }], ['acctVouchers', v=>{ acctVouchers = v; }], ['acctLedgers', v=>{ acctLedgers = v || {}; }], ['acctOpening', v=>{ acctOpening = v || {}; }]];
   for(const [k, set] of defs){
     if(isKeyBusy_(k)) continue;
-    const before = localStorage.getItem('ssa_' + k);
+    const before = lsGetBig_('ssa_' + k);
     const raw = await storageGet(k);
     if(raw && raw !== before){ try{ set(JSON.parse(raw) || []); changed = true; }catch(e){} }
     else if(!raw && before && before !== '[]' && before !== '{}'){ pushKeyInBackground_(k); }   // this device has data the cloud does not: upload it
@@ -8138,19 +8263,20 @@ document.addEventListener('keydown', e=>{
 /* =====================  VOUCHERS: Payment, Receipt, Journal (with registers)  ===================== */
 let acctLedgers = {}, acctOpening = {};
 try{ acctLedgers = JSON.parse(localStorage.getItem('ssa_acctLedgers') || '{}') || {}; acctOpening = JSON.parse(localStorage.getItem('ssa_acctOpening') || '{}') || {}; }catch(e){ acctLedgers = {}; acctOpening = {}; }
-function finSaveSettings_(){ try{ localStorage.setItem('ssa_acctLedgers', JSON.stringify(acctLedgers)); localStorage.setItem('ssa_acctOpening', JSON.stringify(acctOpening)); storageSet('acctLedgers', JSON.stringify(acctLedgers)); storageSet('acctOpening', JSON.stringify(acctOpening)); }catch(e){} }
+function finSaveSettings_(){ try{ storageSet('acctLedgers', JSON.stringify(acctLedgers)); storageSet('acctOpening', JSON.stringify(acctOpening)); }catch(e){} }
 let acctVouchers = [];
 try{ acctVouchers = JSON.parse(localStorage.getItem('ssa_acctVouchers') || '[]') || []; }catch(e){ acctVouchers = []; }
-const VCH_LABEL_ = { payment:'Payment', receipt:'Receipt', journal:'Journal' };
+const VCH_LABEL_ = { payment:'Payment', receipt:'Receipt', journal:'Journal', contra:'Contra' };
 const VCH_MODES_ = ['Cash', 'Bank transfer', 'UPI', 'Cheque', 'Card', 'Other'];
 const COMMON_LEDGERS_ = ['Cash', 'Bank', 'Sales', 'Purchase', 'Capital', 'Drawings', 'Rent', 'Salary', 'Electricity', 'Telephone', 'Transport', 'Interest paid', 'Interest received', 'Discount allowed', 'Discount received', 'Office expenses', 'Repairs', 'Loan', 'Fixed assets'];
 let vchView = 'payment', vchMonth = '', vchQuery = '', vchDraft_ = null;
 const VCH_GROUPS_ = [['party', 'Party (customer / supplier)'], ['iexp', 'Expense'], ['dexp', 'Direct expense'], ['iinc', 'Income'], ['fixed', 'Fixed asset'], ['loan', 'Loan'], ['capital', 'Capital introduced'], ['drawings', 'Drawings (owner)']];
 const DEFAULT_LEDGER_GROUPS_ = { 'cash':'cash', 'bank':'bank', 'sales':'sales', 'purchase':'purchase', 'capital':'capital', 'drawings':'drawings', 'rent':'iexp', 'salary':'iexp', 'electricity':'iexp', 'telephone':'iexp', 'transport':'dexp', 'interest paid':'iexp', 'interest received':'iinc', 'discount allowed':'iexp', 'discount received':'iinc', 'office expenses':'iexp', 'repairs':'iexp', 'loan':'loan', 'fixed assets':'fixed' };
 function r2_(x){ return Math.round((Number(x) || 0) * 100) / 100; }
+let pnBatch_ = null;                  // set while a big report runs, so each name lookup is instant
 function ledgerGroupOf_(name){        // which group a ledger name belongs to ('' = not known yet)
   const k = String(name || '').trim().toLowerCase(); if(!k) return '';
-  if(acctParties.some(p=>p.name.trim().toLowerCase() === k)) return 'party';
+  if(pnBatch_ ? pnBatch_.has(k) : acctParties.some(p=>p.name.trim().toLowerCase() === k)) return 'party';
   return acctLedgers[k] || DEFAULT_LEDGER_GROUPS_[k] || '';
 }
 function vchBillsFor_(d){          // unpaid bills of the party in this voucher
@@ -8192,39 +8318,54 @@ function vchAutoAlloc_(){
 }
 
 function vchSave_(){
-  try{ localStorage.setItem('ssa_acctVouchers', JSON.stringify(acctVouchers)); storageSet('acctVouchers', JSON.stringify(acctVouchers)); return true; }
+  try{ storageSet('acctVouchers', JSON.stringify(acctVouchers)); return true; }
   catch(e){ alert('Could not save.'); return false; }
 }
 function vchAmount_(v){ return v.kind === 'journal' ? (v.lines || []).reduce((t, l)=>t + (Number(l.dr) || 0), 0) : (Number(v.amount) || 0); }
-function renderVouchers(main){
-  dataPull_().then(ch=>{ if(ch && currentTab === 'vouchers' && !document.getElementById('vchOv')) render(); }).catch(()=>{});
-  const q = vchQuery.toLowerCase();
-  const list = acctVouchers.filter(v=>v.kind === vchView && (!vchMonth || v.date.slice(0, 7) === vchMonth) && (!q || ((v.no || '') + ' ' + (v.party || '') + ' ' + (v.narration || '') + ' ' + (v.ref || '')).toLowerCase().includes(q)))
-    .sort((a, b)=>a.date < b.date ? 1 : a.date > b.date ? -1 : String(b.no) < String(a.no) ? -1 : 1);
-  const total = list.filter(v=>v.status !== 'cancelled').reduce((t, v)=>t + vchAmount_(v), 0);
-  const seg = (k, l)=>`<button class="btn-pill ${vchView === k ? '' : 'ghost'}" onclick="vchView='${k}';render()">${l}</button>`;
-  if(vchView === 'out'){ main.innerHTML = `<div class="card"><h2 style="margin:0 0 8px;">💰 ${BT_('Vouchers','वाउचर')}</h2><div style="display:flex;gap:8px;flex-wrap:wrap;">${seg('payment', '💸 Payment')}${seg('receipt', '💵 Receipt')}${seg('journal', '📒 Journal')}${seg('out', '⏳ Outstanding')}</div>${outstandingHtml_()}</div>`; return; }
-  const who = vchView === 'payment' ? 'Paid to' : vchView === 'receipt' ? 'Received from' : 'Entry';
-  const rows = list.map(v=>{
+function vchRowsHtml_(list){
+  return list.map(v=>{
     const cx = v.status === 'cancelled';
     const bills = (v.alloc || []).map(a=>a.no).join(', ') || v.against || '';
-    const mid = v.kind === 'journal' ? (v.lines || []).map(l=>(Number(l.dr) ? 'Dr ' : 'Cr ') + escapeHtml(l.ledger)).join('<br>') : escapeHtml(v.party || '') + (bills ? `<br><small>Against ${escapeHtml(bills)}</small>` : '');
+    const mid = v.kind === 'journal' ? (v.lines || []).map(l=>(Number(l.dr) ? 'Dr ' : 'Cr ') + escapeHtml(l.ledger)).join('<br>')
+      : v.kind === 'contra' ? escapeHtml((v.fromAcc || '') + ' → ' + (v.toAcc || ''))
+      : escapeHtml(v.party || '') + (bills ? `<br><small>Against ${escapeHtml(bills)}</small>` : '');
     return `<tr class="${cx ? 'cx' : ''}"><td>${escapeHtml(v.no)}${cx ? ' <span style="color:#c0392b;font-weight:700;font-size:11px;">CANCELLED</span>' : ''}</td><td>${dmy_(v.date)}</td><td>${mid}</td>
       <td>${v.kind === 'journal' ? '' : escapeHtml(v.mode || '') + (v.ref ? `<br><small>${escapeHtml(v.ref)}</small>` : '')}</td><td>${escapeHtml(v.narration || '')}</td><td class="r"><b>${inr_(vchAmount_(v))}</b></td>
       <td class="act">${cx ? '' : `<button title="Edit" onclick="vchOpen_('${v.kind}','${v.id}')">✏️</button>`}${!cx && canCurrentUserDelete() ? `<button title="Cancel" onclick="vchCancel_('${v.id}')">✖</button>` : ''}${cx && canCurrentUserDelete() ? `<button title="Delete permanently" onclick="vchDelete_('${v.id}')">🗑️</button>` : ''}</td></tr>`;
   }).join('');
-  main.innerHTML = `<div class="card"><h2 style="margin:0 0 8px;">💰 ${BT_('Vouchers','वाउचर')}</h2>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;">${seg('payment', '💸 Payment')}${seg('receipt', '💵 Receipt')}${seg('journal', '📒 Journal')}${seg('out', '⏳ Outstanding')}</div>
+}
+function renderVouchers(main){
+  dataPull_().then(ch=>{ if(ch && currentTab === 'vouchers' && !document.getElementById('vchOv')) render(); }).catch(()=>{});
+  const entryCtx = String(navCtx_).startsWith('v:');
+  if(vchView === 'out'){ main.innerHTML = `<div class="card"><h2 style="margin:0 0 8px;">⏳ Outstanding (bill-wise)</h2>${outstandingHtml_()}</div>`; return; }
+  const sortD = (a, b)=>a.date < b.date ? 1 : a.date > b.date ? -1 : String(b.no) < String(a.no) ? -1 : 1;
+  const table = (list, who, label)=>{
+    const total = list.filter(v=>v.status !== 'cancelled').reduce((t, v)=>t + vchAmount_(v), 0);
+    return list.length ? `<div style="overflow-x:auto;"><table class="acct-tbl"><thead><tr><th>No.</th><th>Date</th><th>${who}</th><th>Mode</th><th>Narration</th><th class="r">Amount</th><th></th></tr></thead><tbody>${vchRowsHtml_(list.slice(0, ACCT_ROWCAP_))}</tbody>
+      <tfoot><tr><td colspan="5"><b>${label} total</b></td><td class="r"><b>${inr_(total)}</b></td><td></td></tr></tfoot></table></div>${list.length > ACCT_ROWCAP_ ? `<div class="subtle" style="margin-top:6px;">Showing the latest ${ACCT_ROWCAP_} of ${list.length}. Choose a month or search to see the others.</div>` : ''}` : '<div class="empty">Nothing here yet</div>';
+  };
+  if(entryCtx){          // behind the full-screen window: the entry page with recent entries
+    const kinds = navCtx_ === 'v:rp' ? ['receipt', 'payment'] : [navCtx_.slice(2)];
+    const title = navCtx_ === 'v:rp' ? 'Receipt / Payment Entry' : navCtx_ === 'v:journal' ? 'Journal Entry' : 'Contra Entry';
+    const recent = acctVouchers.filter(v=>kinds.includes(v.kind)).sort(sortD).slice(0, 15);
+    main.innerHTML = `<div class="card"><h2 style="margin:0 0 10px;">${title}</h2><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">` +
+      kinds.map(k=>`<button class="primary" style="width:auto;padding:10px 18px;" onclick="vchOpen_('${k}')">＋ New ${VCH_LABEL_[k]}</button>`).join('') +
+      `</div><div class="subtle" style="margin-bottom:4px;">Recent entries (all entries are in Register)</div>${table(recent, 'Account / Party', 'Recent')}</div>`;
+    return;
+  }
+  const q = vchQuery.toLowerCase();
+  const list = acctVouchers.filter(v=>v.kind === vchView && (!vchMonth || v.date.slice(0, 7) === vchMonth) && (!q || ((v.no || '') + ' ' + (v.party || '') + ' ' + (v.narration || '') + ' ' + (v.ref || '')).toLowerCase().includes(q))).sort(sortD);
+  const who = vchView === 'payment' ? 'Paid to' : vchView === 'receipt' ? 'Received from' : vchView === 'contra' ? 'Accounts' : 'Entry';
+  main.innerHTML = `<div class="card"><h2 style="margin:0 0 8px;">${VCH_LABEL_[vchView] || ''} Register</h2>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;">
       <button class="primary" style="width:auto;padding:10px 16px;" onclick="vchOpen_('${vchView}')">＋ New ${VCH_LABEL_[vchView]}</button>
       <input type="month" value="${vchMonth}" onchange="vchMonth=this.value;render()" style="max-width:170px;">
       <input placeholder="Search no. / party / narration" value="${escapeHtml(vchQuery)}" onchange="vchQuery=this.value;render()" style="flex:1;min-width:140px;"></div>
-    ${list.length ? `<div style="overflow-x:auto;"><table class="acct-tbl"><thead><tr><th>No.</th><th>Date</th><th>${who}</th><th>Mode</th><th>Narration</th><th class="r">Amount</th><th></th></tr></thead><tbody>${rows}</tbody>
-      <tfoot><tr><td colspan="5"><b>${VCH_LABEL_[vchView]} register total</b></td><td class="r"><b>${inr_(total)}</b></td><td></td></tr></tfoot></table></div>` : '<div class="empty">Nothing here yet</div>'}</div>`;
+    ${table(list, who, VCH_LABEL_[vchView] + ' register')}</div>`;
 }
 function vchOpen_(kind, id){
   const old = id ? acctVouchers.find(x=>x.id === id) : null;
-  vchDraft_ = old ? JSON.parse(JSON.stringify(old)) : { id:uid(), kind, no:'', date:todayIso_(), party:'', mode:'Cash', ref:'', amount:'', against:'', narration:'', status:'active', lines:[{ ledger:'', dr:'', cr:'' }, { ledger:'', dr:'', cr:'' }] };
+  vchDraft_ = old ? JSON.parse(JSON.stringify(old)) : { id:uid(), kind, no:'', date:todayIso_(), party:'', mode:'Cash', ref:'', amount:'', against:'', narration:'', status:'active', fromAcc:'Cash', toAcc:'Bank', lines:[{ ledger:'', dr:'', cr:'' }, { ledger:'', dr:'', cr:'' }] };
   if(!old) vchDraft_.no = nextInvoiceNo_(acctVouchers, kind, vchDraft_.date);
   vchDraft_.alloc = {}; if(old) (old.alloc || []).forEach(a=>{ vchDraft_.alloc[a.invId] = a.amount; });
   const ex = document.getElementById('vchOv'); if(ex) ex.remove();
@@ -8249,6 +8390,12 @@ function vchFormTally_(){
         <td style="width:30px;text-align:center;">${d.lines.length > 2 ? `<button class="x" onclick="vchDraft_.lines.splice(${i},1);vchForm_()">✕</button>` : ''}</td></tr>`).join('') +
       `</tbody></table><div style="margin-top:6px;"><button class="btn-pill ghost" onclick="tvFocusNext_={r:vchDraft_.lines.length,c:'ledger'};vchDraft_.lines.push({ledger:'',dr:'',cr:''});vchForm_()">＋ Add line</button></div>
        <div id="vchTot" style="margin-top:8px;font-weight:700;">Debit ${inr_(dr)} · Credit ${inr_(cr)} ${diff ? `<span style="color:#c0392b;">· Difference ${inr_(Math.abs(diff))}</span>` : '<span style="color:#1e8449;">· Balanced ✓</span>'}</div>`;
+  } else if(d.kind === 'contra'){
+    const accSel = (k)=>`<select onchange="vchDraft_.${k}=this.value">${['Cash', 'Bank'].map(a=>`<option ${d[k] === a ? 'selected' : ''}>${a}</option>`).join('')}</select>`;
+    body = fld('From account (money goes out)', accSel('fromAcc')) + fld('To account (money comes in)', accSel('toAcc')) +
+      fld('Amount ₹', `<input data-tvstart="1" type="number" step="any" style="width:170px;" value="${d.amount}" oninput="vchDraft_.amount=this.value">`) +
+      fld('Cheque / reference', `<input value="${escapeHtml(d.ref || '')}" oninput="vchDraft_.ref=this.value">`) +
+      '<div class="subtle" style="font-size:12px;">Contra is a transfer between Cash and Bank, for example cash deposited in the bank.</div>';
   } else {
     const nx = "if(event.key==='Enter'){event.preventDefault();const a=[...document.querySelectorAll('.tv-form input,.tv-form select,.tv-form textarea')];const j=a.indexOf(this);if(a[j+1])a[j+1].focus();}";
     body = fld(d.kind === 'payment' ? 'Paid to (Account)' : 'Received from (Account)', `<input data-tvstart="1" list="vchLedgerList" style="flex:1;max-width:460px;font-size:16px;font-weight:700;" value="${escapeHtml(d.party)}" oninput="vchDraft_.party=this.value" onchange="vchDraft_.party=this.value;vchDraft_.alloc={};tvFocusNext_={r:'a',c:'amt'};vchForm_()" onkeydown="${nx}">`) +
@@ -8281,6 +8428,9 @@ function vchForm_(){
         ${d.lines.length > 2 ? `<button class="btn-pill ghost" onclick="vchDraft_.lines.splice(${i},1);vchForm_()">✕</button>` : ''}</div>`).join('') +
       `<button class="btn-pill ghost" style="margin-top:8px;" onclick="vchDraft_.lines.push({ledger:'',dr:'',cr:''});vchForm_()">＋ Add line</button>
        <div id="vchTot" style="margin-top:8px;font-weight:700;">Debit ${inr_(dr)} · Credit ${inr_(cr)} ${diff ? `<span style="color:#c0392b;">· Difference ${inr_(Math.abs(diff))}</span>` : '<span style="color:#1e8449;">· Balanced ✓</span>'}</div>`;
+  } else if(d.kind === 'contra'){
+    const accSel = (k)=>`<select onchange="vchDraft_.${k}=this.value" ${inp}>${['Cash', 'Bank'].map(a=>`<option ${d[k] === a ? 'selected' : ''}>${a}</option>`).join('')}</select>`;
+    body = fld('From account', accSel('fromAcc')) + fld('To account', accSel('toAcc')) + fld('Amount ₹', `<input type="number" step="any" value="${d.amount}" oninput="vchDraft_.amount=this.value" ${inp}>`) + fld('Cheque / reference', `<input value="${escapeHtml(d.ref || '')}" oninput="vchDraft_.ref=this.value" ${inp}>`);
   } else {
     body = `${fld(d.kind === 'payment' ? 'Paid to' : 'Received from', `<input list="vchLedgerList" value="${escapeHtml(d.party)}" oninput="vchDraft_.party=this.value" onchange="vchDraft_.party=this.value;vchDraft_.alloc={};vchForm_()" ${inp}>`, true)}
       <div style="grid-column:1/-1">${vchBillsHtml_(d)}</div>
@@ -8323,6 +8473,10 @@ function vchSaveDraft_(){
     }
     finSaveSettings_();
     d.lines = ls.map(l=>({ ledger:l.ledger.trim(), dr:Number(l.dr) || 0, cr:Number(l.cr) || 0 }));
+  } else if(d.kind === 'contra'){
+    if(!d.fromAcc || !d.toAcc || d.fromAcc === d.toAcc) return err('Choose two different accounts (Cash and Bank).');
+    if(!(Number(d.amount) > 0)) return err('Please enter the amount.');
+    d.amount = Number(d.amount); d.party = d.fromAcc + ' → ' + d.toAcc; d.alloc = [];
   } else {
     if(!String(d.party || '').trim()) return err(d.kind === 'payment' ? 'Please enter who was paid.' : 'Please enter who paid you.');
     const am = d.alloc || {}, asum = r2_(Object.values(am).reduce((t, x)=>t + (Number(x) || 0), 0));
@@ -8371,7 +8525,11 @@ function finOpening_(){      // opening position; capital is the balancing figur
   let pdr = 0, pcr = 0; acctParties.forEach(p=>{ const v = Number(p.open) || 0; if(v > 0) pdr += v; else pcr -= v; });
   return { cash, bank, fixed, loans, stock, pdr, pcr, capital:r2_(cash + bank + fixed + stock + pdr - loans - pcr) };
 }
-function finEntries_(){      // every sale / purchase / voucher turned into plain debit-credit lines
+function finEntries_(){
+  pnBatch_ = new Set(acctParties.map(p=>String(p.name || '').trim().toLowerCase()));
+  try{ return finEntriesRaw_(); } finally{ pnBatch_ = null; }
+}
+function finEntriesRaw_(){      // every sale / purchase / voucher turned into plain debit-credit lines
   const f = firm_(), E = [], O = finOpening_();
   const push = (date, name, grp, dr, cr)=>{ dr = r2_(dr); cr = r2_(cr); if(dr || cr) E.push({ date, name, grp, dr, cr }); };
   const START = '0000-00-00';
@@ -8409,6 +8567,7 @@ function finEntries_(){      // every sale / purchase / voucher turned into plai
       (v.lines || []).forEach(l=>{ const g = ledgerGroupOf_(l.ledger) || l.grp || 'iexp'; push(d, l.ledger, g, Number(l.dr) || 0, Number(l.cr) || 0); });
       return;
     }
+    if(v.kind === 'contra'){ const nm = a=>/^cash$/i.test(a) ? ['Cash', 'cash'] : ['Bank', 'bank'], a1 = nm(v.fromAcc), a2 = nm(v.toAcc), x = Number(v.amount) || 0; push(d, a2[0], a2[1], x, 0); push(d, a1[0], a1[1], 0, x); return; }
     const amt = Number(v.amount) || 0, mode = /^cash$/i.test(v.mode || '') ? ['Cash', 'cash'] : ['Bank', 'bank'];
     const g = ledgerGroupOf_(v.party) || (v.kind === 'payment' ? 'iexp' : 'iinc');
     if(v.kind === 'receipt'){ push(d, mode[0], mode[1], amt, 0); push(d, v.party, g, 0, amt); }
@@ -8464,7 +8623,7 @@ function renderFin(main){
   const head = `<h2 style="margin:0 0 8px;">📊 ${BT_('Financial Reports','वित्तीय रिपोर्ट')}</h2><div style="display:flex;gap:8px;flex-wrap:wrap;">${seg('pl', 'Profit & Loss')}${seg('bs', 'Balance Sheet')}${seg('tb', 'Trial Balance')}${seg('open', 'Opening Balances')}</div>`;
   if(finView === 'open'){ main.innerHTML = `<div class="card">${head}${finOpeningHtml_()}</div>`; return; }
   const R = finCompute_(finView === 'pl' ? finFrom : '', finTo), isPL = finView === 'pl';
-  const dates = `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0;">${isPL ? `<label>From <input type="date" value="${finFrom}" onchange="finFrom=this.value;render()"></label>` : ''}<label>${isPL ? 'To' : 'As on'} <input type="date" value="${finTo}" onchange="finTo=this.value;render()"></label><button class="btn-pill ghost" onclick="window.print()">🖨️ Print</button></div>`;
+  const dates = `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0;">${isPL ? `<label>From <input type="date" value="${finFrom}" onchange="finFrom=this.value;render()"></label>` : ''}<label>${isPL ? 'To' : 'As on'} <input type="date" value="${finTo}" onchange="finTo=this.value;render()"></label><button class="btn-pill ghost" onclick="printFin_()">🖨️ Print</button></div>`;
   let body = '';
   if(finView === 'pl'){
     const p = R.pl, ln = (a)=>a.map(x=>finRow_(x.name, x.amt)).join('');
@@ -8495,7 +8654,7 @@ function renderFin(main){
       <div style="margin-top:8px;font-weight:700;${Math.abs(R.tbDr - R.tbCr) < 0.01 ? 'color:#1e8449;' : 'color:#c0392b;'}">${Math.abs(R.tbDr - R.tbCr) < 0.01 ? '✓ Trial balance tallies' : 'Difference ' + inr_(Math.abs(R.tbDr - R.tbCr))}</div>
       <div class="subtle" style="font-size:12px;">Stock appears as opening stock here; closing stock comes into the Profit & Loss and Balance Sheet.</div>`;
   }
-  main.innerHTML = `<div class="card">${head}${dates}<div style="overflow-x:auto;">${body}</div></div>`;
+  main.innerHTML = `<div class="card">${head}${dates}<div id="finBody" style="overflow-x:auto;">${body}</div></div>`;
 }
 function finOpeningHtml_(){
   const O = finOpening_(), o = acctOpening || {};
@@ -8541,11 +8700,12 @@ function renderGstTab(main){
   main.innerHTML = `<div class="card"><h2>📑 ${BT_('GST Reports','GST रिपोर्ट')}</h2>${acctReportsHtml_(f)}</div>`;
 }
 let acctInvoices = [], acctParties = [];
+const ACCT_ROWCAP_ = 500;    // long registers show the latest 500 rows; month / search narrows it
 try{ acctInvoices = JSON.parse(localStorage.getItem('ssa_acctInvoices') || '[]') || []; acctParties = JSON.parse(localStorage.getItem('ssa_acctParties') || '[]') || []; }catch(e){ acctInvoices = []; acctParties = []; }
 let acctView = 'sales', acctMonth = '', acctQuery = '', acctDraft_ = null, acctEditId_ = null;
 function acctSave_(){
-  try{ localStorage.setItem('ssa_acctInvoices', JSON.stringify(acctInvoices)); localStorage.setItem('ssa_acctParties', JSON.stringify(acctParties));
-       try{ storageSet('acctInvoices', JSON.stringify(acctInvoices)); storageSet('acctParties', JSON.stringify(acctParties)); }catch(e){}
+  try{ const _i = JSON.stringify(acctInvoices), _p = JSON.stringify(acctParties);
+       try{ storageSet('acctInvoices', _i); storageSet('acctParties', _p); }catch(e){}
        return true; }
   catch(e){ alert(BT_('Phone storage is full. Please take a backup and free some space.', 'फोन की जगह भर गई है। बैकअप लेकर जगह खाली करें।')); return false; }
 }
@@ -8565,7 +8725,7 @@ function renderAcct(main){
   dataPull_().then(ch=>{ if(ch && currentTab === 'acct' && !document.getElementById('acctOv')) render(); }).catch(()=>{});
   const f = firm_();
   if(!f.ok){
-    main.innerHTML = `<div class="card"><h2>🧾 ${BT_('Sale / Purchase','सेल / परचेज')}</h2><div class="subtle" style="margin:8px 0 12px;">${BT_('First set your GST details: registration type (Regular / Composition / Unregistered), GSTIN and state.','पहले अपनी GST जानकारी भरें: रजिस्ट्रेशन का प्रकार (Regular / Composition / Unregistered), GSTIN और राज्य।')}</div>${isOwnerUser_() ? `<button class="primary" onclick="openBizProfile()">🏢 ${BT_('Open Business Profile','बिज़नेस प्रोफाइल खोलें')}</button>` : `<div class="msg info">${BT_('Please ask the owner to set the GST details in Business Profile.','कृपया ओनर से बिज़नेस प्रोफाइल में GST जानकारी भरने को कहें।')}</div>`}</div>`;
+    main.innerHTML = `<div class="card"><h2>🧾 ${BT_('Sale / Purchase','सेल / परचेज')}</h2><div class="subtle" style="margin:8px 0 12px;">${BT_('First set your GST details: registration type (Regular / Composition / Unregistered), GSTIN and state.','पहले अपनी GST जानकारी भरें: रजिस्ट्रेशन का प्रकार (Regular / Composition / Unregistered), GSTIN और राज्य।')}</div>${isOwnerUser_() ? `<button class="primary" onclick="openBizProfile()">🏢 ${BT_('Open Alter Company','Alter Company खोलें')}</button>` : `<div class="msg info">${BT_('Please ask the owner to set the GST details in Business Profile.','कृपया ओनर से बिज़नेस प्रोफाइल में GST जानकारी भरने को कहें।')}</div>`}</div>`;
     return;
   }
   const typeTxt = { regular:'Regular (GSTR-1 / GSTR-3B)', composition:'Composition (CMP-08 / GSTR-4)', unregistered:'Unregistered (no GST return)' }[f.type];
@@ -8587,13 +8747,13 @@ function renderAcct(main){
         <input placeholder="${BT_('Search no. / party','नंबर / पार्टी खोजें')}" value="${escapeHtml(acctQuery)}" onchange="acctQuery=this.value;render()" style="flex:1;min-width:140px;">
       </div>
       ${list.length ? `<div style="overflow-x:auto;"><table class="acct-tbl"><thead><tr><th>${BT_('No.','नं.')}</th><th>${BT_('Date','तारीख')}</th><th>${BT_('Party','पार्टी')}</th><th class="r">${BT_('Taxable','टैक्सेबल')}</th><th class="r">GST</th><th class="r">${BT_('Total','कुल')}</th><th></th></tr></thead><tbody>
-        ${list.map(i=>`<tr class="${i.status === 'cancelled' ? 'cx' : ''}"><td>${escapeHtml(i.no)}${i.kind === 'credit_note' ? ' <small>(CN)</small>' : ''}${i.kind === 'debit_note' ? ' <small>(DN - purchase return)</small>' : ''}${i.status === 'cancelled' ? ' <span style="color:#c0392b;font-weight:700;font-size:11px;">CANCELLED</span>' : ''}</td><td>${dmy_(i.date)}</td><td>${escapeHtml(i.partyName || '')}${i.partyGstin ? `<br><small>${escapeHtml(i.partyGstin)}</small>` : ''}</td><td class="r">${inr_(sg(i) * i.taxable)}</td><td class="r">${inr_(sg(i) * (i.cgst + i.sgst + i.igst))}</td><td class="r"><b>${inr_(sg(i) * i.total)}</b></td>
+        ${list.slice(0, ACCT_ROWCAP_).map(i=>`<tr class="${i.status === 'cancelled' ? 'cx' : ''}"><td>${escapeHtml(i.no)}${i.kind === 'credit_note' ? ' <small>(CN)</small>' : ''}${i.kind === 'debit_note' ? ' <small>(DN - purchase return)</small>' : ''}${i.status === 'cancelled' ? ' <span style="color:#c0392b;font-weight:700;font-size:11px;">CANCELLED</span>' : ''}</td><td>${dmy_(i.date)}</td><td>${escapeHtml(i.partyName || '')}${i.partyGstin ? `<br><small>${escapeHtml(i.partyGstin)}</small>` : ''}</td><td class="r">${inr_(sg(i) * i.taxable)}</td><td class="r">${inr_(sg(i) * (i.cgst + i.sgst + i.igst))}</td><td class="r"><b>${inr_(sg(i) * i.total)}</b></td>
           <td class="act">${sales || i.kind === 'debit_note' ? `<button title="PDF" onclick="acctPdf_('${i.id}')">📄</button>` : ''}${i.status === 'cancelled' ? '' : `<button title="Edit" onclick="acctOpen_('${i.kind}','${i.id}')">✏️</button>`}${i.status !== 'cancelled' && canCurrentUserDelete() ? `<button title="Cancel" onclick="acctCancel_('${i.id}')">✖</button>` : ''}${i.status === 'cancelled' && canCurrentUserDelete() ? `<button title="Delete permanently" onclick="acctDeleteInv_('${i.id}')">🗑️</button>` : ''}</td></tr>`).join('')}
-        </tbody><tfoot><tr><td colspan="3"><b>${BT_('Total','कुल')}</b></td><td class="r"><b>${inr_(tot.t)}</b></td><td class="r"><b>${inr_(tot.x)}</b></td><td class="r"><b>${inr_(tot.g)}</b></td><td></td></tr></tfoot></table></div>`
+        </tbody><tfoot><tr><td colspan="3"><b>${BT_('Total','कुल')}</b></td><td class="r"><b>${inr_(tot.t)}</b></td><td class="r"><b>${inr_(tot.x)}</b></td><td class="r"><b>${inr_(tot.g)}</b></td><td></td></tr></tfoot></table></div>${list.length > ACCT_ROWCAP_ ? `<div class="subtle" style="margin-top:6px;">Showing the latest ${ACCT_ROWCAP_} of ${list.length}. Choose a month or search to see the others (totals above are for all ${list.length}).</div>` : ''}`
       : `<div class="empty">${BT_('Nothing here yet','अभी कुछ नहीं है')}</div>`}`;
   }
   main.innerHTML = `<div class="card"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;"><h2 style="margin:0;">🧾 ${acctView === 'purchases' ? BT_('Purchase Register','परचेज रजिस्टर') : acctView === 'reports' ? BT_('GST / Reports','GST / रिपोर्ट') : acctView === 'tally' ? 'Tally Export / Import' : acctView === 'cnotes' ? BT_('Credit Note Register','क्रेडिट नोट रजिस्टर') : acctView === 'dnotes' ? BT_('Debit Note Register','डेबिट नोट रजिस्टर') : acctView === 'ledger' ? BT_('Party Ledger','पार्टी लेजर') : BT_('Sale Register','सेल रजिस्टर')}</h2><span class="subtle">${escapeHtml(typeTxt)}${f.gstin ? ' · ' + escapeHtml(f.gstin) : ''}</span></div>
-    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">${seg('sales', BT_('Sale Register','सेल रजिस्टर'))}${seg('purchases', BT_('Purchase Register','परचेज रजिस्टर'))}${seg('reports', BT_('GST / Reports','GST / रिपोर्ट'))}${seg('cnotes', BT_('Credit Note Register','क्रेडिट नोट रजिस्टर'))}${seg('dnotes', BT_('Debit Note Register','डेबिट नोट रजिस्टर'))}${seg('ledger', BT_('Ledgers','लेजर'))}${seg('tally', BT_('Tally Export/Import','Tally Export/Import'))}</div>
+    ${navCtx_ === 'reg' || navCtx_ === 'newsale' || navCtx_ === 'newpur' ? '' : `<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">${seg('sales', BT_('Sale Register','सेल रजिस्टर'))}${seg('purchases', BT_('Purchase Register','परचेज रजिस्टर'))}${seg('reports', BT_('GST / Reports','GST / रिपोर्ट'))}${seg('cnotes', BT_('Credit Note Register','क्रेडिट नोट रजिस्टर'))}${seg('dnotes', BT_('Debit Note Register','डेबिट नोट रजिस्टर'))}${seg('ledger', BT_('Ledgers','लेजर'))}${seg('tally', BT_('Tally Export/Import','Tally Export/Import'))}</div>`}
     <datalist id="acctPartyList">${acctParties.map(p=>`<option value="${escapeHtml(p.name)}">`).join('')}</datalist>${body}</div>`;
 }
 
@@ -8686,7 +8846,7 @@ function tvApplyFocus_(){
 function tvStartFocus_(){ const el = document.querySelector('[data-tvstart]'); if(el) el.focus(); }
 function tvKeysHtml_(cur){
   const k = (key, label, fn, type, dis)=>`<button ${dis ? 'disabled' : `onclick="${fn}"`} class="${cur === type ? 'cur' : ''}"><b>${key}</b>${label}</button>`;
-  return k('F4', 'Contra', '', 'contra', true) + k('F5', 'Payment', "tvSwitch_('payment')", 'payment') + k('F6', 'Receipt', "tvSwitch_('receipt')", 'receipt') + k('F7', 'Journal', "tvSwitch_('journal')", 'journal') +
+  return k('F4', 'Contra', "tvSwitch_('contra')", 'contra') + k('F5', 'Payment', "tvSwitch_('payment')", 'payment') + k('F6', 'Receipt', "tvSwitch_('receipt')", 'receipt') + k('F7', 'Journal', "tvSwitch_('journal')", 'journal') +
     k('F8', 'Sales', "tvSwitch_('sale')", 'sale') + k('F9', 'Purchase', "tvSwitch_('purchase')", 'purchase') +
     k('Ctrl+F8', 'Credit Note', "tvSwitch_('credit_note')", 'credit_note') + k('Ctrl+F9', 'Debit Note', "tvSwitch_('debit_note')", 'debit_note') +
     (['sale', 'purchase', 'credit_note', 'debit_note'].includes(cur) ? k('Alt+C', 'New ledger', 'tvCreateLedger_()', 'x') + k('Alt+C', 'New stock item', 'acctNewItem_()', 'x') : k('Alt+C', 'New ledger', 'tvCreateLedger_()', 'x')) +
@@ -8710,7 +8870,7 @@ function tvAccept_(){ if(document.getElementById('acctOv')) acctSaveInvoice_(); 
 function tvSwitch_(type){
   if(tvDirty_() && !confirm('Leave this entry without saving and open ' + (KIND_LABEL_[type] || VCH_LABEL_[type]) + '?')) return;
   closeTv_();
-  if(['payment', 'receipt', 'journal'].includes(type)) vchOpen_(type); else acctOpen_(type);
+  if(['payment', 'receipt', 'journal', 'contra'].includes(type)) vchOpen_(type); else acctOpen_(type);
 }
 function tvEnter_(e){
   if(e.key !== 'Enter') return;
@@ -8733,7 +8893,7 @@ document.addEventListener('keydown', e=>{
   if(!((a && a.classList.contains('tv')) || (v && v.classList.contains('tv')))) return;
   const so = document.getElementById('stockOv');
   if(so){ if(e.key === 'Escape'){ e.preventDefault(); so.remove(); } return; }
-  const map = { F5:'payment', F6:'receipt', F7:'journal', F8:(e.ctrlKey ? 'credit_note' : 'sale'), F9:(e.ctrlKey ? 'debit_note' : 'purchase') };
+  const map = { F4:'contra', F5:'payment', F6:'receipt', F7:'journal', F8:(e.ctrlKey ? 'credit_note' : 'sale'), F9:(e.ctrlKey ? 'debit_note' : 'purchase') };
   if(map[e.key]){ e.preventDefault(); tvSwitch_(map[e.key]); return; }
   if(e.key === 'F4'){ e.preventDefault(); return; }
   if(e.key === 'Escape'){ e.preventDefault(); tvQuit_(); return; }
@@ -8799,10 +8959,11 @@ function acctFormTally_(){
   tvApplyFocus_();
 }
 function tvCancelInv_(){ const id = acctEditId_; closeTv_(); if(id) acctCancel_(id); }
-function acctOpen_(kind, id){
+function acctOpen_(kind, id, pre){
   const f = firm_(), old = id ? acctInvoices.find(x=>x.id === id) : null;
   acctEditId_ = old ? old.id : null;
   acctDraft_ = old ? JSON.parse(JSON.stringify(old)) : { id:uid(), kind, no:'', date:todayIso_(), partyName:'', partyGstin:'', partyState:(isPur_(kind) ? '' : f.state), pos:'', reverseCharge:false, itcEligible:true, refNo:'', refDate:'', note:'', status:'active', partyAddr:'', shipTo:'', vehicleNo:'', dispatchThrough:'', orderNo:'', orderDate:'', otherRef:'', lines:[{ desc:'', hsn:'', qty:1, unit:unitDefault_(), rate:'', disc:'', gst:(f.type === 'regular' || kind === 'purchase') ? 18 : 0 }], createdAt:new Date().toISOString(), createdBy:(currentStaff && currentStaff.name) || '' };
+  if(!old && pre) Object.assign(acctDraft_, pre);
   if(!old) acctDraft_.no = kind === 'purchase' ? '' : nextInvoiceNo_(acctInvoices, kind, acctDraft_.date);
   const ex = document.getElementById('acctOv'); if(ex) ex.remove();
   const ov = document.createElement('div'); ov.id = 'acctOv'; ov.style.zIndex = 9350;
@@ -9057,6 +9218,49 @@ function acctLedgerSearch_(v){
   if(p){ acctLedgerSel = p.name; acctLedgerQ = ''; } else { acctLedgerSel = ''; acctLedgerQ = v; }
   render();
 }
+
+/* ---------- clean printouts: company and party name + address, no app screen ---------- */
+function acctFirmHeadHtml_(){
+  const f = firm_();
+  return `<div style="border-bottom:2px solid #222;padding-bottom:6px;margin-bottom:10px;"><div style="font-size:20px;font-weight:700;">${escapeHtml(f.name || '')}</div>
+    <div style="font-size:12px;">${escapeHtml(f.address || '')}${f.gstin ? '<br>GSTIN: ' + escapeHtml(f.gstin) : ''}${f.contact ? '<br>' + escapeHtml(f.contact) : ''}</div></div>`;
+}
+function printHtml_(title, bodyHtml){
+  const w = window.open('', '_blank'); if(!w){ alert('Please allow pop-ups to print.'); return; }
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${escapeHtml(title)}</title><style>
+    body{font-family:Arial,Helvetica,sans-serif;margin:18px;color:#111}table{border-collapse:collapse;width:100%;font-size:12px}th,td{border:1px solid #999;padding:4px 6px;text-align:left;vertical-align:top}
+    th{background:#eee}.r{text-align:right}h2{text-align:center;margin:6px 0}.cx{text-decoration:line-through;color:#888}button,input,select{display:none!important}</style></head>
+    <body>${acctFirmHeadHtml_()}<h2>${escapeHtml(title)}</h2>${bodyHtml}</body></html>`);
+  w.document.close(); w.focus(); setTimeout(()=>{ w.print(); }, 350);
+}
+function printFin_(){ const el = document.getElementById('finBody'); printHtml_({ pl:'Profit & Loss Account', bs:'Balance Sheet', tb:'Trial Balance' }[finView] + ' (' + (finView === 'pl' ? dmy_(finFrom) + ' to ' + dmy_(finTo) : 'as on ' + dmy_(finTo)) + ')', el ? el.innerHTML : ''); }
+function acctLedgerPdf_(share){
+  const p = acctParties.find(x=>lcL_(x.name) === lcL_(acctLedgerSel)); if(!p) return;
+  if(!(window.jspdf && window.jspdf.jsPDF)){ alert('PDF tool is not loaded yet. Please try again in a moment.'); return; }
+  const R = acctLedgerCalc_(p, acctLedgerFrom, acctLedgerTo), f = firm_(), { jsPDF } = window.jspdf, doc = new jsPDF({ unit:'mm', format:'a4' }), W = 210, M = 10, RUST = [183, 65, 14];
+  doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.text(f.name || '', M, M + 6);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); let y = M + 11;
+  doc.splitTextToSize(f.address || '', 150).slice(0, 3).forEach(t=>{ doc.text(t, M, y); y += 4; });
+  if(f.gstin){ doc.text('GSTIN: ' + f.gstin, M, y); y += 4; } if(f.contact){ doc.text(f.contact, M, y); y += 4; }
+  doc.setDrawColor(40, 40, 40); doc.setLineWidth(0.5); doc.line(M, y + 1, W - M, y + 1); y += 8;
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.text('LEDGER ACCOUNT', W / 2, y, { align:'center' }); y += 5;
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); doc.text('Period: ' + (acctLedgerFrom ? dmy_(acctLedgerFrom) : 'start') + ' to ' + (acctLedgerTo ? dmy_(acctLedgerTo) : dmy_(todayIso_())), W / 2, y, { align:'center' }); y += 7;
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.text('Party', M, y); y += 5;
+  doc.setTextColor(RUST[0], RUST[1], RUST[2]); doc.setFontSize(12); doc.splitTextToSize(p.name, 120).forEach(t=>{ doc.text(t, M, y); y += 5; });
+  doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5);
+  const adr = [p.addr, p.pincode].filter(Boolean).join(' - '); if(adr) doc.splitTextToSize(adr, 120).forEach(t=>{ doc.text(t, M, y); y += 4.5; });
+  if(p.state && GST_STATES[p.state]){ doc.text('State: ' + GST_STATES[p.state], M, y); y += 4.5; }
+  if(p.gstin){ doc.text('GSTIN: ' + p.gstin, M, y); y += 4.5; } if(p.whatsapp){ doc.text('Mobile: ' + p.whatsapp, M, y); y += 4.5; }
+  const body = [['', 'Opening balance', '', '', '', '', balTxt_(R.open)]].concat(R.rows.map(e=>[dmy_(e.date), e.type, e.no, e.note, e.dr ? inr_(e.dr) : '', e.cr ? inr_(e.cr) : '', balTxt_(e.bal)]));
+  doc.autoTable({ startY:y + 2, head:[['Date', 'Type', 'No.', 'Particulars', 'Debit', 'Credit', 'Balance']], body, theme:'grid', styles:{ fontSize:8.5, cellPadding:1.6 }, headStyles:{ fillColor:[23, 60, 107] }, columnStyles:{ 4:{ halign:'right' }, 5:{ halign:'right' }, 6:{ halign:'right' } }, margin:{ left:M, right:M },
+    foot:[['', 'Total', '', '', inr_(R.dr), inr_(R.cr), balTxt_(R.closing)]], footStyles:{ fillColor:[230, 236, 244], textColor:[0, 0, 0], fontStyle:'bold' } });
+  const ty = doc.lastAutoTable.finalY + 6; doc.setFont('helvetica', 'bold'); doc.setFontSize(10.5); doc.text('Closing balance: ' + balTxt_(R.closing), W - M, ty, { align:'right' });
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.text('Dr = party owes us, Cr = we owe the party.', M, ty);
+  const blob = doc.output('blob'), fname = 'Ledger-' + p.name.replace(/[^A-Za-z0-9]+/g, '_') + '.pdf', file = new File([blob], fname, { type:'application/pdf' });
+  if(share && navigator.canShare && navigator.canShare({ files:[file] })){ navigator.share({ files:[file], title:fname }).catch(()=>{}); return; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fname; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+  if(share && p.whatsapp) window.open('https://wa.me/91' + p.whatsapp + '?text=' + encodeURIComponent('Ledger account of ' + p.name + ' from ' + (f.name || '') + ' is attached.'), '_blank');
+}
 function acctLedgerXls_(){
   const p = acctParties.find(x=>lcL_(x.name) === lcL_(acctLedgerSel)); if(!p) return;
   const R = acctLedgerCalc_(p, acctLedgerFrom, acctLedgerTo);
@@ -9073,7 +9277,7 @@ function acctLedgerHtml_(){
   if(p){
     const R = acctLedgerCalc_(p, acctLedgerFrom, acctLedgerTo);
     return html + `<div style="margin-top:12px;"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;"><div><b style="font-size:17px;">${escapeHtml(p.name)}</b>${p.gstin ? `<br><small>${escapeHtml(p.gstin)}</small>` : ''}</div><div><b>${BT_('Closing', 'क्लोज़िंग')}: ${balTxt_(R.closing)}</b></div></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0;"><label>${BT_('From', 'से')} <input type="date" value="${acctLedgerFrom}" onchange="acctLedgerFrom=this.value;render()"></label><label>${BT_('To', 'तक')} <input type="date" value="${acctLedgerTo}" onchange="acctLedgerTo=this.value;render()"></label><button class="btn-pill ghost" onclick="acctLedgerSel='';render()">← ${BT_('All parties', 'सभी पार्टी')}</button><button class="btn-pill alt" onclick="acctLedgerXls_()">📥 Excel</button><button class="btn-pill ghost" onclick="window.print()">🖨️ Print</button></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0;"><label>${BT_('From', 'से')} <input type="date" value="${acctLedgerFrom}" onchange="acctLedgerFrom=this.value;render()"></label><label>${BT_('To', 'तक')} <input type="date" value="${acctLedgerTo}" onchange="acctLedgerTo=this.value;render()"></label><button class="btn-pill ghost" onclick="acctLedgerSel='';render()">← ${BT_('All parties', 'सभी पार्टी')}</button><button class="btn-pill alt" onclick="acctLedgerXls_()">📥 Excel</button><button class="btn-pill" onclick="acctLedgerPdf_(false)">📄 PDF</button><button class="btn-pill ghost" onclick="acctLedgerPdf_(true)">📤 Send</button></div>
       <div style="overflow-x:auto;"><table class="acct-tbl"><thead><tr><th>${BT_('Date', 'तारीख')}</th><th>${BT_('Type', 'प्रकार')}</th><th>${BT_('No.', 'नं.')}</th><th>${BT_('Particulars', 'विवरण')}</th><th class="r">${BT_('Debit', 'डेबिट')}</th><th class="r">${BT_('Credit', 'क्रेडिट')}</th><th class="r">${BT_('Balance', 'बैलेंस')}</th></tr></thead><tbody>
       <tr><td></td><td colspan="5"><i>${BT_('Opening balance', 'ओपनिंग बैलेंस')}</i></td><td class="r">${balTxt_(R.open)}</td></tr>
       ${R.rows.map(e=>`<tr><td>${dmy_(e.date)}</td><td>${escapeHtml(e.type)}</td><td>${escapeHtml(e.no)}</td><td>${escapeHtml(e.note)}</td><td class="r">${e.dr ? inr_(e.dr) : ''}</td><td class="r">${e.cr ? inr_(e.cr) : ''}</td><td class="r">${balTxt_(e.bal)}</td></tr>`).join('') || `<tr><td colspan="7" style="padding:14px;">${BT_('No entries yet.', 'अभी कोई एंट्री नहीं।')}</td></tr>`}
@@ -9092,9 +9296,17 @@ function acctLedgerHtml_(){
     ${pool.length ? `<div style="overflow-x:auto;"><table class="acct-tbl"><thead><tr><th>${BT_('Party', 'पार्टी')}</th><th class="r">${BT_('Balance', 'बैलेंस')}</th></tr></thead><tbody>${pool.map(pp=>{ const R = acctLedgerCalc_(pp, '', ''); return `<tr style="cursor:pointer;" onclick="acctLedgerPick_('${encodeURIComponent(pp.name).replace(/'/g, '%27')}')"><td><b>${escapeHtml(pp.name)}</b>${pp.gstin ? `<br><small>${escapeHtml(pp.gstin)}</small>` : ''}</td><td class="r">${balTxt_(R.closing)}</td></tr>`; }).join('')}</tbody></table></div>` : `<div class="empty">${BT_('No party found', 'कोई पार्टी नहीं मिली')}</div>`}`;
 }
 
-function acctNavOn_(b){   // which of the Sale/Purchase sidebar buttons is highlighted
-  const a = b.dataset.acct; if(!a) return true;
-  try{ return (a === 'salereg' && (acctView === 'sales' || acctView === 'reports')) || (a === 'purreg' && acctView === 'purchases') || (a === 'cnreg' && acctView === 'cnotes') || (a === 'dnreg' && acctView === 'dnotes') || (a === 'ledger' && acctView === 'ledger') || (a === 'tally' && acctView === 'tally'); }catch(e){ return false; }
+function acctNavOn_(b){ return navActive_(b); }
+function navActive_(b){        // which sidebar button is highlighted
+  if(b.dataset.child) return false;
+  const t = b.dataset.tab, a = b.dataset.acct, v = b.dataset.vch;
+  if(a === 'newsale' || a === 'newpur') return currentTab === 'acct' && navCtx_ === a;
+  if(v) return currentTab === 'vouchers' && navCtx_ === 'v:' + v;
+  if(a === 'ledger') return currentTab === 'acct' && !navCtx_ && acctView === 'ledger';
+  if(a === 'tally') return currentTab === 'acct' && !navCtx_ && acctView === 'tally';
+  if(t === 'regHub') return currentTab === 'regHub' || navCtx_ === 'reg';
+  if(t === 'acct') return false;
+  return t === currentTab || (t === 'orderHub' && groupOf_(currentTab) === 'order') || (t === 'catHub' && groupOf_(currentTab) === 'cat');
 }
 
 /* =====================  TALLY EXPORT / IMPORT (XML)  =====================
@@ -9160,9 +9372,10 @@ function tInvoice_(inv){
   return tMsg_(`<VOUCHER VCHTYPE="${vt}" ACTION="Create" OBJVIEW="Invoice Voucher View"><DATE>${t8_(inv.date)}</DATE><VOUCHERTYPENAME>${vt}</VOUCHERTYPENAME><VOUCHERNUMBER>${TE_(inv.no)}</VOUCHERNUMBER>${inv.kind === 'purchase' ? `<REFERENCE>${TE_(inv.no)}</REFERENCE>` : ''}<PARTYLEDGERNAME>${TE_(party)}</PARTYLEDGERNAME><PARTYNAME>${TE_(party)}</PARTYNAME>${inv.partyGstin ? `<PARTYGSTIN>${TE_(inv.partyGstin)}</PARTYGSTIN>` : ''}<PLACEOFSUPPLY>${TE_(tStateName_(sale ? inv.pos : inv.partyState))}</PLACEOFSUPPLY><ISINVOICE>Yes</ISINVOICE><PERSISTEDVIEW>Invoice Voucher View</PERSISTEDVIEW>${inv.note ? `<NARRATION>${TE_(inv.note)}</NARRATION>` : ''}${x}</VOUCHER>`);
 }
 function tVoucher_(v){
-  const vt = { payment:'Payment', receipt:'Receipt', journal:'Journal' }[v.kind];
+  const vt = { payment:'Payment', receipt:'Receipt', journal:'Journal', contra:'Contra' }[v.kind];
   let x = '';
-  if(v.kind === 'journal') (v.lines || []).forEach(l=>{ if(Number(l.dr) > 0) x += tEnt_(l.ledger, true, Number(l.dr)); if(Number(l.cr) > 0) x += tEnt_(l.ledger, false, Number(l.cr)); });
+  if(v.kind === 'contra'){ const ca = Number(v.amount) || 0; x = tEnt_(v.toAcc || 'Bank', true, ca) + tEnt_(v.fromAcc || 'Cash', false, ca); }
+  else if(v.kind === 'journal') (v.lines || []).forEach(l=>{ if(Number(l.dr) > 0) x += tEnt_(l.ledger, true, Number(l.dr)); if(Number(l.cr) > 0) x += tEnt_(l.ledger, false, Number(l.cr)); });
   else {
     const amt = Number(v.amount) || 0, rec = v.kind === 'receipt', cb = /^cash$/i.test(v.mode || '') ? 'Cash' : 'Bank';
     x = tEnt_(v.party, !rec, amt, { bills:(v.alloc || []).map(a=>tBill_(a.no, 'Agst Ref', rec ? a.amount : -a.amount)).join('') }) + tEnt_(cb, rec, amt);
@@ -9199,56 +9412,112 @@ function tallyPanelHtml_(f){
     <div id="tyMsg" style="margin-top:12px;"></div>
     <div class="subtle" style="margin-top:12px;">⚠️ ${BT_('Please test with a sample / backup company in Tally first and check the totals.', 'पहले Tally की सैंपल / बैकअप कंपनी में टेस्ट करें और टोटल मिलाएं।')}</div>`;
 }
+/* Tally import - works on files of any size: the file is read in 4 MB pieces and one Tally record
+   (ledger / stock item / voucher) is handled at a time, so nothing huge is ever held as one
+   document. A damaged record is skipped and counted - it never stops the whole import.
+   Nothing is saved until the whole file has been read and the person confirms. */
+let tallyBusy_ = false;
 async function tallyImport_(file){
-  if(!file) return;
+  if(!file || tallyBusy_) return;
+  tallyBusy_ = true;
+  try{ await tallyImportRun_(file); }
+  catch(e){ console.error('Tally import stopped', e); const m = document.getElementById('tyMsg'); if(m) m.innerHTML = '<div class="msg err">' + BT_('Import stopped, nothing was saved:', 'Import \u0930\u0941\u0915 \u0917\u092F\u093E, \u0915\u0941\u091B \u0938\u0947\u0935 \u0928\u0939\u0940\u0902 \u0939\u0941\u0906:') + ' ' + escapeHtml(String((e && e.message) || e)) + '</div>'; }
+  finally{ tallyBusy_ = false; }
+}
+async function tallyImportRun_(file){
   const say = h=>{ const m = document.getElementById('tyMsg'); if(m) m.innerHTML = h; };
-  let doc;
-  try{
-    const buf = await file.arrayBuffer(), u = new Uint8Array(buf);
-    let enc = 'utf-8'; if(u[0] === 0xFF && u[1] === 0xFE) enc = 'utf-16le'; else if(u[0] === 0xFE && u[1] === 0xFF) enc = 'utf-16be'; else if(u.length > 3 && u[1] === 0 && u[3] === 0) enc = 'utf-16le';
-    const txt = new TextDecoder(enc).decode(buf).replace(/^\uFEFF/, '').replace(/&#(\d+);/g, (m, n)=>(+n < 32 && ![9, 10, 13].includes(+n)) ? '' : m).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '');
-    doc = new DOMParser().parseFromString(txt, 'text/xml');
-    if(doc.getElementsByTagName('parsererror').length) throw new Error('xml');
-  }catch(e){ return say('<div class="msg err">' + BT_('This is not a valid Tally XML file.', 'यह सही Tally XML फाइल नहीं है।') + '</div>'); }
+  const bar = (txt, pct)=>say(`<div class="msg info">${txt}<div style="height:8px;background:#dbe5f0;border-radius:6px;margin-top:6px;overflow:hidden;"><div style="height:8px;width:${Math.max(1, Math.min(100, pct))}%;background:#1F7A4D;"></div></div></div>`);
+  const tick = ()=>new Promise(r=>setTimeout(r, 0));
   const f = firm_(), lc = s=>String(s || '').trim().toLowerCase(), num = s=>{ const n = parseFloat(String(s || '').replace(/,/g, '')); return isNaN(n) ? 0 : n; };
   const kids = (el, tags)=>Array.from(el.children).filter(c=>tags.includes(c.tagName));
   const q = (el, t)=>{ const c = Array.from(el.children).find(x=>x.tagName === t); return c ? (c.textContent || '').trim() : ''; };
   const nameOf = el=>{ let n = el.getAttribute('NAME'); if(!n){ const c = el.getElementsByTagName('NAME')[0]; n = c ? c.textContent : ''; } return String(n || '').trim(); };
   const G_ = [[/debtor|creditor/, 'party'], [/cash/, 'cash'], [/bank od|bank occ|secured|unsecured|loans \(liab/, 'loan'], [/bank/, 'bank'], [/sales/, 'sales'], [/purchase/, 'purchase'], [/indirect exp|expenses \(indirect/, 'iexp'], [/direct exp|expenses \(direct/, 'dexp'], [/indirect inc|income \(indirect/, 'iinc'], [/direct inc|income \(direct/, 'dinc'], [/fixed asset/, 'fixed'], [/duties/, 'tax'], [/current liab|provision|suspense/, 'liab'], [/capital|reserve/, 'capital'], [/asset|investment|deposit|stock-in-hand/, 'asset'], [/loan/, 'loan']];
   const gcode = p=>{ const g = G_.find(x=>x[0].test(lc(p))); return g ? g[1] : ''; };
-  const parties = [], ledgers = {}, items = [], groups = [], invs = [], vchs = [], parents = {}, st = { dup:0, skip:0 };
-  const allP = ()=>acctParties.concat(parties), findP = n=>allP().find(p=>lc(p.name) === lc(n)), findI = n=>stockItems.concat(items).find(i=>lc(i.name) === lc(n));
-  const addGroup = n=>{ if(n && !/^primary$/i.test(n) && !stockGroups.concat(groups).some(g=>lc(g.name) === lc(n))) groups.push({ id:uid(), name:n }); };
 
-  // ---- masters ----
-  Array.from(doc.getElementsByTagName('LEDGER')).forEach(el=>{
-    const n = nameOf(el); if(!n) return; const g = gcode(q(el, 'PARENT')); parents[lc(n)] = g;
-    if(g === 'party'){
-      if(findP(n)){ st.dup++; return; }
-      parties.push({ id:uid(), name:n, gstin:(q(el, 'PARTYGSTIN') || q(el, 'GSTIN')).toUpperCase(), state:tStateCode_(q(el, 'LEDSTATENAME')), addr:Array.from(el.getElementsByTagName('ADDRESS')).map(a=>(a.textContent || '').trim()).filter(Boolean).join(', '), open:r2_(-num(q(el, 'OPENINGBALANCE'))) });
-    } else if(g !== 'tax'){
-      if(ledgerGroupOf_(n) || ledgers[lc(n)]){ st.dup++; return; } ledgers[lc(n)] = g || 'iexp';
+  // ---- what is already in the books (looked up through Maps, so even lakhs of records stay fast) ----
+  const parties = [], ledgers = Object.create(null), items = [], groups = [], invs = [], vchs = [], parents = Object.create(null);
+  const st = { dup:0, skip:0, err:0, seen:0 }, errs = [];
+  const pMap = new Map(), iMap = new Map(), gSet = new Set(), invKeys = new Set(), vKeys = new Set();
+  acctParties.forEach(p=>pMap.set(lc(p.name), p)); stockItems.forEach(i=>iMap.set(lc(i.name), i)); stockGroups.forEach(g=>gSet.add(lc(g.name)));
+  const ik = (kind, no, party)=>kind + '|' + no + (kind === 'purchase' ? '|' + lc(party) : '');
+  acctInvoices.forEach(x=>invKeys.add(ik(x.kind, x.no, x.partyName)));
+  acctVouchers.forEach(x=>vKeys.add(x.kind + '|' + x.no + '|' + x.date));
+  const findP = n=>pMap.get(lc(n)), findI = n=>iMap.get(lc(n));
+  const addParty = p=>{ parties.push(p); pMap.set(lc(p.name), p); };
+  const addItem = i=>{ items.push(i); iMap.set(lc(i.name), i); };
+  const addGroup = n=>{ if(n && !/^primary$/i.test(n) && !gSet.has(lc(n))){ gSet.add(lc(n)); groups.push({ id:uid(), name:n }); } };
+  const lgOf = n=>{ const k = lc(n); if(!k) return ''; return pMap.has(k) ? 'party' : (ledgers[k] || acctLedgers[k] || DEFAULT_LEDGER_GROUPS_[k] || ''); };
+  const seq = {}, nextNo = (kind, vch)=>{
+    const pre = { sale:'S', purchase:'P', credit_note:'CN', debit_note:'DN', payment:'PAY', receipt:'RCT', journal:'JV' }[kind] || 'X';
+    for(;;){ seq[kind] = (seq[kind] || 0) + 1; const no = 'TLY-' + pre + '-' + String(seq[kind]).padStart(6, '0'); if(vch ? !vKeys.has(kind + '|' + no + '|') : !invKeys.has(ik(kind, no, ''))) return no; }
+  };
+
+  // ---- file reader: encoding, chunks, one record at a time ----
+  const total = file.size;
+  if(!total){ return say('<div class="msg err">' + BT_('This file is empty.', '\u092F\u0939 \u092B\u093C\u093E\u0907\u0932 \u0916\u093E\u0932\u0940 \u0939\u0948\u0964') + '</div>'); }
+  const head = new Uint8Array(await file.slice(0, 4096).arrayBuffer());
+  let enc = 'utf-8', skip = 0;
+  if(head[0] === 0xFF && head[1] === 0xFE){ enc = 'utf-16le'; skip = 2; }
+  else if(head[0] === 0xFE && head[1] === 0xFF){ enc = 'utf-16be'; skip = 2; }
+  else if(head.length > 3 && head[1] === 0 && head[3] === 0) enc = 'utf-16le';
+  else if(head[0] === 0xEF && head[1] === 0xBB && head[2] === 0xBF) skip = 3;
+  const CH = 4 * 1024 * 1024;
+  const cleanTxt = s=>s.replace(/&#(\d+);/g, (m, n)=>(+n < 32 && ![9, 10, 13].includes(+n)) ? '' : m).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '');
+  const parseOne = txt=>{ const d = new DOMParser().parseFromString('<R>' + cleanTxt(txt) + '</R>', 'text/xml'); if(d.getElementsByTagName('parsererror').length) return null; return d.documentElement.firstElementChild; };
+  const note = m=>{ st.err++; if(errs.length < 5) errs.push(m); };
+  async function scan(re, label, handler){
+    const dec = new TextDecoder(enc); let pos = skip, buf = '', n = 0;
+    for(;;){
+      if(pos < total){ const ab = await file.slice(pos, Math.min(total, pos + CH)).arrayBuffer(); pos += ab.byteLength; buf += dec.decode(ab, { stream: pos < total }); }
+      const atEnd = pos >= total; let idx = 0;
+      for(;;){
+        re.lastIndex = idx; const m = re.exec(buf);
+        if(!m){ idx = Math.max(idx, buf.length - 64); break; }
+        const tag = m[1], start = m.index, gt = buf.indexOf('>', start);
+        if(gt < 0){ if(atEnd){ note(label + ': incomplete record at end of file'); idx = buf.length; } else idx = start; break; }
+        if(buf.charCodeAt(gt - 1) === 47){ idx = gt + 1; continue; }              // <TAG ... />  (nothing inside)
+        const ct = '</' + tag + '>', end = buf.indexOf(ct, gt);
+        if(end < 0){ if(atEnd){ note(label + ': record without an end'); idx = gt + 1; continue; } idx = start; break; }   // wait for the next piece
+        const stop = end + ct.length;
+        try{ const el = parseOne(buf.slice(start, stop)); if(el){ st.seen++; handler(tag, el); } else note(label + ': ' + buf.slice(start, start + 50).replace(/\s+/g, ' ')); }
+        catch(e){ note(label + ': ' + String((e && e.message) || e)); }
+        idx = stop;
+        if(++n % 150 === 0){ bar(label + ' \u2026 ' + Math.min(99, Math.round(pos / total * 100)) + '%  (' + n.toLocaleString('en-IN') + ')', pos / total * 100); await tick(); }
+      }
+      buf = buf.slice(idx);
+      if(atEnd) break;
     }
-  });
-  Array.from(doc.getElementsByTagName('STOCKGROUP')).forEach(el=>addGroup(nameOf(el)));
-  Array.from(doc.getElementsByTagName('STOCKITEM')).forEach(el=>{
-    const n = nameOf(el); if(!n) return; if(findI(n)){ st.dup++; return; }
-    const ob = q(el, 'OPENINGBALANCE'), qty = num(ob), val = Math.abs(num(q(el, 'OPENINGVALUE'))), rate = num(q(el, 'OPENINGRATE')) || (qty ? val / qty : 0);
-    const unit = q(el, 'BASEUNITS') || (ob.match(/[A-Za-z][\w.]*$/) || [''])[0] || unitDefault_(), par = q(el, 'PARENT'), grp = /^primary$/i.test(par) ? '' : par, hs = el.getElementsByTagName('HSNCODE')[0];
-    let gst = 0; Array.from(el.getElementsByTagName('RATEDETAILS.LIST')).forEach(r=>{ if(/IGST/i.test(q(r, 'GSTRATEDUTYHEAD'))) gst = num(q(r, 'GSTRATE')); });
-    addGroup(grp);
-    items.push({ id:uid(), name:n, group:grp, unit, hsn:hs ? (hs.textContent || '').trim() : '', gst, openQty:qty > 0 ? qty : '', openRate:rate || '', purchaseRate:r2_(rate), markupPct:0, saleRate:0 });
-  });
+  }
 
-  // ---- vouchers ----
+  // ---- 1) masters: ledgers, stock groups, stock items ----
+  const onMaster = (tag, el)=>{
+    if(tag === 'LEDGER'){
+      const n = nameOf(el); if(!n) return; const g = gcode(q(el, 'PARENT')); parents[lc(n)] = g;
+      if(g === 'party'){
+        if(findP(n)){ st.dup++; return; }
+        addParty({ id:uid(), name:n, gstin:(q(el, 'PARTYGSTIN') || q(el, 'GSTIN')).toUpperCase(), state:tStateCode_(q(el, 'LEDSTATENAME')), addr:Array.from(el.getElementsByTagName('ADDRESS')).map(a=>(a.textContent || '').trim()).filter(Boolean).join(', '), open:r2_(-num(q(el, 'OPENINGBALANCE'))) });
+      } else if(g !== 'tax'){
+        if(lgOf(n)){ st.dup++; return; } ledgers[lc(n)] = g || 'iexp';
+      }
+    } else if(tag === 'STOCKGROUP'){ addGroup(nameOf(el)); }
+    else if(tag === 'STOCKITEM'){
+      const n = nameOf(el); if(!n) return; if(findI(n)){ st.dup++; return; }
+      const ob = q(el, 'OPENINGBALANCE'), qty = num(ob), val = Math.abs(num(q(el, 'OPENINGVALUE'))), rate = num(q(el, 'OPENINGRATE')) || (qty ? val / qty : 0);
+      const unit = q(el, 'BASEUNITS') || (ob.match(/[A-Za-z][\w.]*$/) || [''])[0] || unitDefault_(), par = q(el, 'PARENT'), grp = /^primary$/i.test(par) ? '' : par, hs = el.getElementsByTagName('HSNCODE')[0];
+      let gst = 0; Array.from(el.getElementsByTagName('RATEDETAILS.LIST')).forEach(r=>{ if(/IGST/i.test(q(r, 'GSTRATEDUTYHEAD'))) gst = num(q(r, 'GSTRATE')); });
+      addGroup(grp);
+      addItem({ id:uid(), name:n, group:grp, unit, hsn:hs ? (hs.textContent || '').trim() : '', gst, openQty:qty > 0 ? qty : '', openRate:rate || '', purchaseRate:r2_(rate), markupPct:0, saleRate:0 });
+    }
+  };
+
+  // ---- 2) vouchers ----
   const std = [0, 0.25, 1, 1.5, 3, 5, 12, 18, 28], near = p=>std.reduce((a, b)=>Math.abs(b - p) < Math.abs(a - p) ? b : a);
-  const allInv = ()=>acctInvoices.concat(invs), allV = ()=>acctVouchers.concat(vchs);
-  const other = ()=>Object.keys(GST_STATES).find(c=>c !== f.state && c === '97') || Object.keys(GST_STATES).find(c=>c !== f.state) || '';
-  const isCB = n=>{ const g = parents[lc(n)] || ledgerGroupOf_(n); return g === 'cash' || g === 'bank' || /^(cash|bank)\b/i.test(n); };
-  const known = n=>ledgerGroupOf_(n) || ledgers[lc(n)] || findP(n);
-  Array.from(doc.getElementsByTagName('VOUCHER')).forEach(el=>{
+  const otherState = Object.keys(GST_STATES).find(c=>c !== f.state && c === '97') || Object.keys(GST_STATES).find(c=>c !== f.state) || '';
+  const isCB = n=>{ const g = parents[lc(n)] || lgOf(n); return g === 'cash' || g === 'bank' || /^(cash|bank)\b/i.test(n); };
+  const onVoucher = (tag, el)=>{
     const vt = lc(el.getAttribute('VCHTYPE') || q(el, 'VOUCHERTYPENAME')), date = tIso_(q(el, 'DATE'));
-    let kind = /credit note/.test(vt) ? 'credit_note' : /debit note/.test(vt) ? 'debit_note' : /order|quotation|challan|delivery|receipt note|memo|stock|rejection/.test(vt) ? '' : /^sale/.test(vt) ? 'sale' : /^purchase/.test(vt) ? 'purchase' : /^receipt/.test(vt) ? 'receipt' : /^payment/.test(vt) ? 'payment' : /^(journal|contra)/.test(vt) ? 'journal' : '';
+    const kind = /credit note/.test(vt) ? 'credit_note' : /debit note/.test(vt) ? 'debit_note' : /order|quotation|challan|delivery|receipt note|memo|stock|rejection/.test(vt) ? '' : /^sale/.test(vt) ? 'sale' : /^purchase/.test(vt) ? 'purchase' : /^receipt/.test(vt) ? 'receipt' : /^payment/.test(vt) ? 'payment' : /^(journal|contra)/.test(vt) ? 'journal' : '';
     if(!kind || !date || q(el, 'ISOPTIONAL') === 'Yes'){ st.skip++; return; }
     const status = q(el, 'ISCANCELLED') === 'Yes' ? 'cancelled' : 'active', no = q(el, 'VOUCHERNUMBER'), now = new Date().toISOString();
     const ents = kids(el, ['ALLLEDGERENTRIES.LIST', 'LEDGERENTRIES.LIST']).map(e=>({ name:q(e, 'LEDGERNAME'), amt:num(q(e, 'AMOUNT')), party:q(e, 'ISPARTYLEDGER') === 'Yes' })).filter(e=>e.name);
@@ -9272,13 +9541,15 @@ async function tallyImport_(file){
       const val = l=>l.qty * l.rate * (1 - l.disc / 100), taxable = lines.reduce((t, l)=>t + val(l), 0), taxAmt = tx.cg + tx.sg + tx.ig, pct = taxable > 0 ? near(taxAmt / taxable * 100) : 0;
       const byItem = lines.reduce((t, l)=>t + val(l) * (Number((findI(l.desc) || {}).gst) || 0) / 100, 0), useItem = !synthetic && lines.every(l=>findI(l.desc)) && Math.abs(byItem - taxAmt) < 1;
       lines.forEach(l=>{ const it = findI(l.desc); l.gst = useItem ? (Number(it.gst) || 0) : pct; l.hsn = it && it.hsn || ''; });
-      const pm = findP(pName) || {}, ps = tStateCode_(q(el, 'PLACEOFSUPPLY')) || pm.state || '', pst = tx.ig > 0 ? (ps && ps !== f.state ? ps : other()) : f.state;
+      const pm = findP(pName) || {}, ps = tStateCode_(q(el, 'PLACEOFSUPPLY')) || pm.state || '', pst = tx.ig > 0 ? (ps && ps !== f.state ? ps : otherState) : f.state;
       const inv = { id:uid(), kind, no, date, partyName:pName || (sale ? 'Cash' : ''), partyGstin:(q(el, 'PARTYGSTIN') || pm.gstin || '').toUpperCase(), partyState:pst, pos:sale ? pst : '', reverseCharge:false, itcEligible:true, refNo:'', refDate:'', note:q(el, 'NARRATION'), status, partyAddr:pm.addr || '', shipTo:'', vehicleNo:'', dispatchThrough:'', orderNo:'', orderDate:'', otherRef:'', lines, createdAt:now, createdBy:'Tally import' };
-      if(!inv.no) inv.no = nextInvoiceNo_(allInv(), kind, date);
-      if(allInv().some(x=>x.kind === kind && x.no === inv.no && (kind !== 'purchase' || lc(x.partyName) === lc(inv.partyName)))){ st.dup++; return; }
+      if(!inv.no) inv.no = nextNo(kind, false);
+      const key = ik(kind, inv.no, inv.partyName);
+      if(invKeys.has(key)){ st.dup++; return; }
+      invKeys.add(key);
       calcInvoice_(inv, f);
-      if(!synthetic) lines.forEach(l=>{ if(!findI(l.desc)) items.push({ id:uid(), name:l.desc, group:'', unit:l.unit, hsn:'', gst:l.gst, openQty:'', purchaseRate:sale ? 0 : l.rate, markupPct:0, saleRate:sale ? l.rate : 0 }); });
-      if(inv.partyName && lc(inv.partyName) !== 'cash' && !findP(inv.partyName)) parties.push({ id:uid(), name:inv.partyName, gstin:inv.partyGstin, state:inv.partyState, addr:'', open:0 });
+      if(!synthetic) lines.forEach(l=>{ if(!findI(l.desc)) addItem({ id:uid(), name:l.desc, group:'', unit:l.unit, hsn:'', gst:l.gst, openQty:'', purchaseRate:sale ? 0 : l.rate, markupPct:0, saleRate:sale ? l.rate : 0 }); });
+      if(inv.partyName && lc(inv.partyName) !== 'cash' && !findP(inv.partyName)) addParty({ id:uid(), name:inv.partyName, gstin:inv.partyGstin, state:inv.partyState, addr:'', open:0 });
       invs.push(inv); return;
     }
     // payment / receipt / journal / contra
@@ -9286,25 +9557,38 @@ async function tallyImport_(file){
     const cb = ents.filter(e=>isCB(e.name)), ot = ents.filter(e=>!isCB(e.name));
     let v;
     if((kind === 'payment' || kind === 'receipt') && ents.length === 2 && cb.length === 1 && ot.length === 1 && (kind === 'payment') === (ot[0].amt < 0)){
-      const g = parents[lc(cb[0].name)] || ledgerGroupOf_(cb[0].name);
+      const g = parents[lc(cb[0].name)] || lgOf(cb[0].name);
       v = { kind, party:ot[0].name, mode:(g === 'cash' || /^cash\b/i.test(cb[0].name)) ? 'Cash' : 'Bank transfer', amount:Math.abs(ot[0].amt), alloc:[], lines:[] };
     } else v = { kind:'journal', lines:ents.map(e=>({ ledger:e.name, dr:e.amt < 0 ? Math.abs(e.amt) : 0, cr:e.amt > 0 ? e.amt : 0 })) };
-    Object.assign(v, { id:uid(), no:no || nextInvoiceNo_(allV(), v.kind, date), date, ref:q(el, 'REFERENCE'), against:'', narration:q(el, 'NARRATION'), status, createdAt:now, createdBy:'Tally import' });
-    if(allV().some(x=>x.kind === v.kind && x.no === v.no && x.date === date)){ st.dup++; return; }
-    ents.forEach(e=>{ if(!known(e.name)) ledgers[lc(e.name)] = parents[lc(e.name)] || (/cash/i.test(e.name) ? 'cash' : /bank/i.test(e.name) ? 'bank' : v.kind === 'receipt' ? 'iinc' : 'iexp'); });
+    Object.assign(v, { id:uid(), no:no || nextNo(v.kind, true), date, ref:q(el, 'REFERENCE'), against:'', narration:q(el, 'NARRATION'), status, createdAt:now, createdBy:'Tally import' });
+    const vk = v.kind + '|' + v.no + '|' + date;
+    if(vKeys.has(vk)){ st.dup++; return; }
+    vKeys.add(vk);
+    ents.forEach(e=>{ if(!lgOf(e.name)) ledgers[lc(e.name)] = parents[lc(e.name)] || (/cash/i.test(e.name) ? 'cash' : /bank/i.test(e.name) ? 'bank' : v.kind === 'receipt' ? 'iinc' : 'iexp'); });
     vchs.push(v);
-  });
+  };
 
-  // ---- confirm and save ----
+  bar(BT_('Reading masters', 'Masters \u092A\u095C \u0930\u0939\u0947 \u0939\u0948\u0902'), 1); await tick();
+  await scan(/<(LEDGER|STOCKITEM|STOCKGROUP)[\s>\/]/g, BT_('Reading masters', 'Masters \u092A\u095C \u0930\u0939\u0947 \u0939\u0948\u0902'), onMaster);
+  bar(BT_('Reading vouchers', 'Vouchers \u092A\u095C \u0930\u0939\u0947 \u0939\u0948\u0902'), 1); await tick();
+  await scan(/<(VOUCHER)[\s>\/]/g, BT_('Reading vouchers', 'Vouchers \u092A\u095C \u0930\u0939\u0947 \u0939\u0948\u0902'), onVoucher);
+
+  // ---- 3) confirm and save ----
+  if(!st.seen) return say('<div class="msg err">' + BT_('This is not a valid Tally XML file (no ledgers, stock items or vouchers found).', '\u092F\u0939 \u0938\u0939\u0940 Tally XML \u092B\u093C\u093E\u0907\u0932 \u0928\u0939\u0940\u0902 \u0939\u0948 (\u0915\u094B\u0908 \u0932\u0947\u091C\u0930, \u0938\u094D\u091F\u0949\u0915 \u0906\u0907\u091F\u092E \u092F\u093E \u0935\u093E\u0909\u091A\u0930 \u0928\u0939\u0940\u0902 \u092E\u093F\u0932\u093E)\u0964') + '</div>');
   const nL = Object.keys(ledgers).length, tot = invs.length + vchs.length + parties.length + nL + items.length + groups.length;
-  if(!tot) return say(`<div class="msg info">${BT_('Nothing new found in this file.', 'इस फाइल में कुछ नया नहीं मिला।')} (${BT_('already present', 'पहले से मौजूद')}: ${st.dup}, ${BT_('skipped', 'छोड़े')}: ${st.skip})</div>`);
-  const sum = `${invs.length} ${BT_('sale / purchase / notes', 'सेल / परचेज / नोट')}\n${vchs.length} ${BT_('payment / receipt / journal', 'पेमेंट / रसीद / जर्नल')}\n${parties.length} ${BT_('parties', 'पार्टी')}\n${nL} ${BT_('ledgers', 'लेजर')}\n${items.length} ${BT_('stock items', 'स्टॉक आइटम')}\n${groups.length} ${BT_('stock groups', 'स्टॉक ग्रुप')}\n(${BT_('already present', 'पहले से मौजूद')}: ${st.dup}, ${BT_('skipped', 'छोड़े')}: ${st.skip})`;
-  if(!confirm(BT_('Add these from Tally?', 'Tally से ये जोड़ें?') + '\n\n' + sum)) return;
-  acctParties.push(...parties); Object.assign(acctLedgers, ledgers); stockGroups.push(...groups); stockItems.push(...items); acctInvoices.push(...invs); acctVouchers.push(...vchs);
+  const errTxt = st.err ? `\n${st.err} ${BT_('damaged records skipped', '\u0916\u0930\u093E\u092C \u0930\u093F\u0915\u0949\u0930\u094D\u0921 \u091B\u094B\u095C\u0947 \u0917\u090F')}` : '';
+  if(!tot) return say(`<div class="msg info">${BT_('Nothing new found in this file.', '\u0907\u0938 \u092B\u093C\u093E\u0907\u0932 \u092E\u0947\u0902 \u0915\u0941\u091B \u0928\u092F\u093E \u0928\u0939\u0940\u0902 \u092E\u093F\u0932\u093E\u0964')} (${BT_('already present', '\u092A\u0939\u0932\u0947 \u0938\u0947 \u092E\u094C\u091C\u0942\u0926')}: ${st.dup}, ${BT_('skipped', '\u091B\u094B\u095C\u0947')}: ${st.skip}${st.err ? ', ' + BT_('damaged', '\u0916\u0930\u093E\u092C') + ': ' + st.err : ''})</div>`);
+  const sum = `${invs.length} ${BT_('sale / purchase / notes', '\u0938\u0947\u0932 / \u092A\u0930\u091A\u0947\u091C / \u0928\u094B\u091F')}\n${vchs.length} ${BT_('payment / receipt / journal', '\u092A\u0947\u092E\u0947\u0902\u091F / \u0930\u093F\u0938\u0940\u092A\u094D\u091F / \u091C\u0930\u094D\u0928\u0932')}\n${parties.length} ${BT_('parties', '\u092A\u093E\u0930\u094D\u091F\u093F\u092F\u093E\u0901')}\n${nL} ${BT_('ledgers', '\u0932\u0947\u091C\u0930')}\n${items.length} ${BT_('stock items', '\u0938\u094D\u091F\u0949\u0915 \u0906\u0907\u091F\u092E')}\n${groups.length} ${BT_('stock groups', '\u0938\u094D\u091F\u0949\u0915 \u0917\u094D\u0930\u0941\u092A')}\n(${BT_('already present', '\u092A\u0939\u0932\u0947 \u0938\u0947 \u092E\u094C\u091C\u0942\u0926')}: ${st.dup}, ${BT_('skipped', '\u091B\u094B\u095C\u0947')}: ${st.skip})${errTxt}`;
+  say('');
+  if(!confirm(BT_('Add these from Tally?', 'Tally \u0938\u0947 \u092F\u0947 \u091C\u094B\u095C\u0947\u0902?') + '\n\n' + sum)) return;
+  bar(BT_('Saving\u2026 please wait', '\u0938\u0947\u0935 \u0939\u094B \u0930\u0939\u093E \u0939\u0948\u2026 \u0907\u0902\u0924\u095B\u093E\u0930 \u0915\u0930\u0947\u0902'), 99); await tick();
+  const append = (arr, add)=>{ for(let i = 0; i < add.length; i++) arr.push(add[i]); };   // not push(...big): that fails on very large lists
+  append(acctParties, parties); Object.assign(acctLedgers, ledgers); append(stockGroups, groups); append(stockItems, items); append(acctInvoices, invs); append(acctVouchers, vchs);
   stockSave_(); vchSave_(); finSaveSettings_(); acctSave_();
-  try{ logActivity('Tally Import', file.name + ' · ' + invs.length + ' bills, ' + vchs.length + ' vouchers'); }catch(e){}
+  try{ logActivity('Tally Import', file.name + ' \u2014 ' + invs.length + ' bills, ' + vchs.length + ' vouchers'); }catch(e){}
+  say('');
   render();
-  alert(BT_('Imported from Tally:', 'Tally से import हुआ:') + '\n\n' + sum);
+  alert(BT_('Imported from Tally:', 'Tally \u0938\u0947 import \u0939\u0941\u0906:') + '\n\n' + sum + (errs.length ? '\n\n' + errs.join('\n') : ''));
 }
 
 function acctFirmHead_(f, title, per){ return [[title], [BT_('Business','बिज़नेस'), f.name], ['GSTIN', f.gstin || '-'], [BT_('Type','प्रकार'), f.type], [BT_('Period','अवधि'), dmy_(per.from) + ' to ' + dmy_(per.to)], [BT_('Prepared on','तैयार'), new Date().toLocaleString()], []]; }
@@ -9401,7 +9685,7 @@ function openBizProfile(){
   if(!Array.isArray(bizDraft_.custom)) bizDraft_.custom = [];
   const ov = document.createElement('div'); ov.className = 'modal-ov'; ov.id = 'bizOv'; ov.style.zIndex = 9300;
   ov.innerHTML = `<div class="modal-sheet" style="max-height:92vh;overflow:auto;">
-    <div class="voice-head"><b>🏢 ${BT_('Business Profile','बिज़नेस प्रोफाइल')}</b><button class="voice-x" onclick="document.getElementById('bizOv').remove()">✕</button></div>
+    <div class="voice-head"><b>🏢 ${BT_('Alter Company','कंपनी बदलें (Alter)')}</b><button class="voice-x" onclick="document.getElementById('bizOv').remove()">✕</button></div>
     <div class="subtle" style="margin-bottom:8px;">${BT_('Shown in the app, on every PDF and in the customer catalog.','यह ऐप में, हर PDF में और कस्टमर कैटलॉग में दिखेगा।')}</div>
     ${bizProfile && bizProfile.licenseId ? `<div class="msg info" style="margin-bottom:8px;">🔑 ${BT_('Your License ID','आपकी लाइसेंस आईडी')}: <b>${escapeHtml(bizProfile.licenseId)}</b><br><small>${BT_('This ID identifies your account and data. Keep it for support.','यह आईडी आपके अकाउंट और डेटा की पहचान है। सपोर्ट के लिए संभालकर रखें।')}</small></div>` : ''}
     <label>${BT_('Business name','बिज़नेस का नाम')} *</label>
@@ -9436,6 +9720,9 @@ function openBizProfile(){
       <input id="bizCustomUnit" maxlength="12" placeholder="${BT_('Add your own unit (e.g. Than)','अपना यूनिट जोड़ें (जैसे थान)')}" style="flex:1;min-width:0;">
       <button class="btn-pill alt" onclick="bizAddCustom_()">＋ ${BT_('Add','जोड़ें')}</button>
     </div>
+    <div style="margin-top:14px;padding-top:10px;border-top:1px dashed #d7dde6;"><div class="subtle" style="margin-bottom:6px;">${BT_('Also alter:','यह भी बदलें:')}</div><div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn-pill ghost" onclick="document.getElementById('bizOv').remove();navCtx_='';finView='open';currentTab='fin';render()">💰 ${BT_('Opening balances','ओपनिंग बैलेंस')}</button>
+      <button class="btn-pill ghost" onclick="document.getElementById('bizOv').remove();acctNumSettings_()">🔢 ${BT_('Invoice numbering','बिल नंबरिंग')}</button></div></div>
     <button class="primary" style="margin-top:16px;" onclick="bizSave_()">💾 ${BT_('Save','सेव करें')}</button>
   </div>`;
   document.body.appendChild(ov);
@@ -9529,6 +9816,7 @@ async function bizSave_(){
   if(json.length > 45000){ alert('Profile is too large. Please choose a smaller logo.'); return; }
   bizApply_(p);
   await storageSet('companyProfile', json);
+  try{ if(sb && sbFirmId_()) await sb.from('firms').update({ name:p.name }).eq('id', sbFirmId_()); }catch(e){}   // keep the Admin list name in step (ignored if not allowed)
   try{ await logActivity('Business Profile Updated', p.name); }catch(e){}
   const ov = document.getElementById('bizOv'); if(ov) ov.remove();
   render();
@@ -9598,10 +9886,128 @@ function planBannerPaint_(main){
   main.insertAdjacentHTML('afterbegin', `<div style="background:#fff7e0;border:1px solid #f1d58a;color:#7a5a00;border-radius:10px;padding:9px 12px;margin-bottom:10px;font-size:14px;">${txt}</div>`);
 }
 
+/* =====================  DASHBOARD - ACCOUNTS OVERVIEW  =====================
+   Cash flow, receivable / payable, gross & net profit. Read-only: it only READS the books
+   (sale / purchase / vouchers). Orders and Pending are NOT part of these numbers.        */
+let dashAcctMemo_ = { key:'', at:0, html:'' };
+function dashAcctHtml_(R, periodLabel){
+  try{
+    if(!canAccessTab('fin')) return '';
+    const iso = d=>d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    const all = +R.s <= 0, from = all ? '' : iso(R.s), to = all ? '' : iso(new Date(+R.e - 86400000));
+    const key = [from, to, acctInvoices.length, acctVouchers.length, acctParties.length, JSON.stringify(acctOpening || {})].join('|');
+    if(dashAcctMemo_.key === key && Date.now() - dashAcctMemo_.at < 4000) return dashAcctMemo_.html;
+    const C = finCompute_(from, to), E = finEntries_();
+    let op = 0, inn = 0, out = 0;
+    E.forEach(e=>{
+      if(e.grp !== 'cash' && e.grp !== 'bank') return;
+      const net = e.dr - e.cr;
+      if(from ? e.date < from : e.date === '0000-00-00') op += net;
+      else if(!to || e.date <= to){ inn += e.dr; out += e.cr; }
+    });
+    acctVouchers.forEach(v=>{                      // cash <-> bank transfers are not real money in / out
+      if(!v || v.kind !== 'contra' || v.status === 'cancelled') return;
+      if((from && v.date < from) || (to && v.date > to)) return;
+      const x = Number(v.amount) || 0; inn -= x; out -= x;
+    });
+    op = r2_(op); inn = r2_(inn); out = r2_(out);
+    const net = r2_(inn - out), close = r2_(op + net);
+    const rec = r2_(C.bs.debtors.reduce((s, x)=>s + x.bal, 0)), pay = r2_(C.bs.creditors.reduce((s, x)=>s + x.bal, 0));
+    const m = n=>{ n = Number(n) || 0; return `<span style="${n < 0 ? 'color:#c0392b;' : ''}">${n < 0 ? '-' : ''}\u20B9${inr_(Math.abs(n))}</span>`; };
+    const st = (label, value)=>`<div class="dstat"><small>${label}</small><b>${value}</b></div>`;
+    const p = C.pl;
+    const html = `<div class="dash-hero" style="margin-top:14px;">
+      <div class="dash-head"><h2>${BT_('Accounts Overview', '\u0916\u093E\u0924\u093E \u0938\u093E\u0930\u093E\u0902\u0936')}</h2><span class="subtle">${escapeHtml(periodLabel || '')}</span></div>
+      <div class="dash-grid">
+        <div class="dcard span2"><div class="dtitle"><i>\uD83D\uDCB0</i>${BT_('Cash Flow (Cash + Bank)', '\u0915\u0948\u0936 \u092B\u094D\u0932\u094B (\u0915\u0948\u0936 + \u092C\u0948\u0902\u0915)')}</div><div class="dstats">
+          ${st(BT_('Opening', '\u0913\u092A\u0928\u093F\u0902\u0917'), m(op))}${st(BT_('Money In', '\u0906\u092F\u093E'), m(inn))}${st(BT_('Money Out', '\u0917\u092F\u093E'), m(out))}${st(BT_('Net Flow', '\u0928\u0947\u091F \u092B\u094D\u0932\u094B'), m(net))}${st(BT_('Closing', '\u0915\u094D\u0932\u094B\u091C\u093C\u093F\u0902\u0917'), m(close))}</div></div>
+        <div class="dcard"><div class="dtitle"><i>\uD83D\uDCD2</i>${BT_('Balances', '\u092C\u0948\u0932\u0947\u0902\u0938')}</div><div class="dstats">
+          ${st(BT_('Receivable', '\u0932\u0947\u0928\u093E (Receivable)'), m(rec))}${st(BT_('Payable', '\u0926\u0947\u0928\u093E (Payable)'), m(pay))}</div></div>
+        <div class="dcard"><div class="dtitle"><i>\uD83D\uDCC8</i>${BT_('Profit', '\u092A\u094D\u0930\u0949\u092B\u093F\u091F')}</div><div class="dstats">
+          ${st(p.gp >= 0 ? BT_('Gross Profit', '\u0917\u094D\u0930\u094B\u0938 \u092A\u094D\u0930\u0949\u092B\u093F\u091F') : BT_('Gross Loss', '\u0917\u094D\u0930\u094B\u0938 \u0932\u0949\u0938'), m(p.gp))}${st(p.net >= 0 ? BT_('Net Profit', '\u0928\u0947\u091F \u092A\u094D\u0930\u0949\u092B\u093F\u091F') : BT_('Net Loss', '\u0928\u0947\u091F \u0932\u0949\u0938'), m(p.net))}</div></div>
+        <div class="dcard"><div class="dtitle"><i>\uD83E\uDDFE</i>${BT_('Sales / Purchase', '\u092C\u093F\u0915\u094D\u0930\u0940 / \u0916\u0930\u0940\u0926')}</div><div class="dstats">
+          ${st(BT_('Sales', '\u092C\u093F\u0915\u094D\u0930\u0940'), m(p.sales))}${st(BT_('Purchase', '\u0916\u0930\u0940\u0926'), m(p.purchase))}</div></div>
+      </div>
+      <div class="subtle" style="margin-top:8px;font-size:12px;">${BT_('Taken from Sale, Purchase and Receipt/Payment entries only. Take Order and Pending orders are not counted.', '\u0938\u093F\u0930\u094D\u092B\u093C \u0938\u0947\u0932, \u092A\u0930\u091A\u0947\u091C \u0914\u0930 \u0930\u093F\u0938\u0940\u092A\u094D\u091F/\u092A\u0947\u092E\u0947\u0902\u091F \u090F\u0902\u091F\u094D\u0930\u0940 \u0938\u0947\u0964 Take Order / Pending \u0907\u0938\u092E\u0947\u0902 \u0928\u0939\u0940\u0902 \u091C\u0941\u0921\u093C\u0924\u0947\u0964')}</div>
+    </div>`;
+    dashAcctMemo_ = { key, at:Date.now(), html };
+    return html;
+  }catch(e){ console.error('Dashboard accounts overview skipped', e); return ''; }
+}
+
+/* =====================  PENDING ORDER  ->  SALE BILL  =====================
+   Optional, one-way and manual: the person picks items from a customer's pending orders and a
+   normal Sale Entry opens, pre-filled. The pending order itself is NOT changed or dispatched,
+   and nothing flows into Sale / Purchase / Profit & Loss / Balance Sheet until the bill is saved. */
+function pendSaleOpen_(cname, dk){
+  if(!canAccessTab('acct') || isCustomerUser_()){ alert(BT_('You do not have access to Sale entry.', '\u0906\u092A\u0915\u094B \u0938\u0947\u0932 \u090F\u0902\u091F\u094D\u0930\u0940 \u0915\u0940 \u0905\u0928\u0941\u092E\u0924\u093F \u0928\u0939\u0940\u0902 \u0939\u0948\u0964')); return; }
+  const f = firm_();
+  if(!f.ok){
+    alert(BT_('First set the GST details in Alter Company, then make the sale bill.', '\u092A\u0939\u0932\u0947 Alter Company \u092E\u0947\u0902 GST \u0921\u093F\u091F\u0947\u0932 \u092D\u0930\u0947\u0902, \u092B\u093F\u0930 \u0938\u0947\u0932 \u092C\u093F\u0932 \u092C\u0928\u093E\u090F\u0902\u0964'));
+    if(isOwnerUser_()) openBizProfile();
+    return;
+  }
+  const rows = bookings.filter(b=>b.status === 'pending' && !b.trashed && b.customerName === cname);
+  if(!rows.length){ alert(BT_('No pending items for this customer.', '\u0907\u0938 \u0917\u094D\u0930\u093E\u0939\u0915 \u0915\u093E \u0915\u094B\u0908 \u092A\u0947\u0902\u0921\u093F\u0902\u0917 \u0906\u0907\u091F\u092E \u0928\u0939\u0940\u0902\u0964')); return; }
+  rows.sort((a, b)=>String(a.designNumber).localeCompare(String(b.designNumber)));
+  const old = document.getElementById('pendSaleOv'); if(old) old.remove();
+  const ov = document.createElement('div'); ov.className = 'modal-ov'; ov.id = 'pendSaleOv'; ov.style.zIndex = 9300;
+  const lines = rows.map(b=>{
+    const here = dispatchDateKey(b.orderedAt) === dk, rate = parseFloat(b.pricePerPcs) || '';
+    const nm = [b.designNumber, b.colour, b.size].filter(Boolean).join(' ');
+    return `<div class="item-line" style="flex-wrap:wrap;gap:6px;align-items:center;">
+      <label style="display:flex;align-items:center;gap:6px;flex:1;min-width:150px;margin:0;"><input type="checkbox" class="psChk" data-id="${b.id}" ${here ? 'checked' : ''} style="width:auto;"><span>${escapeHtml(nm)}${b.brand ? ' \u00B7 ' + escapeHtml(b.brand) : ''}<br><small style="color:#7e8896;">${escapeHtml(dispatchDateLabel(dispatchDateKey(b.orderedAt)))} \u00B7 ${t('badge_pending')}: ${qtyUi_(b)}</small></span></label>
+      <input id="psQty-${b.id}" type="number" min="0" step="any" value="${b.qty}" style="width:70px;" title="Qty">
+      <span>${escapeHtml(unitUi_(unitOf_(b)))}</span>
+      <input id="psRate-${b.id}" type="number" min="0" step="any" value="${rate}" placeholder="\u20B9 rate" style="width:84px;">
+    </div>`;
+  }).join('');
+  ov.innerHTML = `<div class="modal-sheet" style="max-width:680px;max-height:92vh;overflow:auto;">
+    <div class="voice-head"><b>\uD83E\uDDFE ${BT_('Sale Bill from Pending', '\u092A\u0947\u0902\u0921\u093F\u0902\u0917 \u0938\u0947 \u0938\u0947\u0932 \u092C\u093F\u0932')} \u2014 ${escapeHtml(cname)}</b><button class="voice-x" onclick="document.getElementById('pendSaleOv').remove()">\u2715</button></div>
+    <div class="subtle" style="margin-bottom:8px;">${BT_('Tick the items you want in this bill. You can change quantity and rate. The pending order is not changed.', '\u091C\u093F\u0924\u0928\u0947 \u0906\u0907\u091F\u092E \u092C\u093F\u0932 \u092E\u0947\u0902 \u091A\u093E\u0939\u093F\u090F \u0909\u0924\u0928\u0947 \u091F\u093F\u0915 \u0915\u0930\u0947\u0902\u0964 \u0915\u094D\u0935\u093E\u0902\u091F\u093F\u091F\u0940 \u0914\u0930 \u0930\u0947\u091F \u092C\u0926\u0932 \u0938\u0915\u0924\u0947 \u0939\u0948\u0902\u0964 \u092A\u0947\u0902\u0921\u093F\u0902\u0917 \u0911\u0930\u094D\u0921\u0930 \u0928\u0939\u0940\u0902 \u092C\u0926\u0932\u0947\u0917\u093E\u0964')}</div>
+    <div style="display:flex;gap:8px;margin-bottom:8px;"><button class="btn-pill ghost" onclick="document.querySelectorAll('#pendSaleOv .psChk').forEach(c=>c.checked=true)">${t('pend_select_all')}</button><button class="btn-pill ghost" onclick="document.querySelectorAll('#pendSaleOv .psChk').forEach(c=>c.checked=false)">${BT_('Clear', '\u0938\u093E\u092B\u093C')}</button></div>
+    ${lines}
+    <div id="pendSaleMsg"></div>
+    <button class="primary" style="margin-top:12px;" onclick="pendSaleCreate_('${cname.replace(/'/g, "\\'")}')">\uD83E\uDDFE ${BT_('Create Sale Bill', '\u0938\u0947\u0932 \u092C\u093F\u0932 \u092C\u0928\u093E\u090F\u0902')}</button>
+  </div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click', e=>{ if(e.target === ov) ov.remove(); });
+}
+function pendSaleCreate_(cname){
+  const msg = document.getElementById('pendSaleMsg'), f = firm_();
+  const picked = [];
+  document.querySelectorAll('#pendSaleOv .psChk').forEach(c=>{
+    if(!c.checked) return;
+    const b = bookings.find(x=>x.id === c.dataset.id); if(!b) return;
+    const qty = parseFloat((document.getElementById('psQty-' + b.id) || {}).value), rate = parseFloat((document.getElementById('psRate-' + b.id) || {}).value);
+    if(qty > 0) picked.push({ b, qty, rate: rate >= 0 ? rate : '' });
+  });
+  if(!picked.length){ if(msg) msg.innerHTML = `<div class="msg err">${BT_('Please tick at least one item with quantity.', '\u0915\u092E \u0938\u0947 \u0915\u092E \u090F\u0915 \u0906\u0907\u091F\u092E (\u0915\u094D\u0935\u093E\u0902\u091F\u093F\u091F\u0940 \u0915\u0947 \u0938\u093E\u0925) \u091F\u093F\u0915 \u0915\u0930\u0947\u0902\u0964')}</div>`; return; }
+  const merged = new Map();
+  picked.forEach(({ b, qty, rate })=>{
+    const desc = [b.designNumber, b.colour, b.size].filter(Boolean).join(' ').trim(), unit = unitOf_(b), k = desc.toLowerCase() + '|' + unit + '|' + rate;
+    if(merged.has(k)) merged.get(k).qty += qty; else merged.set(k, { desc, unit, qty, rate });
+  });
+  const lines = [], newItems = [];
+  merged.forEach(m=>{
+    let it = stockItems.find(i=>i.name.trim().toLowerCase() === m.desc.toLowerCase());
+    if(!it){ it = { id:uid(), name:m.desc, group:'', unit:m.unit, hsn:'', gst:(f.type === 'regular' ? 18 : 0), openQty:'', purchaseRate:0, markupPct:0, saleRate:m.rate === '' ? 0 : m.rate }; newItems.push(it); }
+    lines.push({ desc:it.name, hsn:it.hsn || '', qty:m.qty, unit:m.unit, rate:m.rate, disc:'', gst:(f.type === 'regular') ? (Number(it.gst) || 0) : 0 });
+  });
+  if(newItems.length){ newItems.forEach(i=>stockItems.push(i)); stockSave_(); }
+  let p = acctParties.find(x=>x.name.trim().toLowerCase() === cname.trim().toLowerCase());
+  if(!p){ p = { id:uid(), name:cname, gstin:'', state:f.state, addr:'', open:0 }; acctParties.push(p); acctSave_(); }
+  const pre = { partyName:p.name, partyGstin:p.gstin || '', partyState:p.state || f.state, pos:p.state || f.state, partyAddr:p.addr || '', note:'From pending order', lines };
+  const ov = document.getElementById('pendSaleOv'); if(ov) ov.remove();
+  acctOpen_('sale', null, pre);
+}
+
+
 if(PUBLIC_MODE){ initPublicCatalog_(); }
 else{ applyStaticLanguage();
 updateNotifyBtn_();
-loadData(); }
+loadData();
+bigHydrate_().then(ch=>{ if(ch){ try{ render(); }catch(e){} } }).catch(()=>{}); }
 
 // Registers the offline service worker so the app itself (HTML/CSS/JS) can
 // load with no internet at all — the data layer above already handles
